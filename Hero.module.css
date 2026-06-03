@@ -1,0 +1,166 @@
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100px 24px 84px;
+  overflow: hidden;
+  text-align: center;
+  z-index: 1;
+}
+
+/* Aurora rings */
+.ring1, .ring2, .ring3, .ring4 {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -54%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.ring1 { width: 620px; height: 620px; border: 1px solid rgba(56,139,253,.10); }
+.ring2 { width: 450px; height: 450px; border: 1px solid rgba(79,172,254,.08); }
+.ring3 { width: 295px; height: 295px; border: 1px solid rgba(99,202,255,.06); }
+.ring4 { width: 160px; height: 160px; border: 1px solid rgba(56,139,253,.09); }
+
+.badge {
+  position: relative;
+  background: rgba(56,139,253,.1);
+  border: 1px solid rgba(56,139,253,.45);
+  color: #6ACFFF;
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  padding: 7px 20px;
+  border-radius: 2px;
+  margin-bottom: 36px;
+  text-shadow: 0 0 10px rgba(56,200,255,.4);
+}
+
+.title {
+  position: relative;
+  font-family: 'Orbitron', monospace;
+  font-size: 34px;
+  font-weight: 900;
+  color: #D8F0FF;
+  line-height: 1.1;
+  letter-spacing: .05em;
+  text-shadow: 0 0 50px rgba(56,180,255,.6), 0 0 100px rgba(56,139,253,.3), 0 2px 8px #000;
+  margin-bottom: 6px;
+}
+
+.accent {
+  color: #5AC8FF;
+  text-shadow: 0 0 40px rgba(56,220,255,.8);
+}
+
+.glowLine {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(99,202,255,.6), transparent);
+  width: 70%;
+  max-width: 480px;
+  margin: 18px auto 16px;
+}
+
+.subWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.subLeft  { text-align: right; }
+.subRight { text-align: left; }
+
+.subDivider {
+  width: 1px;
+  height: 40px;
+  background: linear-gradient(180deg, transparent, rgba(99,202,255,.5), transparent);
+  margin: 0 18px;
+}
+
+.subLabel {
+  font-family: 'Orbitron', monospace;
+  font-size: 7px;
+  font-weight: 700;
+  color: #1E4878;
+  letter-spacing: .18em;
+  margin-bottom: 4px;
+}
+
+.subVal {
+  font-family: 'Exo 2', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: #5A9ACC;
+  letter-spacing: .06em;
+}
+
+.bright {
+  color: #72BCDF;
+  text-shadow: 0 0 14px rgba(56,180,255,.3);
+}
+
+.body {
+  position: relative;
+  font-size: 14px;
+  font-weight: 600;
+  color: #3A6080;
+  line-height: 1.9;
+  max-width: 540px;
+  margin: 0 auto 44px;
+}
+
+.btns {
+  position: relative;
+  display: flex;
+  gap: 14px;
+}
+
+.btnPrimary {
+  background: rgba(56,139,253,.14);
+  border: 1px solid rgba(56,139,253,.6);
+  color: #90D0FF;
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 14px 30px;
+  border-radius: 3px;
+  text-decoration: none;
+  letter-spacing: .12em;
+  transition: all .2s;
+  text-shadow: 0 0 10px rgba(56,200,255,.3);
+}
+
+.btnPrimary:hover {
+  background: rgba(56,139,253,.28);
+  box-shadow: 0 0 24px rgba(56,139,253,.4);
+}
+
+.btnSecondary {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.14);
+  color: #3A6080;
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 14px 30px;
+  border-radius: 3px;
+  text-decoration: none;
+  letter-spacing: .12em;
+  transition: all .2s;
+}
+
+.btnSecondary:hover {
+  background: rgba(255,255,255,.09);
+  color: #5A8AAA;
+}
+
+@media (max-width: 768px) {
+  .title  { font-size: 24px; }
+  .ring1  { width: 320px; height: 320px; }
+  .ring2  { width: 240px; height: 240px; }
+  .ring3  { width: 160px; height: 160px; }
+  .ring4  { display: none; }
+  .btns   { flex-direction: column; }
+}
