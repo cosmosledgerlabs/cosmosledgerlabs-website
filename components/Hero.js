@@ -12,7 +12,7 @@ export default function Hero() {
 
       <h1 className={styles.title}>
         Workflow Infrastructure<br />
-     or <span className={styles.accent}>Digital Asset</span> Operations
+     for <span className={styles.accent}>Digital Asset</span> Operations
 
       <div className={styles.glowLine} />
 
