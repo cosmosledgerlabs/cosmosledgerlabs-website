@@ -12,7 +12,7 @@ export default function Hero() {
 
       <h1 className={styles.title}>
         Workflow Infrastructure<br />
-      COSMOS Ledger Labs — Building the Future of <span className={styles.accent}>Digital Asset</span> Operations
+      COSMOS Ledger Labs — Building the Future of Digital Asset Operations
 
       <div className={styles.glowLine} />
 
