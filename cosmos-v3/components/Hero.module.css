@@ -1,7 +1,7 @@
 .hero {
   position: relative;
   min-height: 100vh;
-  background: #000005;
+  background: #00010a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -15,30 +15,30 @@
   display: block;
   z-index: 0;
 }
-/* 内容居中 */
 .content {
   position: relative;
   z-index: 10;
   padding: 0 5%;
-  max-width: 900px;
+  max-width: 960px;
   width: 100%;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 /* 融资标签 */
 .fundingBadge {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   font-family: 'Rajdhani', sans-serif;
-  font-size: clamp(10px, 2vw, 13px);
+  font-size: clamp(9px, 1.8vw, 12px);
   font-weight: 700;
   color: #00e8ff;
-  border: 1.5px solid rgba(0,220,255,.65);
-  background: rgba(0,180,255,.12);
-  padding: 10px 20px;
+  border: 1.5px solid rgba(0,220,255,.6);
+  background: rgba(0,180,255,.1);
+  padding: 9px 18px;
   border-radius: 4px;
   letter-spacing: .16em;
   margin-bottom: 14px;
@@ -47,133 +47,118 @@
   max-width: 100%;
 }
 @keyframes fpulse {
-  0%,100% { box-shadow: 0 0 20px rgba(0,200,255,.2); }
-  50% { box-shadow: 0 0 40px rgba(0,220,255,.5); }
+  0%,100% { box-shadow: 0 0 18px rgba(0,200,255,.2); }
+  50% { box-shadow: 0 0 36px rgba(0,220,255,.5); }
 }
-.fstar { color: #00e8ff; text-shadow: 0 0 14px rgba(0,232,255,1); }
+.fstar { color: #00e8ff; text-shadow: 0 0 14px rgba(0,232,255,1); font-size: 13px; }
 
+/* BUILT ON SOLANA */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   font-family: 'Rajdhani', sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 11px; font-weight: 700;
   color: #00e8ff;
-  border: 1px solid rgba(0,200,255,.55);
-  padding: 7px 18px;
-  border-radius: 3px;
-  letter-spacing: .22em;
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
+  border: 1px solid rgba(0,200,255,.5);
+  padding: 7px 18px; border-radius: 3px;
+  letter-spacing: .22em; margin-bottom: 20px;
+  position: relative; overflow: hidden;
   text-shadow: 0 0 14px rgba(0,232,255,.9);
 }
 .badge::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -60%;
-  width: 60%; height: 100%;
+  content: ''; position: absolute;
+  top: 0; left: -60%; width: 60%; height: 100%;
   background: linear-gradient(90deg, transparent, rgba(0,220,255,.3), transparent);
   animation: bf 3s linear infinite;
 }
 @keyframes bf { 0%{left:-60%} 100%{left:160%} }
 .dot {
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: #00e8ff;
-  box-shadow: 0 0 12px #00e8ff;
-  flex-shrink: 0;
-  animation: bk 2.2s ease-in-out infinite;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #00e8ff; box-shadow: 0 0 12px #00e8ff;
+  flex-shrink: 0; animation: bk 2.2s ease-in-out infinite;
 }
 @keyframes bk { 0%,100%{opacity:1} 50%{opacity:.15} }
 
-/* 标题居中 */
+/* 主标题 */
 .title {
   font-family: 'Rajdhani', sans-serif;
-  font-size: clamp(28px, 5.5vw, 72px);
+  font-size: clamp(28px, 6vw, 76px);
   font-weight: 700;
-  line-height: 1.05;
-  margin-bottom: 20px;
+  line-height: 1.04;
+  margin-bottom: 18px;
   letter-spacing: .04em;
   text-align: center;
 }
 .tw {
   display: block;
   color: #ffffff;
-  -webkit-text-stroke: 1.5px rgba(0,200,255,.55);
-  text-shadow: 0 0 32px rgba(0,180,255,.95), 0 0 64px rgba(0,120,255,.45), 2px 2px 0 rgba(0,100,200,.4);
+  -webkit-text-stroke: 1.5px rgba(0,210,255,.5);
+  text-shadow:
+    0 0 30px rgba(0,190,255,.95),
+    0 0 60px rgba(0,140,255,.5),
+    0 0 90px rgba(0,80,200,.25),
+    2px 2px 0 rgba(0,80,180,.4);
 }
 .tc {
   color: #00e8ff;
-  -webkit-text-stroke: 1.5px rgba(0,240,255,.78);
-  text-shadow: 0 0 32px rgba(0,232,255,1), 0 0 64px rgba(0,200,255,.75), 2px 2px 0 rgba(0,120,200,.5);
+  -webkit-text-stroke: 1.5px rgba(0,240,255,.75);
+  text-shadow:
+    0 0 30px rgba(0,232,255,1),
+    0 0 60px rgba(0,210,255,.8),
+    0 0 90px rgba(0,160,255,.4),
+    2px 2px 0 rgba(0,120,200,.5);
 }
 
-.sub {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
-.sl {
+/* Sub header */
+.subline {
   font-family: 'Rajdhani', sans-serif;
-  font-size: 9px; font-weight: 700;
-  color: #44bbcc; letter-spacing: .2em; margin-bottom: 2px;
+  font-size: clamp(11px, 1.8vw, 15px);
+  font-weight: 600;
+  color: #88ddee;
+  letter-spacing: .18em;
+  margin-bottom: 10px;
+  text-shadow: 0 0 12px rgba(0,200,240,.45);
 }
-.sv {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 14px; font-weight: 700;
-  color: #88ddee; letter-spacing: .1em;
-}
-.svd { color: #66ccdd; }
-.sdiv {
-  width: 1px; height: 28px;
-  background: linear-gradient(180deg, transparent, rgba(0,220,255,.7), transparent);
-  margin: 0 14px;
-}
+
 .gl {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,220,255,.8), transparent);
-  width: 100%;
-  max-width: 480px;
+  background: linear-gradient(90deg, transparent, rgba(0,220,255,.75), transparent);
+  width: 100%; max-width: 520px;
   margin: 12px auto;
 }
+
+/* 正文 */
 .bodyTxt {
   font-family: 'Share Tech Mono', monospace;
   font-size: clamp(11px, 1.5vw, 14px);
   color: #ffffff;
   line-height: 1.9;
-  max-width: 580px;
+  max-width: 600px;
   margin-bottom: 32px;
   text-align: center;
-  text-shadow: 0 0 8px rgba(200,230,255,.3);
+  text-shadow: 0 0 10px rgba(180,220,255,.25);
 }
-.btns {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
+
+/* 按钮 */
+.btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 .bp {
   font-family: 'Rajdhani', sans-serif;
   font-size: 14px; font-weight: 700;
-  padding: 14px 28px; border-radius: 4px;
-  background: linear-gradient(135deg, rgba(0,80,180,.65), rgba(0,160,230,.45));
-  border: 1.5px solid rgba(0,220,255,.85);
+  padding: 14px 30px; border-radius: 4px;
+  background: linear-gradient(135deg, rgba(0,80,190,.65), rgba(0,160,235,.45));
+  border: 1.5px solid rgba(0,215,255,.88);
   color: #00e8ff; text-decoration: none;
   letter-spacing: .15em;
   text-shadow: 0 0 18px rgba(0,232,255,1);
-  box-shadow: 0 0 32px rgba(0,170,240,.55), inset 0 0 20px rgba(0,150,255,.1);
+  box-shadow: 0 0 32px rgba(0,160,240,.5), inset 0 0 20px rgba(0,140,255,.1);
 }
 .bs {
   font-family: 'Rajdhani', sans-serif;
   font-size: 14px; font-weight: 700;
-  padding: 13px 28px; border-radius: 4px;
-  background: rgba(0,60,120,.18);
-  border: 1.5px solid rgba(0,180,220,.55);
+  padding: 13px 30px; border-radius: 4px;
+  background: rgba(0,50,110,.22);
+  border: 1.5px solid rgba(0,175,225,.55);
   color: #88ddee; text-decoration: none;
   letter-spacing: .15em;
   text-shadow: 0 0 10px rgba(0,200,240,.4);

@@ -21,99 +21,112 @@ export default function Hero() {
       uniform float u_time;
       uniform float u_aspect;
 
-      float noise(vec2 p) {
-        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+      // Hash function
+      vec2 hash2(vec2 p) {
+        p = vec2(dot(p,vec2(127.1,311.7)), dot(p,vec2(269.5,183.3)));
+        return -1.0 + 2.0 * fract(sin(p) * 43758.5453123);
       }
 
-      float smoothNoise(vec2 p) {
+      float noise(vec2 p) {
         vec2 i = floor(p);
         vec2 f = fract(p);
-        f = f * f * (3.0 - 2.0 * f);
-        float a = noise(i);
-        float b = noise(i + vec2(1.0, 0.0));
-        float c = noise(i + vec2(0.0, 1.0));
-        float d = noise(i + vec2(1.0, 1.0));
-        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+        vec2 u = f*f*(3.0-2.0*f);
+        return mix(mix(dot(hash2(i+vec2(0,0)),f-vec2(0,0)),
+                       dot(hash2(i+vec2(1,0)),f-vec2(1,0)),u.x),
+                   mix(dot(hash2(i+vec2(0,1)),f-vec2(0,1)),
+                       dot(hash2(i+vec2(1,1)),f-vec2(1,1)),u.x),u.y);
       }
 
       float fbm(vec2 p) {
-        float v = 0.0;
-        float a = 0.5;
-        vec2 shift = vec2(100.0);
-        mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
-        for (int i = 0; i < 6; i++) {
-          v += a * smoothNoise(p);
-          p = rot * p * 2.0 + shift;
+        float v = 0.0; float a = 0.5;
+        mat2 rot = mat2(cos(0.5),sin(0.5),-sin(0.5),cos(0.5));
+        for(int i=0;i<5;i++){
+          v += a * noise(p);
+          p = rot * p * 2.1;
           a *= 0.5;
         }
         return v;
+      }
+
+      // 粒子星点
+      float particle(vec2 uv, vec2 pos, float size) {
+        float d = length(uv - pos);
+        return size / (d * d + size * 0.01);
       }
 
       void main() {
         vec2 uv = v_uv - 0.5;
         uv.x *= u_aspect;
 
-        float t = u_time * 0.18;
+        float t = u_time * 0.12;
 
-        // 用FBM噪声生成不规则云状形态
-        vec2 q = vec2(
-          fbm(uv + vec2(0.0, 0.0) + t * 0.3),
-          fbm(uv + vec2(5.2, 1.3) + t * 0.25)
-        );
+        // 深海军蓝背景
+        vec3 bgColor = vec3(0.004, 0.008, 0.028);
 
-        vec2 r = vec2(
-          fbm(uv + 4.0 * q + vec2(1.7, 9.2) + t * 0.2),
-          fbm(uv + 4.0 * q + vec2(8.3, 2.8) + t * 0.15)
-        );
+        // FBM旋涡星云
+        vec2 q = vec2(fbm(uv*1.8 + t*0.3), fbm(uv*1.8 + vec2(5.2,1.3) + t*0.25));
+        vec2 r = vec2(fbm(uv*2.2 + 4.0*q + vec2(1.7,9.2) + t*0.2),
+                      fbm(uv*2.2 + 4.0*q + vec2(8.3,2.8) + t*0.15));
+        float nebula = fbm(uv*1.5 + 4.0*r + t*0.08);
 
-        float shape = fbm(uv + 4.0 * r + t * 0.1);
+        // 星云形状 — 中心聚焦
+        float distCenter = length(uv);
+        float nebulaShape = nebula * exp(-distCenter * 1.8) * 2.2;
 
-        // 不规则环形 — 中空
-        float dist = length(uv) + shape * 0.35 - 0.08;
-        float ringRadius = 0.28;
-        float ringWidth = 0.055;
+        // 旋涡能量环
+        float angle = atan(uv.y, uv.x);
+        float swirl = sin(angle * 3.0 + t * 1.5 + nebula * 4.0) * 0.5 + 0.5;
+        float ring1 = exp(-pow(abs(distCenter - 0.22 + nebula*0.06), 2.0) / 0.004) * swirl;
+        float ring2 = exp(-pow(abs(distCenter - 0.35 + nebula*0.08), 2.0) / 0.006) * (1.0-swirl);
+        float ring3 = exp(-pow(abs(distCenter - 0.14 + nebula*0.04), 2.0) / 0.003) * 0.6;
 
-        // 外层雾化泛光
-        float outerGlow = exp(-pow(abs(dist - ringRadius) / (ringWidth * 2.8), 1.4)) * 0.55;
+        // 粒子效果
+        vec2 p1 = vec2(0.18*cos(t*0.8), 0.12*sin(t*1.1));
+        vec2 p2 = vec2(-0.15*cos(t*0.6+1.0), 0.20*sin(t*0.9+2.0));
+        vec2 p3 = vec2(0.22*cos(t*1.2+3.0), -0.16*sin(t*0.7+1.5));
+        vec2 p4 = vec2(-0.20*sin(t*0.5+2.0), -0.18*cos(t*1.0+0.5));
+        float particles = particle(uv, p1, 0.00008)
+                        + particle(uv, p2, 0.00006)
+                        + particle(uv, p3, 0.00007)
+                        + particle(uv, p4, 0.00005);
+        particles = clamp(particles, 0.0, 1.5);
 
-        // 主环轮廓 — 边缘荧光蓝
-        float ring = exp(-pow(abs(dist - ringRadius) / ringWidth, 2.0));
+        // 扫描线纹理
+        float scanline = sin(v_uv.y * 800.0) * 0.012 + 0.988;
 
-        // 内层深邃蓝
-        float innerGlow = exp(-pow(max(0.0, ringRadius - dist) / (ringWidth * 1.8), 1.6)) * 0.35;
-
-        // 边缘柔化 — 流体熔融质感
-        float edgeSoft = smoothstep(0.0, ringWidth * 3.0, abs(dist - ringRadius));
-        float fluidEdge = ring * (1.0 - edgeSoft * 0.3);
-
-        // 呼吸节奏
-        float breathe = 0.88 + 0.12 * sin(u_time * 0.45);
+        // 呼吸发光
+        float breathe = 0.85 + 0.15 * sin(u_time * 0.4);
 
         // 颜色合成
-        // 外层淡蓝雾 #004466 → transparent
-        vec3 outerFog = vec3(0.0, 0.22, 0.52) * outerGlow * breathe;
+        // 外层深蓝雾
+        vec3 outerNebula = vec3(0.0, 0.15, 0.45) * nebulaShape * 0.6;
 
-        // 主环荧光蓝 #00e8ff
-        vec3 ringColor = vec3(0.0, 0.78, 1.0) * fluidEdge * 1.8 * breathe;
+        // 中层青蓝旋涡
+        vec3 midSwirl = vec3(0.0, 0.55, 0.95) * (ring1 + ring2) * 1.4;
 
-        // 内侧渐变深蓝
-        vec3 innerColor = vec3(0.0, 0.35, 0.85) * innerGlow * breathe;
+        // 内层亮荧光青
+        vec3 innerGlow = vec3(0.05, 0.85, 1.0) * ring3 * 2.0;
 
-        // 边缘泛光叠加
-        float edgePulse = 0.85 + 0.15 * sin(u_time * 0.55 + dist * 8.0);
-        vec3 glowEdge = vec3(0.1, 0.55, 1.0) * ring * 0.9 * edgePulse * breathe;
+        // 粒子白蓝
+        vec3 particleColor = vec3(0.4, 0.85, 1.0) * particles;
 
-        vec3 col = outerFog + ringColor + innerColor + glowEdge;
+        // 中心核心辉光
+        float core = exp(-distCenter * distCenter * 8.0) * 0.35;
+        vec3 coreColor = vec3(0.1, 0.6, 1.0) * core;
 
-        // 整体雾化透明度
-        float alpha = (outerGlow + fluidEdge * 0.9 + innerGlow) * breathe;
-        alpha = clamp(alpha, 0.0, 1.0);
+        vec3 col = bgColor + outerNebula + midSwirl + innerGlow + particleColor + coreColor;
 
-        // 暗角
-        float vignette = 1.0 - smoothstep(0.35, 0.85, length(uv / vec2(u_aspect, 1.0) * 0.9));
-        col *= vignette;
+        // 扫描线叠加
+        col *= scanline;
 
-        gl_FragColor = vec4(col, 1.0);
+        // 呼吸
+        col = bgColor + (col - bgColor) * breathe;
+
+        // 暗角渐变
+        float vignette = 1.0 - smoothstep(0.3, 0.9, distCenter * 1.2);
+        col = mix(bgColor * 0.5, col, vignette * 0.9 + 0.1);
+
+        gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
       }
     `
 
@@ -156,7 +169,7 @@ export default function Hero() {
       gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
       gl.uniform1f(uTime, elapsed)
       gl.uniform1f(uAspect, ar)
-      gl.clearColor(0, 0, 0, 1)
+      gl.clearColor(0.004, 0.008, 0.028, 1)
       gl.clear(gl.COLOR_BUFFER_BIT)
       gl.drawArrays(gl.TRIANGLES, 0, 6)
       raf = requestAnimationFrame(render)
@@ -189,16 +202,8 @@ export default function Hero() {
           <span className={styles.tw}>WORKFLOW INFRASTRUCTURE FOR</span>
           <span className={styles.tw}><span className={styles.tc}>DIGITAL ASSET</span> OPERATIONS</span>
         </h1>
-        <div className={styles.sub}>
-          <div>
-            <div className={styles.sl}>COMPANY</div>
-            <div className={styles.sv}>COSMOS LEDGER LABS</div>
-          </div>
-          <div className={styles.sdiv}></div>
-          <div>
-            <div className={styles.sl}>INFRASTRUCTURE</div>
-            <div className={`${styles.sv} ${styles.svd}`}>WORKFLOW AUTOMATION</div>
-          </div>
+        <div className={styles.subline}>
+          COSMOS LEDGER LABS &nbsp;|&nbsp; DIGITAL INFRASTRUCTURE &nbsp;|&nbsp; AUTOMATION
         </div>
         <div className={styles.gl}></div>
         <p className={styles.bodyTxt}>Secure workflow orchestration, approval coordination, transaction validation, monitoring, and recovery infrastructure for modern digital asset operations.</p>
