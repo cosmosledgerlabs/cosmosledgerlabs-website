@@ -8,19 +8,6 @@ export default function Hero() {
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const CONFIG = {
-      ringWidth: 0.02,
-      flowSpeed: 0.15,
-      distortionAmount: 1.2,
-      innerColor: { r: 0.3, g: 0.75, b: 1.0 },
-      midColor: { r: 0.0, g: 0.3, b: 0.85 },
-      outerColor: { r: 0.0, g: 0.02, b: 0.15 },
-      torusGlowStrength: 0.65,
-      torusGlowWidthMultiplier: 9.0,
-      radiusMaxBoost: 1.12,
-      speedFactor: 0.857
-    }
-
     const gl = canvas.getContext('webgl2', { alpha: false, antialias: true }) ||
       canvas.getContext('webgl', { alpha: false, antialias: true })
 
@@ -32,98 +19,105 @@ export default function Hero() {
       precision highp float;
       varying vec2 v_uv;
       uniform float u_time;
-      uniform float u_aspectRatio;
-      uniform float u_ringWidth;
-      uniform float u_distortionAmount;
-      uniform vec3 u_innerColor;
-      uniform vec3 u_midColor;
-      uniform vec3 u_outerColor;
-      uniform float u_torusGlowStrength;
-      uniform float u_torusGlowWidthMultiplier;
-      uniform float u_radiusMaxBoost;
+      uniform float u_aspect;
 
-      float getDistortion(float angle, float time) {
-        float d = 0.0;
-        d += sin(angle * 3.0 + time * 1.20) * 0.026;
-        d += sin(angle * 5.0 + time * 0.78) * 0.019;
-        d += cos(angle * 7.0 + time * 1.53) * 0.015;
-        d += sin(angle * 11.0 + time * 0.61) * 0.011;
-        d += cos(angle * 2.0 + time * 1.74) * 0.021;
-        d += sin(angle * 8.0 + time * 1.08) * 0.013;
-        d += cos(angle * 13.0 + time * 0.87) * 0.008;
-        d += sin(angle * 2.0 + time * 0.35) * 0.018;
-        return d * u_distortionAmount;
+      float noise(vec2 p) {
+        return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+      }
+
+      float smoothNoise(vec2 p) {
+        vec2 i = floor(p);
+        vec2 f = fract(p);
+        f = f * f * (3.0 - 2.0 * f);
+        float a = noise(i);
+        float b = noise(i + vec2(1.0, 0.0));
+        float c = noise(i + vec2(0.0, 1.0));
+        float d = noise(i + vec2(1.0, 1.0));
+        return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+      }
+
+      float fbm(vec2 p) {
+        float v = 0.0;
+        float a = 0.5;
+        vec2 shift = vec2(100.0);
+        mat2 rot = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+        for (int i = 0; i < 6; i++) {
+          v += a * smoothNoise(p);
+          p = rot * p * 2.0 + shift;
+          a *= 0.5;
+        }
+        return v;
       }
 
       void main() {
-        vec2 centered = v_uv - 0.5;
-        centered.x *= u_aspectRatio;
-        float distGlobal = length(centered);
-        float angle = atan(centered.y, centered.x);
-        float cycle = fract(u_time * 0.3333);
-        float easeOut = smoothstep(0.1, 0.5, cycle);
-        float d = getDistortion(angle, u_time * 0.8) * (1.0 + cycle * 2.0) * u_distortionAmount;
-        float currentRadius = 0.06 + easeOut * u_radiusMaxBoost + d;
-        float gridSize = 200.0;
-        vec2 gridCoord = v_uv * vec2(gridSize * u_aspectRatio, gridSize);
-        vec2 gridFrac = abs(fract(gridCoord) - 0.5);
-        vec2 gridCentered = (floor(gridCoord) + 0.5) / vec2(gridSize * u_aspectRatio, gridSize) - 0.5;
-        gridCentered.x *= u_aspectRatio;
-        float distGrid = length(gridCentered);
-        float angleGrid = atan(gridCentered.y, gridCentered.x);
-        float dGrid = getDistortion(angleGrid, u_time * 0.8) * (1.0 + cycle * 2.0) * u_distortionAmount;
-        float radiusGrid = 0.06 + easeOut * u_radiusMaxBoost + dGrid;
-        float localDistGrid = distGrid - radiusGrid;
-        float localWidth = u_ringWidth * (1.0 + abs(dGrid) * 1.5);
-        float ringBright = exp(-pow(abs(localDistGrid), 2.0) / (2.0 * pow(localWidth, 2.0)));
-        float dotMask = 1.0 - smoothstep(0.0, 0.35, gridFrac.x);
-        dotMask *= 1.0 - smoothstep(0.0, 0.35, gridFrac.y);
-        float wave1 = exp(-pow(abs(distGlobal - currentRadius * 1.1), 2.0) / 0.005) * 0.4;
-        float wave2 = exp(-pow(abs(distGlobal - currentRadius * 1.2), 2.0) / 0.01) * 0.2;
-        float waveInt = (wave1 + wave2) * dotMask;
-        float blastPower = 1.0 + 0.8 * exp(-pow((cycle - 0.74) * 28.0, 2.0));
-        float fadeOut = 1.0 - smoothstep(0.86, 1.0, cycle);
-        float intensity = (ringBright + waveInt) * blastPower * fadeOut;
-        float colorBlend = clamp(localDistGrid / localWidth + 0.5, 0.0, 1.0);
-        vec3 color = mix(u_innerColor, u_midColor, smoothstep(0.0, 0.5, colorBlend));
-        color = mix(color, u_outerColor, smoothstep(0.5, 1.0, colorBlend));
-        vec3 finalColor = color * intensity;
-        float torusSigma = u_ringWidth * u_torusGlowWidthMultiplier * (1.0 + abs(d) * 1.8);
-        float torusGlow = exp(-pow(abs(distGlobal - currentRadius), 2.0) / (2.0 * pow(torusSigma, 2.0)));
-        float innerGlow = exp(-pow(abs(distGlobal - currentRadius * 0.88), 2.0) / (2.0 * pow(torusSigma * 1.15, 2.0)));
-        float innerGlowMask = smoothstep(currentRadius, currentRadius - torusSigma * 2.5, distGlobal);
-        float combinedGlow = torusGlow + innerGlow * 0.45 * innerGlowMask;
-        float lightAngle = u_time * 0.22;
-        float angleLighting = 0.55 + 0.45 * cos(angle - lightAngle);
-        float fillLight = 0.35 + 0.25 * cos(angle - lightAngle + 2.4);
-        float combinedLighting = clamp(angleLighting + fillLight, 0.25, 1.5);
-        float radialBias = 1.0 + 0.22 * smoothstep(-0.08, 0.08, distGlobal - currentRadius);
-        combinedLighting *= radialBias;
-        vec3 shadowBlue = vec3(0.02, 0.08, 0.25);
-        vec3 midBlue = vec3(0.08, 0.20, 0.50);
-        vec3 brightBlue = vec3(0.20, 0.40, 0.80);
-        float lightNorm = clamp(combinedLighting / 1.5, 0.0, 1.0);
-        vec3 glowColor = mix(shadowBlue, midBlue, lightNorm);
-        glowColor = mix(glowColor, brightBlue, pow(lightNorm, 2.5) * 0.9);
-        float glowPulse = 1.0 + 0.14 * sin(u_time * 0.55) * (1.0 + cycle * 0.5);
-        float glowIntensity = combinedGlow * u_torusGlowStrength * glowPulse * fadeOut;
-        glowIntensity *= (1.0 + (blastPower - 1.0) * 0.5);
-        finalColor += glowColor * glowIntensity;
-        float edgeDist = min(min(v_uv.x, 1.0 - v_uv.x), min(v_uv.y, 1.0 - v_uv.y));
-        float edgeMain = exp(-edgeDist / 0.0115);
-        float edgeGlow = exp(-edgeDist / 0.048) * 0.28;
-        float edgeIntensity = (edgeMain + edgeGlow) * (1.0 + 0.10 * sin(u_time * 0.55) * (1.0 + cycle * 0.4));
-        vec3 edgeColorBright = mix(u_innerColor, u_midColor, 0.12);
-        vec3 edgeColorDark = mix(u_midColor, u_outerColor, 0.45);
-        vec3 edgeColor = mix(edgeColorDark, edgeColorBright, clamp(edgeMain, 0.0, 1.0));
-        finalColor += edgeColor * edgeIntensity * 0.78;
-        float vignette = 1.0 - smoothstep(0.4, 0.9, distGlobal) * 0.15;
-        finalColor *= vignette;
-        gl_FragColor = vec4(max(finalColor, 0.0), 1.0);
+        vec2 uv = v_uv - 0.5;
+        uv.x *= u_aspect;
+
+        float t = u_time * 0.18;
+
+        // 用FBM噪声生成不规则云状形态
+        vec2 q = vec2(
+          fbm(uv + vec2(0.0, 0.0) + t * 0.3),
+          fbm(uv + vec2(5.2, 1.3) + t * 0.25)
+        );
+
+        vec2 r = vec2(
+          fbm(uv + 4.0 * q + vec2(1.7, 9.2) + t * 0.2),
+          fbm(uv + 4.0 * q + vec2(8.3, 2.8) + t * 0.15)
+        );
+
+        float shape = fbm(uv + 4.0 * r + t * 0.1);
+
+        // 不规则环形 — 中空
+        float dist = length(uv) + shape * 0.35 - 0.08;
+        float ringRadius = 0.28;
+        float ringWidth = 0.055;
+
+        // 外层雾化泛光
+        float outerGlow = exp(-pow(abs(dist - ringRadius) / (ringWidth * 2.8), 1.4)) * 0.55;
+
+        // 主环轮廓 — 边缘荧光蓝
+        float ring = exp(-pow(abs(dist - ringRadius) / ringWidth, 2.0));
+
+        // 内层深邃蓝
+        float innerGlow = exp(-pow(max(0.0, ringRadius - dist) / (ringWidth * 1.8), 1.6)) * 0.35;
+
+        // 边缘柔化 — 流体熔融质感
+        float edgeSoft = smoothstep(0.0, ringWidth * 3.0, abs(dist - ringRadius));
+        float fluidEdge = ring * (1.0 - edgeSoft * 0.3);
+
+        // 呼吸节奏
+        float breathe = 0.88 + 0.12 * sin(u_time * 0.45);
+
+        // 颜色合成
+        // 外层淡蓝雾 #004466 → transparent
+        vec3 outerFog = vec3(0.0, 0.22, 0.52) * outerGlow * breathe;
+
+        // 主环荧光蓝 #00e8ff
+        vec3 ringColor = vec3(0.0, 0.78, 1.0) * fluidEdge * 1.8 * breathe;
+
+        // 内侧渐变深蓝
+        vec3 innerColor = vec3(0.0, 0.35, 0.85) * innerGlow * breathe;
+
+        // 边缘泛光叠加
+        float edgePulse = 0.85 + 0.15 * sin(u_time * 0.55 + dist * 8.0);
+        vec3 glowEdge = vec3(0.1, 0.55, 1.0) * ring * 0.9 * edgePulse * breathe;
+
+        vec3 col = outerFog + ringColor + innerColor + glowEdge;
+
+        // 整体雾化透明度
+        float alpha = (outerGlow + fluidEdge * 0.9 + innerGlow) * breathe;
+        alpha = clamp(alpha, 0.0, 1.0);
+
+        // 暗角
+        float vignette = 1.0 - smoothstep(0.35, 0.85, length(uv / vec2(u_aspect, 1.0) * 0.9));
+        col *= vignette;
+
+        gl_FragColor = vec4(col, 1.0);
       }
     `
 
-    const compileShader = (type, src) => {
+    const compile = (type, src) => {
       const s = gl.createShader(type)
       gl.shaderSource(s, src)
       gl.compileShader(s)
@@ -131,14 +125,12 @@ export default function Hero() {
     }
 
     const prog = gl.createProgram()
-    gl.attachShader(prog, compileShader(gl.VERTEX_SHADER, VERT))
-    gl.attachShader(prog, compileShader(gl.FRAGMENT_SHADER, FRAG))
+    gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT))
+    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG))
     gl.linkProgram(prog)
 
-    const uniforms = {}
-    ;['u_time','u_aspectRatio','u_ringWidth','u_distortionAmount','u_innerColor','u_midColor','u_outerColor','u_torusGlowStrength','u_torusGlowWidthMultiplier','u_radiusMaxBoost'].forEach(n => {
-      uniforms[n] = gl.getUniformLocation(prog, n)
-    })
+    const uTime = gl.getUniformLocation(prog, 'u_time')
+    const uAspect = gl.getUniformLocation(prog, 'u_aspect')
 
     const buf = gl.createBuffer()
     gl.bindBuffer(gl.ARRAY_BUFFER, buf)
@@ -152,38 +144,30 @@ export default function Hero() {
       gl.viewport(0, 0, canvas.width, canvas.height)
     }
 
-    const startTime = performance.now()
-    let rafId
+    const start = performance.now()
+    let raf
 
-    const render = (ts) => {
-      const elapsed = (ts - startTime) / 1000 * CONFIG.speedFactor
+    const render = ts => {
+      const elapsed = (ts - start) / 1000
       const ar = canvas.width / Math.max(canvas.height, 1)
       gl.useProgram(prog)
       gl.bindBuffer(gl.ARRAY_BUFFER, buf)
       gl.enableVertexAttribArray(aPos)
       gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0)
-      gl.uniform1f(uniforms.u_time, elapsed)
-      gl.uniform1f(uniforms.u_aspectRatio, ar)
-      gl.uniform1f(uniforms.u_ringWidth, CONFIG.ringWidth)
-      gl.uniform1f(uniforms.u_distortionAmount, CONFIG.distortionAmount)
-      gl.uniform3f(uniforms.u_innerColor, CONFIG.innerColor.r, CONFIG.innerColor.g, CONFIG.innerColor.b)
-      gl.uniform3f(uniforms.u_midColor, CONFIG.midColor.r, CONFIG.midColor.g, CONFIG.midColor.b)
-      gl.uniform3f(uniforms.u_outerColor, CONFIG.outerColor.r, CONFIG.outerColor.g, CONFIG.outerColor.b)
-      gl.uniform1f(uniforms.u_torusGlowStrength, CONFIG.torusGlowStrength)
-      gl.uniform1f(uniforms.u_torusGlowWidthMultiplier, CONFIG.torusGlowWidthMultiplier)
-      gl.uniform1f(uniforms.u_radiusMaxBoost, CONFIG.radiusMaxBoost)
-      gl.clearColor(0,0,0,1)
+      gl.uniform1f(uTime, elapsed)
+      gl.uniform1f(uAspect, ar)
+      gl.clearColor(0, 0, 0, 1)
       gl.clear(gl.COLOR_BUFFER_BIT)
       gl.drawArrays(gl.TRIANGLES, 0, 6)
-      rafId = requestAnimationFrame(render)
+      raf = requestAnimationFrame(render)
     }
 
     window.addEventListener('resize', resize)
     resize()
-    rafId = requestAnimationFrame(render)
+    raf = requestAnimationFrame(render)
 
     return () => {
-      cancelAnimationFrame(rafId)
+      cancelAnimationFrame(raf)
       window.removeEventListener('resize', resize)
     }
   }, [])
@@ -219,7 +203,7 @@ export default function Hero() {
         <div className={styles.gl}></div>
         <p className={styles.bodyTxt}>Secure workflow orchestration, approval coordination, transaction validation, monitoring, and recovery infrastructure for modern digital asset operations.</p>
         <div className={styles.btns}>
-          <a href="#deck" className={styles.bp}>VIEW ARCHITECTURE</a>
+          <a href="/architecture-diagram.pdf" target="_blank" className={styles.bp}>VIEW ARCHITECTURE</a>
           <a href="#contact" className={styles.bs}>CONTACT US</a>
         </div>
       </div>
