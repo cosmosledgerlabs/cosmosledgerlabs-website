@@ -165,6 +165,10 @@ export function Downloads() {
           <a href="/architecture-diagram.pdf" target="_blank" className={styles.dlBtn2}>⬇ ARCHITECTURE DIAGRAM</a>
         </div>
       </div>
+      <div className={styles.videoPlaceholder}>
+        <div className={styles.vpTag}>// VIDEO PLACEHOLDER — UPLOAD PRODUCT DEMO VIDEO HERE WHEN READY</div>
+        <div className={styles.vpText}>demo-video.mp4</div>
+      </div>
     </section>
   )
 }
