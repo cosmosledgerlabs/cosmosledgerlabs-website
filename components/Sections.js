@@ -179,7 +179,7 @@ export function Team() {
       <div className="sec-tag">// SECTION 11 — TEAM <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>TEAM</h2>
       <div className={styles.steelCard}>
-        <p className={styles.ecoText}>COSMOS Ledger Labs is founded and led by Su Hua Zheng, CEO & Founder, driving platform strategy, operations, and business development. Currently recruiting a technical co-founder with Solana / Rust / Anchor experience based in Ontario, Canada.</p>
+        <p className={styles.ecoText}>COSMOS Ledger Labs is founded and led by V Zheng, CEO & Founder, driving platform strategy, operations, and business development. Currently recruiting a technical co-founder with Solana / Rust / Anchor experience based in Ontario, Canada.</p>
       </div>
     </section>
   )
