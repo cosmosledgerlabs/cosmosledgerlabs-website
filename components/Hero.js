@@ -115,7 +115,7 @@ export default function Hero() {
 
     async function init() {
       try {
-        THREE = await import('/vendor/three.module.js')
+        THREE = await import('three')
       } catch (err) {
         console.warn('[cosmos-bg] three.js failed to load; effect skipped.', err)
         return
