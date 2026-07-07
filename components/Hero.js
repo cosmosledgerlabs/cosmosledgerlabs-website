@@ -249,7 +249,8 @@ export default function Hero() {
         <div className={styles.gl}></div>
         <p className={styles.bodyTxt}>Secure workflow orchestration, approval coordination, transaction validation, monitoring, and recovery infrastructure for modern digital asset operations.</p>
         <div className={styles.btns}>
-          <a href="/architecture-diagram.pdf" target="_blank" className={styles.bp}>VIEW ARCHITECTURE</a>
+          <a href="mailto:info@cosmosledgerlabs.com?subject=Full%20Deck%20Request" className={styles.bp}>REQUEST FULL DECK →</a>
+          <a href="/architecture-diagram.pdf" target="_blank" rel="noopener noreferrer" className={styles.bp}>VIEW ARCHITECTURE</a>
           <a href="#contact" className={styles.bs}>CONTACT US</a>
         </div>
       </div>

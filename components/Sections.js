@@ -94,7 +94,8 @@ export function Security() {
   return (
     <section className={styles.section} id="security">
       <div className="sec-tag">// SECTION 07 — SECURITY <div className="sec-tag-line"/></div>
-      <h2 className={styles.secTitle}>SECURITY INFRASTRUCTURE</h2>
+      <h2 className={styles.secTitle}>SECURITY-FIRST ARCHITECTURE</h2>
+      <p className={styles.secBody}>COSMOS Ledger Labs is designed around operational security: permissions and audit logs, atomic rollback protection, and execution verification. Independent third-party security audits are planned as part of our roadmap.</p>
       <div className={styles.secGrid}>
         {items.map((item,i) => (
           <div key={i} className={styles.secCard}>
@@ -161,9 +162,10 @@ export function Downloads() {
       <div className={styles.steelCard}>
         <p className={styles.secBody}>Access the platform vision, architecture design, roadmap, and development strategy.</p>
         <div className={styles.dlButtons}>
-          <a href="/investor-deck.pdf" target="_blank" className={styles.dlBtn1}>⬇ INVESTOR DECK</a>
-          <a href="/architecture-diagram.pdf" target="_blank" className={styles.dlBtn2}>⬇ ARCHITECTURE DIAGRAM</a>
+          <a href="mailto:info@cosmosledgerlabs.com?subject=Full%20Deck%20Request" className={styles.dlBtn1}>REQUEST FULL DECK →</a>
+          <a href="/architecture-diagram.pdf" target="_blank" rel="noopener noreferrer" className={styles.dlBtn2}>⬇ ARCHITECTURE DIAGRAM</a>
         </div>
+        <p className={styles.legalNote}>Investment information is available to accredited investors upon request. Contact info@cosmosledgerlabs.com</p>
       </div>
       <div className={styles.videoPlaceholder}>
         <div className={styles.vpTag}>// VIDEO PLACEHOLDER — UPLOAD PRODUCT DEMO VIDEO HERE WHEN READY</div>
@@ -179,7 +181,13 @@ export function Team() {
       <div className="sec-tag">// SECTION 11 — TEAM <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>TEAM</h2>
       <div className={styles.steelCard}>
-        <p className={styles.ecoText}>COSMOS Ledger Labs is founded and led by V Zheng, CEO & Founder, driving platform strategy, operations, and business development. Currently recruiting a technical co-founder with Solana / Rust / Anchor experience based in Ontario, Canada.</p>
+        <p className={styles.ecoText}>V Zheng — Founder &amp; CEO. Developed and built the platform MVP, system architecture, and website end-to-end. Leads technical direction and product design at COSMOS Ledger Labs.</p>
+      </div>
+      <div className={`${styles.steelCard} ${styles.teamBlock}`}>
+        <div className={styles.teamHead}>We&apos;re Building the Team</div>
+        <p className={styles.ecoText}>We&apos;re looking for a technical co-founder and Solana / Rust / Anchor engineers to build the next generation of digital asset infrastructure.</p>
+        <p className={styles.ecoText}><em>Early role, real ownership, working product to build on.</em></p>
+        <p className={styles.ecoText}>Interested? → <a href="mailto:info@cosmosledgerlabs.com?subject=Technical%20Co-founder%20Inquiry" className={styles.inlineLink}>info@cosmosledgerlabs.com</a></p>
       </div>
     </section>
   )

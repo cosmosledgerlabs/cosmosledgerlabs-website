@@ -1,0 +1,174 @@
+# COSMOS Ledger Labs — Production Readiness Audit & Fix Report
+
+**Project:** cosmosledgerlabs-website (Next.js 14, Pages Router, static marketing site)
+**Target market:** Toronto, Ontario, Canada · desktop / laptop / tablet / mobile
+**Date:** 2026-07-07
+**Reviewed by (simulated roles):** Security · QA · Performance · Accessibility · Frontend Architecture
+
+> **中文摘要（TL;DR）**
+> 我按你给的企业级清单逐项审查了真实代码。**首屏黑屏 bug 已修复**（根因：`#cosmos-bg-container` 的定位样式被删，导致 three.js 注入的 canvas 进入文档流把内容挤到底部）。此外补齐了安全响应头（CSP + HSTS）、SEO（canonical / OG 图 / Twitter / Schema.org / sitemap / robots）、修掉了会导致 404 的 favicon/OG 资源、给所有新窗口链接加了 `rel="noopener"`、把 Demo 里的 `innerHTML` 改成安全 DOM、升级 Next 到 14.2.35、加了 `<html lang>`。
+> **仍需你处理的 3 件事（无法替你决定）**：① `public/investor-deck.pdf` 缺失会 404，需上传；② 三个极暗的小标签颜色未达 WCAG AA，是否调整取决于你要不要严格达标；③ Lighthouse 分数与真机/真浏览器测试需你在部署后自测。详见 §9。
+
+---
+
+## 1. Summary of Changes (what was actually fixed)
+
+| # | Area | File(s) | Change |
+|---|------|---------|--------|
+| 1 | **Hero black-screen bug (root cause)** | `styles/globals.css`, `components/Hero.module.css` | Restored the missing `#cosmos-bg-container` positioning rule (`position:absolute; inset:0; z-index:0`). The three.js background canvas was falling into normal document flow and pushing all hero content to the bottom. |
+| 2 | Security headers | `next.config.js` | Added **Content-Security-Policy** and **Strict-Transport-Security (HSTS)**; kept X-Frame-Options / X-Content-Type-Options / Referrer-Policy / Permissions-Policy; added `interest-cohort=()`. |
+| 3 | Reverse tabnabbing | `Hero.js`, `Sections.js` | Added `rel="noopener noreferrer"` to all 3 `target="_blank"` links. |
+| 4 | Unsafe DOM | `DemoSection.js` | Replaced two `innerHTML` template-string writes with safe `createElement` + `textContent` construction (CSP-clean, no injection surface). |
+| 5 | Layout bug (wide screens) | `DemoSection.js` | Replaced two `display:contents` `<span>` wrappers with `<Fragment>` so the workflow-map connectors stretch instead of bunching left. |
+| 6 | SEO | `pages/index.js`, `public/robots.txt`, `public/sitemap.xml` | Added canonical, `og:image`/`og:site_name`/`og:locale`, full Twitter Card, Schema.org `Organization` JSON-LD, robots.txt, sitemap.xml. |
+| 7 | Missing assets (404s) | `public/favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `og-image.png` | Generated on-brand (dark + cyan) icon set and a 1200×630 social preview image. |
+| 8 | Accessibility / SEO | `pages/_document.js` | Added `<html lang="en-CA">` and Google-Fonts `preconnect`. |
+| 9 | Dependency risk | `package.json` | Upgraded **Next.js 14.2.10 → 14.2.35** (latest non-breaking patch). |
+
+All changes verified against a real production build (`next build` + `next start`) rendered in headless Chromium.
+
+---
+
+## 2. Security Audit Report (OWASP-oriented)
+
+**Checked**
+- **A03 Injection / XSS / DOM-XSS:** No `eval`, `new Function`, `document.write`, or `dangerouslySetInnerHTML` executing untrusted data. The only dynamic HTML (`DemoSection`) used static, code-controlled data — still **refactored to DOM APIs** to remove the pattern entirely. The one remaining `dangerouslySetInnerHTML` is the Schema.org JSON-LD block, which contains only static, developer-authored JSON (safe, standard practice).
+- **A05 Security Misconfiguration:** `poweredByHeader:false`; full security-header set now served on every route (verified via live `fetch`): CSP, HSTS, X-Frame-Options `DENY`, X-Content-Type-Options `nosniff`, Referrer-Policy, Permissions-Policy.
+- **Clickjacking:** `frame-ancestors 'none'` + `X-Frame-Options: DENY`.
+- **Reverse tabnabbing / A01-adjacent:** `rel="noopener noreferrer"` added.
+- **Secrets:** No API keys, tokens, passwords, or secrets present anywhere in the client code. No backend / auth / session layer exists (static site) → SQLi / auth-bypass / rate-limiting are **not applicable**.
+- **Prototype pollution:** No user-controlled object merging.
+
+**CSP shipped**
+```
+default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';
+object-src 'none'; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com;
+style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self';
+connect-src 'self'; upgrade-insecure-requests
+```
+- `script-src 'self'` — **no `'unsafe-inline'` for scripts.** Verified: React hydrates and the page is interactive with **zero CSP violations**.
+- `style-src` retains `'unsafe-inline'` because the UI uses inline `style={{…}}` attributes. This is a low-risk, common trade-off; see Remaining Risks for the hardening path.
+
+**Residual (see §9):** npm-audit still lists Next.js advisories that only apply to App Router / Server Components / `next/image` / middleware / i18n / rewrites — **none used here**.
+
+---
+
+## 3. Performance Report
+
+**Verified**
+- Static prerender (`○ (Static)`) — the page is served as static HTML; first-load JS ≈ **80 kB shared + ~13 kB page** (lean).
+- `next build` compression on; Vercel serves Brotli/gzip + immutable hashed asset caching + global CDN automatically.
+- three.js is **dynamically imported** (`await import('three')`) so it doesn't block first paint; the animation loop pauses on tab-hidden (`visibilitychange`) and honors `prefers-reduced-motion`.
+- No render-blocking third-party scripts. No analytics/chat/map third-party at all.
+- Fonts use `display=swap` (no invisible-text FOIT).
+
+**Attention**
+- `public/architecture-diagram.pdf` is **9.6 MB**. It is only downloaded on click (not on page load), so it does **not** affect page speed — but consider compressing it for users on mobile data.
+- The full `three.module.js` is bundled. Fine for a single hero effect; a custom trimmed build could save bandwidth later (optional).
+
+> **Honesty note:** I did **not** run Lighthouse against a deployed URL (no real network/device here). I cannot certify "Performance ≥ 95." The structure supports a high score; **run PageSpeed Insights / Lighthouse on the live `cosmosledgerlabs.com` after deploy** to get real numbers.
+
+---
+
+## 4. Responsive Testing Report
+
+**Verified in headless Chromium at:** 1869×941 (wide desktop), 1440×900 (laptop), 390×844 (mobile).
+- Hero content positioned correctly at all three widths after the fix (contentTop 75 / 96 / 147 px — no more bottom-shove).
+- Demo dashboard: 2-column grid collapses to 1 column ≤640px; workflow map is horizontally scrollable on mobile; connectors now stretch full-width on wide screens.
+- No horizontal overflow observed; spacing driven by a CSS-variable system with breakpoints at 1439 / 1023 / 767 px.
+
+> **Honesty note:** This is engine-level verification, not **real-device** testing. Per your checklist item 16, still spot-check on a physical iPhone (Safari) and one Android device — emulators don't catch everything (notch insets, Safari 100vh behavior, font rendering).
+
+---
+
+## 5. Browser Compatibility Report
+
+- Rendering engine tested: Chromium (covers Chrome + Edge).
+- Code uses widely-supported features: CSS Grid/Flexbox, `clamp()`, `aspect-ratio`-free layout, `Element.append()`, `IntersectionObserver`, WebGL via three.js with graceful fallback (`try/catch` → effect skipped, site still works if WebGL unavailable).
+- `backdrop-filter` (used on the nav) is supported in modern Safari/Chrome/Edge/Firefox; degrades gracefully to a solid background otherwise.
+
+> **Honesty note:** Firefox and **Safari (macOS + iOS)** were not executed here. WebGL shader behavior and `backdrop-filter` are the two things most worth a real Safari check.
+
+---
+
+## 6. SEO Report
+
+**Now present:** title, meta description, viewport, robots meta, theme-color, **canonical**, favicon set, Open Graph (title/description/type/url/site_name/locale/**image 1200×630**), full Twitter summary_large_image, **Schema.org Organization JSON-LD**, **robots.txt**, **sitemap.xml**, `<html lang="en-CA">`, semantic `<main>/<section>/<h1>/<h2>/<footer>`.
+- One `<h1>` on the page (hero) — correct.
+- All section headings are real `<h2>`.
+
+**Optional next steps:** add `og:image` variants for other pages if you add routes; submit the sitemap in Google Search Console after deploy.
+
+---
+
+## 7. Accessibility Report (WCAG 2.2 AA)
+
+**Passing**
+- Semantic landmarks (`main`, `section`, `footer`, headings hierarchy).
+- Decorative background canvas marked `aria-hidden="true"`.
+- Keyboard: all interactive elements are native `<a>` — natively focusable/operable.
+- Motion: hero honors `prefers-reduced-motion`.
+- `lang` now set.
+
+**Color contrast (measured against the dark background):**
+
+| Element | Ratio | AA (normal 4.5:1) |
+|---|---|---|
+| Body text `#ffffff`, cyan `#00e8ff`, subtitle `#88ddee`, nav `#4499bb`, section tags, card titles | 6.1 – 20.3 | ✅ PASS |
+| `.adesc` `#336677` (workflow descriptions, ~8px) | 3.19 | ❌ FAIL |
+| `.msub` `#1a4455` (metric sub-labels) | 1.93 | ❌ FAIL |
+| `.pname.wait` `#2a4455` (inactive pipeline steps) | 1.98 | ❌ FAIL (likely exempt — "inactive UI component") |
+
+**To reach strict AA**, lighten the failing colors, e.g. `.adesc → #5a8299`, `.msub → #6a93a6`, `.pname.wait → #6a93a6` (or leave `.pname.wait`/`.qus` as-is under WCAG's inactive-component exception). I did **not** change these automatically because they affect your intended "sci-fi HUD" aesthetic — **say the word and I'll apply the AA-safe palette.**
+
+**Also recommended:** add a visible `:focus-visible` outline (currently focus styles rely on browser defaults, which are faint on dark backgrounds).
+
+---
+
+## 8. Deployment Checklist
+
+- [x] Production build passes (`next build`)
+- [x] Security headers live (CSP, HSTS, X-Frame, nosniff, Referrer-Policy, Permissions-Policy)
+- [x] No secrets in repo
+- [x] `next` patched to 14.2.35
+- [x] SEO/meta/sitemap/robots in place
+- [x] favicon + OG image (no 404s for referenced assets)
+- [x] `<html lang>` set
+- [ ] **Upload `public/investor-deck.pdf`** (referenced by the "INVESTOR DECK" button — currently 404). ← action required
+- [ ] Confirm HTTPS + HTTP→HTTPS redirect (Vercel does this automatically for custom domains; verify the domain shows the padlock)
+- [ ] Run Lighthouse / PageSpeed Insights on the live URL
+- [ ] Real-device check: iPhone Safari + one Android
+- [ ] (Optional) Decide on AA color bumps for the 3 dim labels
+- [ ] (Optional) Compress the 9.6 MB architecture PDF
+
+---
+
+## 9. Remaining Risks (nothing hidden)
+
+1. **`investor-deck.pdf` is missing** → the investor download button 404s. This is investor-facing; upload the file before the conference. *(I can't create your deck content.)*
+2. **npm audit residual (Next.js):** Latest 14.x is 14.2.35 (shipped). Remaining advisories require App Router / Server Components / `next/image` / middleware / i18n / rewrites — **this site uses none of them**, so real-world exposure is negligible. To clear the audit entirely you'd migrate to Next 15/16 (a breaking change) — recommended **after** the conference, not before.
+3. **CSP `style-src 'unsafe-inline'`:** required by the inline `style={{}}` attributes throughout the UI. Lower risk than inline scripts. Full hardening = move inline styles into CSS modules and drop `'unsafe-inline'` (a larger refactor).
+4. **Three dim micro-labels below WCAG AA** (§7) — cosmetic vs. compliance trade-off; your call.
+5. **Not tested here:** real Lighthouse scores, real iOS Safari / Android / Firefox devices. Structure is sound but must be validated on the live URL and physical devices (checklist item 16).
+
+---
+
+*End of report. Final code delivered as `cosmosledgerlabs-website-FINAL.zip` (excludes `node_modules`/`.next`).*
+
+---
+
+## 10. Content Update (from Landing-Page Copy v30 — confirmed with client)
+
+Applied on top of the fixes above, **no design/layout/color changes**:
+
+1. **Hero:** added `REQUEST FULL DECK →` button (mailto → info@cosmosledgerlabs.com, subject "Full Deck Request"), alongside the existing VIEW ARCHITECTURE / CONTACT US.
+2. **Deck section:** replaced the broken `INVESTOR DECK` download (was 404 on `/investor-deck.pdf`) with `REQUEST FULL DECK →` (mailto). This also **resolves the 404 risk** noted in §9. Added conservative investor line: *"Investment information is available to accredited investors upon request. Contact info@cosmosledgerlabs.com"* (accredited-investor gating; no terms published — lowest-risk wording under Ontario/OSC practice; still recommend a securities-lawyer glance).
+3. **Team:** replaced bio with *"V Zheng — Founder & CEO. Developed and built the platform MVP, system architecture, and website end-to-end. Leads technical direction and product design at COSMOS Ledger Labs."* Removed the old "Currently recruiting…" sentence.
+4. **We're Building the Team:** new recruiting block added after the Team bio, with the co-founder / Solana·Rust·Anchor copy + `Interested? → info@cosmosledgerlabs.com` (mailto).
+5. **Security:** heading changed to `SECURITY-FIRST ARCHITECTURE`; added the operational-security intro paragraph above the existing 6 cards (cards kept). Wording keeps audits as "planned" (no overclaim).
+6. **Footer:** added 4 clickable social icons — X (https://x.com/CosmosLedgerLab), Telegram (https://t.me/cosmosledgerlabs), Email (mailto), Website (https://cosmosledgerlabs.com). All external links carry `rel="noopener noreferrer"`.
+7. **Aladdin / Strategic Partner:** intentionally **NOT** added (held until contract signed + wording approved, per client instruction).
+
+All `mailto:` links verified working under the strict CSP (zero violations). Production build passes.
+
+**Action item unchanged:** double-check the X handle resolves — it is spelled `CosmosLedgerLab` (singular) while Telegram is `cosmosledgerlabs` (plural), per the copy provided.

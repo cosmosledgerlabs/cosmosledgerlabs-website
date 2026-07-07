@@ -9,7 +9,8 @@
   overflow: hidden;
 }
 
-/* cosmos-bg-container 已经是fixed z-index:-1，不需要额外设置 */
+/* #cosmos-bg-container 的定位规则在 globals.css 里（position:absolute; inset:0; z-index:0）。
+   不要删除那条规则，否则 three.js 注入的 canvas 会进入文档流、把首屏文字挤到底部。 */
 
 .content {
   position: relative;

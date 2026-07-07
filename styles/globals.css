@@ -13,6 +13,22 @@ body {
   line-height: 1.6;
 }
 
+/* Cosmos 星云背景 — 铺满 Hero、置于内容下层、脱离文档流
+   （这条规则之前被删掉了，导致 three.js 注入的 canvas 进入正常文档流，
+   把首屏文字挤到底部、上方留出大片黑。必须保留。） */
+#cosmos-bg-container {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+#cosmos-bg-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* 8px spacing system */
 :root {
   --sp1: 8px;

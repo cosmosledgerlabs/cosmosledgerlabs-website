@@ -14,12 +14,50 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="canonical" href="https://cosmosledgerlabs.com/" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+        {/* Open Graph */}
         <meta property="og:title" content="COSMOS Ledger Labs — Workflow Infrastructure for Digital Asset Operations" />
         <meta property="og:description" content="Workflow automation infrastructure for digital asset operations. Built on Solana. Toronto, Canada." />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://cosmosledgerlabs.com" />
+        <meta property="og:url" content="https://cosmosledgerlabs.com/" />
+        <meta property="og:site_name" content="COSMOS Ledger Labs" />
+        <meta property="og:locale" content="en_CA" />
+        <meta property="og:image" content="https://cosmosledgerlabs.com/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="COSMOS Ledger Labs — Workflow Automation Infrastructure" />
+
+        {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="COSMOS Ledger Labs — Workflow Infrastructure for Digital Asset Operations" />
+        <meta name="twitter:description" content="Workflow automation infrastructure for digital asset operations. Built on Solana. Toronto, Canada." />
+        <meta name="twitter:image" content="https://cosmosledgerlabs.com/og-image.png" />
+
+        {/* Schema.org — Organization */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Organization',
+              name: 'COSMOS Ledger Labs',
+              url: 'https://cosmosledgerlabs.com/',
+              description:
+                'Workflow automation infrastructure for digital asset operations, built on Solana.',
+              email: 'info@cosmosledgerlabs.com',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Toronto',
+                addressRegion: 'ON',
+                addressCountry: 'CA',
+              },
+            }),
+          }}
+        />
       </Head>
       <Nav />
       <main>

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, Fragment } from 'react'
 import styles from './DemoSection.module.css'
 
 export default function Demo() {
@@ -48,8 +48,14 @@ export default function Demo() {
       setInterval(() => {
         const list=$('txlist'); if(!list) return
         const ok = Math.random()>.15
+        const color = ok ? '#00cc88' : '#00e8ff'
         const div=document.createElement('div'); div.className=styles.txitem
-        div.innerHTML=`<div class="${styles.txd}" style="background:${ok?'#00cc88':'#00e8ff'};box-shadow:0 0 8px ${ok?'#00cc88':'#00e8ff'}"></div><span class="${styles.txid}">${txIds[txIdx%5]}</span><span class="${styles.txamt}">${amts[txIdx%5]}</span><span class="${styles.txch}">SOL</span>`
+        const dot=document.createElement('div'); dot.className=styles.txd
+        dot.style.background=color; dot.style.boxShadow=`0 0 8px ${color}`
+        const idEl=document.createElement('span'); idEl.className=styles.txid; idEl.textContent=txIds[txIdx%5]
+        const amtEl=document.createElement('span'); amtEl.className=styles.txamt; amtEl.textContent=amts[txIdx%5]
+        const chEl=document.createElement('span'); chEl.className=styles.txch; chEl.textContent='SOL'
+        div.append(dot, idEl, amtEl, chEl)
         list.insertBefore(div,list.firstChild)
         if(list.children.length>5) list.removeChild(list.lastChild)
         txIdx++
@@ -59,7 +65,12 @@ export default function Demo() {
         const n=new Date(); const ts=n.toISOString().split('T')[1].substring(0,8)
         const lg=logData[logIdx%logData.length]
         const div=document.createElement('div'); div.className=styles.logitem
-        div.innerHTML=`<span class="${styles.ltime}">${ts}</span><div class="${styles.ldot}" style="background:${lg.c}"></div><span class="${styles.ltext} ${lg.cls==='hi'?styles.hi:lg.cls==='ok'?styles.ok:''}">${lg.m}</span>`
+        const timeEl=document.createElement('span'); timeEl.className=styles.ltime; timeEl.textContent=ts
+        const dot=document.createElement('div'); dot.className=styles.ldot; dot.style.background=lg.c
+        const txtEl=document.createElement('span')
+        txtEl.className=styles.ltext + (lg.cls==='hi' ? ' '+styles.hi : lg.cls==='ok' ? ' '+styles.ok : '')
+        txtEl.textContent=lg.m
+        div.append(timeEl, dot, txtEl)
         wrap.insertBefore(div,wrap.firstChild)
         if(wrap.children.length>4) wrap.removeChild(wrap.lastChild)
         logIdx++
@@ -102,13 +113,13 @@ export default function Demo() {
               {label:'AUDIT',state:'wait'},
               {label:'COMPLETE',state:'wait'},
             ].map((n,i,arr) => (
-              <span key={i} style={{display:'contents'}}>
+              <Fragment key={i}>
                 <div className={styles.nd}>
                   <div className={`${styles.nc} ${styles[n.state]}`}>{n.state==='done'?'✓':String(i+1).padStart(2,'0')}</div>
                   <div className={`${styles.nl} ${styles[n.state]}`}>{n.label}</div>
                 </div>
                 {i<arr.length-1 && <div className={`${styles.conn} ${styles[n.state==='done'?'done':n.state==='active'?'active':'wait']}`}/>}
-              </span>
+              </Fragment>
             ))}
           </div>
         </div>
@@ -168,14 +179,14 @@ export default function Demo() {
                 {n:'06',label:'Execution Monitoring',state:'wait'},
                 {n:'07',label:'Audit Log Entry',state:'wait'},
               ].map((s,i,arr)=>(
-                <span key={i} style={{display:'contents'}}>
+                <Fragment key={i}>
                   <div className={styles.pstep}>
                     <div className={`${styles.pnum} ${styles[s.state]}`}>{s.state==='done'?'✓':s.n}</div>
                     <div className={`${styles.pname} ${styles[s.state]}`}>{s.label}</div>
                     {s.badge && <div className={styles.pbadge}>{s.badge}</div>}
                   </div>
                   {i<arr.length-1 && <div className={`${styles.pbar} ${styles[s.state]}`}/>}
-                </span>
+                </Fragment>
               ))}
             </div>
           </div>
