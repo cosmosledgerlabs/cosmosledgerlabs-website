@@ -1,42 +1,134 @@
-/** @type {import('next').NextConfig} */
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap');
 
-// Content-Security-Policy tuned for this static marketing site:
-// - scripts: same-origin only (three.js is bundled, not from a CDN) → no 'unsafe-inline'
-// - styles: 'unsafe-inline' required because the UI uses inline style={{…}} attributes;
-//   Google Fonts stylesheet is allowed explicitly
-// - fonts: Google Fonts file host
-// - frame-ancestors 'none' mirrors X-Frame-Options: DENY (clickjacking)
-const ContentSecurityPolicy = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  "object-src 'none'",
-  "img-src 'self' data:",
-  "font-src 'self' https://fonts.gstatic.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "script-src 'self'",
-  "connect-src 'self'",
-  "upgrade-insecure-requests",
-].join('; ')
+*,*::before,*::after { box-sizing: border-box; }
+html {
+  scroll-behavior: smooth;
+  /* Stop WeChat / Samsung / Android in-app browsers from auto-inflating text,
+     which was overflowing badges and overlapping roadmap titles. */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+body {
+  background: #00010a;
+  color: #ffffff;
+  font-family: 'Share Tech Mono', monospace;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  margin: 0; padding: 0;
+  font-size: 16px;
+  line-height: 1.6;
+}
+/* Prevent long tokens (emails, URLs) from overflowing their containers */
+p, span, div, a, h1, h2, h3, li { overflow-wrap: break-word; }
 
-const securityHeaders = [
-  { key: 'Content-Security-Policy', value: ContentSecurityPolicy },
-  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
-  { key: 'X-Frame-Options', value: 'DENY' },
-  { key: 'X-Content-Type-Options', value: 'nosniff' },
-  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()' },
-  { key: 'X-DNS-Prefetch-Control', value: 'on' },
-]
-
-const nextConfig = {
-  reactStrictMode: true,
-  poweredByHeader: false,
-  compress: true,
-  async headers() {
-    return [{ source: '/(.*)', headers: securityHeaders }]
-  },
+/* 8px spacing system */
+:root {
+  --sp1: 8px;
+  --sp2: 16px;
+  --sp3: 24px;
+  --sp4: 32px;
+  --sp6: 48px;
+  --sp8: 64px;
+  --max-w: 920px;
+  --side: 5%;
 }
 
-module.exports = nextConfig
+/* 全局Section */
+.section {
+  padding: var(--sp6) var(--side);
+  max-width: var(--max-w);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.divider { border: none; border-top: 1px solid rgba(0,160,210,.15); margin: 0; }
+
+/* Section标签 */
+.sec-tag {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .22em; color: #44bbcc;
+  margin-bottom: var(--sp2);
+  display: flex; align-items: center; gap: var(--sp1);
+}
+.sec-tag-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(0,200,255,.4), transparent);
+  max-width: 180px;
+}
+
+/* Section标题 */
+.sec-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(22px, 4vw, 40px);
+  font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp2);
+  color: #ffffff;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Section正文 */
+.sec-body {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(15px, 1.5vw, 16px);
+  color: #ffffff;
+  line-height: 1.6;
+  max-width: 640px;
+}
+
+/* 钢铁卡片 */
+.steel-card {
+  background: rgba(0,10,28,.88);
+  border: 1px solid rgba(0,190,230,.3);
+  border-radius: 6px;
+  padding: var(--sp4);
+  position: relative;
+  margin-top: var(--sp2);
+}
+.steel-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0;
+  width: 14px; height: 14px;
+  border-top: 2px solid rgba(0,220,255,.65);
+  border-left: 2px solid rgba(0,220,255,.65);
+}
+.steel-card::after {
+  content: ''; position: absolute;
+  bottom: 0; right: 0;
+  width: 14px; height: 14px;
+  border-bottom: 2px solid rgba(0,220,255,.65);
+  border-right: 2px solid rgba(0,220,255,.65);
+}
+
+/* 滚动动画 */
+.fade-up {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.fade-up.visible { opacity: 1; transform: translateY(0); }
+
+/* 响应式断点 */
+/* Desktop ≥1440px — default */
+/* Laptop 1024-1439px */
+@media(max-width:1439px) {
+  :root { --side: 4%; }
+}
+/* Tablet 768-1023px */
+@media(max-width:1023px) {
+  :root { --side: 4%; --sp6: 40px; }
+  .sec-title { white-space: normal; }
+}
+/* Mobile ≤767px */
+@media(max-width:767px) {
+  :root { --side: 4%; --sp6: 32px; --sp4: 24px; }
+  .sec-title { white-space: normal; font-size: clamp(20px, 6vw, 28px); }
+  .sec-body { font-size: 15px; }
+  body { font-size: 15px; }
+}
