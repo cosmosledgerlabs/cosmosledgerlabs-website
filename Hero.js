@@ -1,76 +1,20 @@
-.nav {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  z-index: 90;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 4%;
-  background: rgba(0,5,18,.95);
-  border-bottom: 1px solid rgba(0,180,220,.2);
-  backdrop-filter: blur(12px);
-  flex-wrap: wrap;
-  gap: 8px;
+.footer {
+  text-align: center;
+  padding: 22px 5%;
+  border-top: 1px solid rgba(0,160,210,.18);
+  background: rgba(0,5,15,.95);
 }
-.nav::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,220,255,.5), transparent);
-  animation: navline 5s ease-in-out infinite;
-}
-@keyframes navline { 0%,100%{opacity:.3} 50%{opacity:1} }
-
-/* Logo加大 */
-.logo {
+.text {
   font-family: 'Rajdhani', sans-serif;
-  font-size: clamp(14px, 2.5vw, 18px);
+  font-size: clamp(9px, 1.5vw, 11px);
   font-weight: 700;
-  color: #00e8ff;
-  letter-spacing: .12em;
-  text-shadow: 0 0 18px rgba(0,232,255,.95), 0 0 36px rgba(0,180,255,.5);
-  text-decoration: none;
+  color: var(--cyan-soft);
+  letter-spacing: .14em;
+  text-shadow: 0 0 8px rgba(0,180,220,.35);
 }
 
-.links {
-  display: flex;
-  gap: clamp(12px, 2vw, 22px);
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-/* 导航链接加大 */
-.links a {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: clamp(10px, 1.5vw, 13px);
-  font-weight: 700;
-  color: #66ccdd;
-  letter-spacing: .15em;
-  text-decoration: none;
-  transition: color .2s, text-shadow .2s;
-  text-shadow: 0 0 8px rgba(0,200,240,.3);
-}
-.links a:hover {
-  color: #00e8ff;
-  text-shadow: 0 0 14px rgba(0,232,255,.8);
-}
-
-/* 灯带 */
-.lightbar {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  overflow: hidden;
-  z-index: 99;
-  pointer-events: none;
-}
-.lightbar::after {
-  content: '';
-  position: absolute;
-  top: 0; left: -100%;
-  width: 300%; height: 100%;
-  background: linear-gradient(90deg, transparent 15%, rgba(0,210,255,.8) 42%, #fff 50%, rgba(0,210,255,.8) 58%, transparent 85%);
-  animation: lb 6s linear infinite;
-}
-@keyframes lb { 0%{left:-100%} 100%{left:100%} }
+/* --- added: footer social links --- */
+.social { display:flex; justify-content:center; align-items:center; gap:20px; margin-bottom:16px; }
+.socialLink { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:8px; color:var(--cyan-soft); border:1px solid rgba(0,160,210,.25); background:rgba(0,10,25,.4); transition:color .2s, border-color .2s, box-shadow .2s; }
+.socialLink:hover { color:var(--cyan); border-color:rgba(0,215,255,.6); box-shadow:0 0 14px rgba(0,180,220,.35); }
+.socialLink svg { width:18px; height:18px; }
