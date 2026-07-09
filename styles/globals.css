@@ -1,7 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Share+Tech+Mono&display=swap');
 
+/* Self-hosted Orbitron (industrial / tech display font) */
+@font-face {
+  font-family: 'Orbitron';
+  src: url('/fonts/Orbitron.ttf') format('truetype');
+  font-weight: 400 900;
+  font-display: swap;
+}
+
 *,*::before,*::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  /* leave room for the fixed nav when jumping to #anchors (was getting cut off) */
+  scroll-padding-top: 76px;
+  /* Stop WeChat / Samsung / Android in-app browsers from auto-inflating text,
+     which was overflowing badges and overlapping roadmap titles. */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+/* the nav wraps to 2–3 rows on phones, so it's taller there */
+@media (max-width: 767px) {
+  html { scroll-padding-top: 150px; }
+}
 body {
   background: #00010a;
   color: #ffffff;
@@ -12,10 +34,12 @@ body {
   font-size: 16px;
   line-height: 1.6;
 }
+/* Prevent long tokens (emails, URLs) from overflowing their containers */
+p, span, div, a, h1, h2, h3, li { overflow-wrap: break-word; }
 
-/* Cosmos 星云背景 — 铺满 Hero、置于内容下层、脱离文档流
-   （这条规则之前被删掉了，导致 three.js 注入的 canvas 进入正常文档流，
-   把首屏文字挤到底部、上方留出大片黑。必须保留。） */
+/* Cosmos three.js background — MUST stay absolutely positioned & behind content.
+   If removed, the injected canvas falls into normal flow and pushes the hero
+   content down (the black-screen bug). Do not delete. */
 #cosmos-bg-container {
   position: absolute;
   inset: 0;
@@ -31,6 +55,7 @@ body {
 
 /* 8px spacing system */
 :root {
+  /* Spacing (8px system) */
   --sp1: 8px;
   --sp2: 16px;
   --sp3: 24px;
@@ -39,6 +64,14 @@ body {
   --sp8: 64px;
   --max-w: 920px;
   --side: 5%;
+
+  /* Brand colors (Design System — Book 4.1). Values match the current design. */
+  --bg-deep: #00010a;   /* deep-space background */
+  --bg-panel: #071426;  /* card / panel base */
+  --cyan: #00e8ff;      /* primary neon accent */
+  --cyan-soft: #44aacc; /* footer / secondary accent */
+  --text: #ffffff;      /* primary body text */
+  --text-muted: #88ddee;/* muted accent text */
 }
 
 /* 全局Section */
@@ -137,4 +170,11 @@ body {
   .sec-title { white-space: normal; font-size: clamp(20px, 6vw, 28px); }
   .sec-body { font-size: 15px; }
   body { font-size: 15px; }
+}
+
+/* Keyboard focus ring (WCAG 2.1 AA — visible focus indicator) */
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid #00e8ff;
+  outline-offset: 2px;
+  border-radius: 3px;
 }

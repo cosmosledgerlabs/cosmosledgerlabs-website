@@ -19,7 +19,7 @@ export default function Demo() {
       {c:'#00e8ff',cls:'hi',m:'Smart contract execution queued'},
       {c:'#00cc88',cls:'ok',m:'Audit log entry written to ledger'},
     ]
-    const $ = id => el.querySelector('#dd_'+id)
+    const $ = id => el.querySelector("#dd_" + id)
 
     const timers = [
       setInterval(() => {
@@ -57,7 +57,7 @@ export default function Demo() {
         const chEl=document.createElement('span'); chEl.className=styles.txch; chEl.textContent='SOL'
         div.append(dot, idEl, amtEl, chEl)
         list.insertBefore(div,list.firstChild)
-        if(list.children.length>5) list.removeChild(list.lastChild)
+        if(list.children.length>5 && list.lastChild) list.removeChild(list.lastChild)
         txIdx++
       }, 2500),
       setInterval(() => {
@@ -72,12 +72,12 @@ export default function Demo() {
         txtEl.textContent=lg.m
         div.append(timeEl, dot, txtEl)
         wrap.insertBefore(div,wrap.firstChild)
-        if(wrap.children.length>4) wrap.removeChild(wrap.lastChild)
+        if(wrap.children.length>4 && wrap.lastChild) wrap.removeChild(wrap.lastChild)
         logIdx++
       }, 1800),
       setInterval(() => {
-        const bw=$('bw'); if(bw) bw.textContent=Math.floor(10+Math.random()*6)
-        const bp=$('bp'); if(bp) bp.textContent=Math.floor(1+Math.random()*5)
+        const bw=$('bw'); if(bw) bw.textContent=String(Math.floor(10+Math.random()*6))
+        const bp=$('bp'); if(bp) bp.textContent=String(Math.floor(1+Math.random()*5))
       }, 3000),
     ]
     return () => timers.forEach(t => clearInterval(t))
@@ -226,12 +226,6 @@ export default function Demo() {
           <span>VERSION <span className={styles.bv}>v1.0.0-alpha</span></span>
           <span>BUILT ON <span className={styles.bv}>SOLANA</span></span>
         </div>
-      </div>
-
-      {/* 视频预留位 */}
-      <div className={styles.videoPlaceholder}>
-        <div className={styles.vpTag}>// VIDEO PLACEHOLDER — UPLOAD PRODUCT DEMO VIDEO HERE WHEN READY</div>
-        <div className={styles.vpText}>demo-video.mp4</div>
       </div>
     </section>
   )

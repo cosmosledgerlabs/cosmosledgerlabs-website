@@ -13,9 +13,6 @@ export default function Footer() {
         <a className={styles.socialLink} href="mailto:info@cosmosledgerlabs.com" aria-label="Email">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
         </a>
-        <a className={styles.socialLink} href="https://cosmosledgerlabs.com" target="_blank" rel="noopener noreferrer" aria-label="Website">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"/></svg>
-        </a>
       </div>
       <p className={styles.text}>
         © 2026 COSMOS LEDGER LABS // TORONTO, CANADA // WORKFLOW AUTOMATION INFRASTRUCTURE FOR DIGITAL ASSET OPERATIONS

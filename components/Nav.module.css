@@ -27,7 +27,7 @@
   font-family: 'Rajdhani', sans-serif;
   font-size: clamp(14px, 2.5vw, 18px);
   font-weight: 700;
-  color: #00e8ff;
+  color: var(--cyan);
   letter-spacing: .12em;
   text-shadow: 0 0 18px rgba(0,232,255,.95), 0 0 36px rgba(0,180,255,.5);
   text-decoration: none;
@@ -52,7 +52,7 @@
   text-shadow: 0 0 8px rgba(0,200,240,.3);
 }
 .links a:hover {
-  color: #00e8ff;
+  color: var(--cyan);
   text-shadow: 0 0 14px rgba(0,232,255,.8);
 }
 
@@ -74,3 +74,50 @@
   animation: lb 6s linear infinite;
 }
 @keyframes lb { 0%{left:-100%} 100%{left:100%} }
+
+/* ===== Mobile hamburger (☰) — desktop nav unchanged ===== */
+.burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 42px; height: 42px;
+  padding: 10px;
+  background: transparent;
+  border: 1px solid rgba(0,200,240,.35);
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.burger span {
+  display: block;
+  width: 100%; height: 2px;
+  background: var(--cyan);
+  border-radius: 2px;
+  transition: transform .25s ease, opacity .2s ease;
+}
+.burgerOpen span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.burgerOpen span:nth-child(2) { opacity: 0; }
+.burgerOpen span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+@media (max-width: 767px) {
+  .nav { flex-wrap: nowrap; }
+  .burger { display: flex; }
+  .links {
+    display: none;
+    position: fixed;
+    top: 56px; left: 0; right: 0;
+    flex-direction: column;
+    gap: 0;
+    background: rgba(0,5,18,.98);
+    border-bottom: 1px solid rgba(0,180,220,.25);
+    backdrop-filter: blur(12px);
+    padding: 6px 5% 14px;
+  }
+  .links.linksOpen { display: flex; }
+  .links a {
+    padding: 14px 2px;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(0,180,220,.12);
+  }
+}

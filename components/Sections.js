@@ -162,14 +162,11 @@ export function Downloads() {
       <div className={styles.steelCard}>
         <p className={styles.secBody}>Access the platform vision, architecture design, roadmap, and development strategy.</p>
         <div className={styles.dlButtons}>
+          <a href="mailto:info@cosmosledgerlabs.com?subject=Investor%20Deck%20Request" className={styles.dlBtn1}>INVESTOR DECK</a>
           <a href="mailto:info@cosmosledgerlabs.com?subject=Full%20Deck%20Request" className={styles.dlBtn1}>REQUEST FULL DECK →</a>
           <a href="/architecture-diagram.pdf" target="_blank" rel="noopener noreferrer" className={styles.dlBtn2}>⬇ ARCHITECTURE DIAGRAM</a>
         </div>
         <p className={styles.legalNote}>Investment information is available to accredited investors upon request. Contact info@cosmosledgerlabs.com</p>
-      </div>
-      <div className={styles.videoPlaceholder}>
-        <div className={styles.vpTag}>// VIDEO PLACEHOLDER — UPLOAD PRODUCT DEMO VIDEO HERE WHEN READY</div>
-        <div className={styles.vpText}>demo-video.mp4</div>
       </div>
     </section>
   )
@@ -181,7 +178,7 @@ export function Team() {
       <div className="sec-tag">// SECTION 11 — TEAM <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>TEAM</h2>
       <div className={styles.steelCard}>
-        <p className={styles.ecoText}>V Zheng — Founder &amp; CEO. Developed and built the platform MVP, system architecture, and website end-to-end. Leads technical direction and product design at COSMOS Ledger Labs.</p>
+        <p className={styles.ecoText}>V Zheng — Founder &amp; CEO. Led the design and delivery of the platform&apos;s MVP, system architecture, and website, directing a lean founding team. Drives technical direction and product strategy at COSMOS Ledger Labs.</p>
       </div>
       <div className={`${styles.steelCard} ${styles.teamBlock}`}>
         <div className={styles.teamHead}>We&apos;re Building the Team</div>
