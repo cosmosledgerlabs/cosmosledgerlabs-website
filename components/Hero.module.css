@@ -115,8 +115,22 @@
   color: var(--text);
   line-height: 1.9;
   max-width: 600px;
-  margin-bottom: 32px;
+  margin-bottom: 14px;
   text-align: center;
+}
+
+.founderLine {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: clamp(12px, 1.5vw, 15px);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(0,220,255,.35);
+  max-width: 680px;
+  margin: 0 auto 30px;
+  text-align: center;
+  line-height: 1.5;
 }
 
 .btns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
@@ -146,3 +160,6 @@
   .btns { flex-direction: column; align-items: center; }
   .bp, .bs { width: 100%; max-width: 280px; text-align: center; }
 }
+
+/* 投资人 CTA 下方门槛小字 */
+.discreet{margin-top:14px;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.5;color:rgba(150,190,210,.55);letter-spacing:.02em;max-width:520px;}

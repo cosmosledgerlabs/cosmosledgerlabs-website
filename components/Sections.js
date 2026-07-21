@@ -22,10 +22,7 @@ export function Solution() {
       <div className="sec-tag">// SECTION 03 — SOLUTION <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>THE SOLUTION</h2>
       <div className={styles.steelCard}>
-        <p className={styles.ecoText}>COSMOS Ledger Labs builds a unified workflow automation infrastructure layer for digital asset operations — combining approval coordination, secure execution, real-time monitoring, and atomic recovery into one integrated platform built on Solana.</p>
-        <div className={styles.fundingInline}>
-          <div className={styles.fundingTag}>★ ECOSYSTEM PLATFORM HAS SECURED EXTERNAL FUNDING ★</div>
-        </div>
+        <p className={styles.ecoText}>COSMOS Ledger Labs builds a unified workflow automation infrastructure layer for digital asset operations — combining approval coordination, secure execution, real-time monitoring, and atomic recovery into one integrated platform built on Solana. Non-custodial by design: signing and settlement run inside the customer&apos;s own infrastructure; keys and funds never touch COSMOS.</p>
       </div>
     </section>
   )
@@ -37,7 +34,7 @@ export function Architecture() {
     {n:'L2', t:'APPROVAL ENGINE', s:'Multi-sig / RBAC'},
     {n:'L3', t:'WORKFLOW ORCHESTRATOR', s:'Scheduling / Routing'},
     {n:'L4', t:'TOKEN ISSUANCE / VESTING / DISTRIBUTION', s:'Smart Contracts'},
-    {n:'L5', t:'SOLANA SMART CONTRACT LAYER', s:'PDA / CPI / Tx Logic'},
+    {n:'L5', t:'ON-CHAIN EXECUTION — SOLANA', s:'CPI routing · non-custodial'},
     {n:'L6', t:'MONITORING & RECOVERY LAYER', s:'Retry / Rollback'},
     {n:'L7', t:'SECURITY LAYER', s:'Permissions / Audit'},
     {n:'L8', t:'BACKEND INFRASTRUCTURE', s:'API / Queue / DB'},
@@ -61,7 +58,7 @@ export function Architecture() {
 }
 
 export function Workflow() {
-  const steps = ['User Creates Workflow','Approval Validation','Execution Queue','Transaction Builder','On-Chain Validation','Transaction Execution','Execution Monitoring','Audit Logging','Rollback Recovery']
+  const steps = ['User Creates Workflow','Approval Validation','Execution Queue','Unsigned-Tx Builder','On-Chain Validation','Settlement (customer-signed)','Execution Monitoring','Audit Logging','Rollback Recovery']
   return (
     <section className={styles.section} id="workflow">
       <div className="sec-tag">// SECTION 06 — WORKFLOW <div className="sec-tag-line"/></div>
@@ -85,7 +82,7 @@ export function Workflow() {
 export function Security() {
   const items = [
     {t:'PERMISSION CONTROLS', d:'Role-based access control across all workflow operations.'},
-    {t:'AUDIT LOGGING', d:'Complete immutable audit trail for every workflow execution.'},
+    {t:'AUDIT LOGGING', d:'Audit logging designed into every workflow.'},
     {t:'ATOMIC ROLLBACK', d:'Automatic rollback protection prevents partial execution failures.'},
     {t:'MULTI-SIG APPROVAL', d:'Multi-step approval gates before any transaction execution.'},
     {t:'EXECUTION VERIFICATION', d:'On-chain validation before and after every transaction.'},
@@ -122,10 +119,10 @@ export function Ecosystem() {
 
 export function Roadmap() {
   const phases = [
-    {n:'01', phase:'PHASE 1', title:'ARCHITECTURE', cls:'rm1', titleCls:'rmTitle1', badge:'CURRENT', badgeCls:'badgeCurrent', tags:['Architecture Design','MVP Planning','Core Infrastructure']},
-    {n:'02', phase:'PHASE 2', title:'EXECUTION',   cls:'rm2', titleCls:'rmTitle2', badge:'NEXT',    badgeCls:'badgeNext',    tags:['Approval Engine','Workflow Coordination','Transaction Validation']},
-    {n:'03', phase:'PHASE 3', title:'MONITORING',  cls:'rm3', titleCls:'rmTitle3', badge:'PLANNED', badgeCls:'badgePlanned', tags:['Live Monitoring','Recovery Layer','Operational Automation']},
-    {n:'04', phase:'PHASE 4', title:'SCALE',       cls:'rm4', titleCls:'rmTitle4', badge:'FUTURE',  badgeCls:'badgeFuture',  tags:['Scalability','Ecosystem Integrations','Multi-Chain Expansion']},
+    {n:'00', phase:'PHASE 0', title:'ARCHITECTURE', cls:'rm1', titleCls:'rmTitle1', badge:'NOW — DONE', badgeCls:'badgeCurrent', tags:['Architecture design','Clickable MVP prototype','Website live','Aladdin strategic cooperation signed']},
+    {n:'01', phase:'PHASE 1', title:'ENGINE',       cls:'rm2', titleCls:'rmTitle2', badge:'0–6 MO',    badgeCls:'badgeNext',    tags:['Technical co-founder + core engineering','Core orchestration engine','Alpha — Solana devnet']},
+    {n:'02', phase:'PHASE 2', title:'BETA',         cls:'rm3', titleCls:'rmTitle3', badge:'6–12 MO',   badgeCls:'badgePlanned', tags:['Private beta (test)','First 2–3 design partners']},
+    {n:'03', phase:'PHASE 3', title:'MAINNET',      cls:'rm4', titleCls:'rmTitle4', badge:'12–15 MO',  badgeCls:'badgeFuture',  tags:['Finalize production build','Limited mainnet launch','Ready for the next growth phase']},
   ]
   return (
     <section className={styles.section} id="roadmap">
@@ -162,11 +159,24 @@ export function Downloads() {
       <div className={styles.steelCard}>
         <p className={styles.secBody}>Access the platform vision, architecture design, roadmap, and development strategy.</p>
         <div className={styles.dlButtons}>
-          <a href="mailto:info@cosmosledgerlabs.com?subject=Investor%20Deck%20Request" className={styles.dlBtn1}>INVESTOR DECK</a>
           <a href="mailto:info@cosmosledgerlabs.com?subject=Full%20Deck%20Request" className={styles.dlBtn1}>REQUEST FULL DECK →</a>
           <a href="/architecture-diagram.pdf" target="_blank" rel="noopener noreferrer" className={styles.dlBtn2}>⬇ ARCHITECTURE DIAGRAM</a>
+          <a href="/cosmos-overview.pdf" target="_blank" rel="noopener noreferrer" className={styles.dlBtn2}>⬇ COMPANY OVERVIEW</a>
         </div>
-        <p className={styles.legalNote}>Investment information is available to accredited investors upon request. Contact info@cosmosledgerlabs.com</p>
+        <p className={styles.legalNote}>Detailed materials shared with eligible investors on request. Contact info@cosmosledgerlabs.com</p>
+      </div>
+    </section>
+  )
+}
+
+export function Partners() {
+  return (
+    <section className={styles.section} id="partners">
+      <div className="sec-tag">// SECTION 11 — STRATEGIC COOPERATION <div className="sec-tag-line"/></div>
+      <h2 className={styles.secTitle}>STRATEGIC COOPERATION</h2>
+      <div className={styles.steelCard}>
+        <p className={styles.ecoText}>COSMOS Ledger Labs has signed a strategic-cooperation agreement with Aladdin Cyber Security (Dubai, UAE) — a leading UAE cybersecurity and cloud provider with proprietary technology, founded in 2023 and based in Dubai Internet City. Aladdin brings front-line experience on major security incidents for enterprises and government agencies, spanning smart-contract auditing, full-stack penetration testing, and 24/7 multi-chain incident response.</p>
+        <p className={styles.ecoText}><em>Aladdin Cyber Security — strategic partner.</em></p>
       </div>
     </section>
   )
@@ -175,10 +185,25 @@ export function Downloads() {
 export function Team() {
   return (
     <section className={styles.section} id="team">
-      <div className="sec-tag">// SECTION 11 — TEAM <div className="sec-tag-line"/></div>
+      <div className="sec-tag">// SECTION 12 — TEAM <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>TEAM</h2>
-      <div className={styles.steelCard}>
-        <p className={styles.ecoText}>V Zheng — Founder &amp; CEO. Led the design and delivery of the platform&apos;s MVP, system architecture, and website, directing a lean founding team. Drives technical direction and product strategy at COSMOS Ledger Labs.</p>
+      <div className={styles.founderName}>V Zheng — <span>Founder &amp; CEO</span> · Founder-led, building a lean technical team</div>
+      <div className={styles.founderGrid}>
+        <div className={styles.fCard}>
+          <div className={styles.fNum}>01</div>
+          <div className={styles.fTitleBar}>A REPEAT OPERATOR</div>
+          <div className={styles.fBody}>Currently leads COSMOS while operating another venture in a separate industry, built entirely through non-dilutive financing. Demonstrates a cross-sector track record of founding and scaling companies, with deep hands-on expertise in Canadian corporate structuring, operations, and regulatory compliance.</div>
+        </div>
+        <div className={styles.fCard}>
+          <div className={styles.fNum}>02</div>
+          <div className={styles.fTitleBar}>A FOUNDER WHO SHIPS</div>
+          <div className={styles.fBody}>A product-focused, non-engineering founder. Leads product definition, system architecture, and delivery at COSMOS. Designed the architecture and shipped a working clickable MVP prototype and marketing site — solo, with no outside capital and no technical co-founder.</div>
+        </div>
+        <div className={styles.fCard}>
+          <div className={styles.fNum}>03</div>
+          <div className={styles.fTitleBar}>FAST, FOCUSED EXECUTION</div>
+          <div className={styles.fBody}>Signed a scoped strategic-cooperation agreement with Aladdin Cyber Security. Lean by design, executing fast.</div>
+        </div>
       </div>
       <div className={`${styles.steelCard} ${styles.teamBlock}`}>
         <div className={styles.teamHead}>We&apos;re Building the Team</div>
@@ -193,10 +218,10 @@ export function Team() {
 export function Contact() {
   return (
     <section className={styles.section} id="contact">
-      <div className="sec-tag">// SECTION 12 — CONTACT <div className="sec-tag-line"/></div>
+      <div className="sec-tag">// SECTION 13 — CONTACT <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>CONTACT</h2>
       <div className={styles.steelCard}>
-        <div className={styles.contactEmail}>✉ info@cosmosledgerlabs.com</div>
+        <div className={styles.contactEmail}><a href="mailto:info@cosmosledgerlabs.com" style={{color:'inherit',textDecoration:'none'}}>✉ info@cosmosledgerlabs.com</a></div>
         <div className={styles.contactLocation}>📍 Toronto, Ontario, Canada</div>
       </div>
     </section>

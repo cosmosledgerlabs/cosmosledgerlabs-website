@@ -62,7 +62,7 @@ p, span, div, a, h1, h2, h3, li { overflow-wrap: break-word; }
   --sp4: 32px;
   --sp6: 48px;
   --sp8: 64px;
-  --max-w: 920px;
+  --max-w: 100%;
   --side: 5%;
 
   /* Brand colors (Design System — Book 4.1). Values match the current design. */
@@ -118,7 +118,8 @@ p, span, div, a, h1, h2, h3, li { overflow-wrap: break-word; }
   font-size: clamp(15px, 1.5vw, 16px);
   color: #ffffff;
   line-height: 1.6;
-  max-width: 640px;
+  max-width: none;
+  text-align: left;
 }
 
 /* 钢铁卡片 */
@@ -168,7 +169,7 @@ p, span, div, a, h1, h2, h3, li { overflow-wrap: break-word; }
 @media(max-width:767px) {
   :root { --side: 4%; --sp6: 32px; --sp4: 24px; }
   .sec-title { white-space: normal; font-size: clamp(20px, 6vw, 28px); }
-  .sec-body { font-size: 15px; }
+  .sec-body { font-size: 15px; text-align: left; }
   body { font-size: 15px; }
 }
 
@@ -178,3 +179,6 @@ a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
   outline-offset: 2px;
   border-radius: 3px;
 }
+
+/* 锚点跳转不被固定导航遮挡 */
+section[id]{scroll-margin-top:90px;}

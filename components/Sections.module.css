@@ -2,7 +2,7 @@
 /* sp1=8 sp2=16 sp3=24 sp4=32 sp6=48 sp8=64 */
 
 /* ===== COMMON ===== */
-.section { padding: 48px 5%; max-width: 920px; margin: 0 auto; width: 100%; }
+.section { padding: var(--sp6) var(--side); max-width: var(--max-w); margin: 0 auto; width: 100%; }
 
 .secTag {
   font-family: 'Rajdhani', sans-serif;
@@ -22,7 +22,8 @@
 .secBody {
   font-family: 'Share Tech Mono', monospace;
   font-size: clamp(15px, 1.5vw, 16px);
-  color: var(--text); line-height: 1.6; max-width: 640px;
+  color: var(--text); line-height: 1.6; max-width: none;
+  text-align: left;
 }
 
 /* ===== STEEL CARD ===== */
@@ -108,7 +109,7 @@
 .secCardText { font-family:'Share Tech Mono',monospace; font-size:clamp(13px,1.3vw,14px); color:var(--text); line-height:1.6; }
 
 /* ===== ECOSYSTEM ===== */
-.ecoText { font-family:'Share Tech Mono',monospace; font-size:clamp(15px,1.5vw,16px); color:var(--text); line-height:1.6; }
+.ecoText { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:clamp(15px,1.6vw,16px); color:var(--text); line-height:1.7; text-align:justify; text-align-last:left; hyphens:auto; margin-bottom:12px; }
 
 /* ===== ROADMAP — 4个按钮等宽等高对齐 ===== */
 .roadmapList { display:flex; flex-direction:column; gap:1px; margin-top:16px; border:1px solid rgba(0,155,205,.2); border-radius:6px; overflow:hidden; }
@@ -184,7 +185,7 @@
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:767px) {
-  .section { padding: 32px 4%; }
+  
   .cardGrid { grid-template-columns: 1fr 1fr; }
   .secGrid { grid-template-columns: 1fr 1fr; } /* 手机2+2+2 */
   .archSub { display: none; } /* 手机隐藏副标签 */
@@ -194,6 +195,8 @@
   .dlButtons { flex-direction: column; align-items: stretch; }
   .dlBtn1, .dlBtn2 { text-align: center; }
   .cardName { white-space: normal; } /* 手机允许换行 */
+  .secTitle { font-size: clamp(15px, 4.6vw, 20px); letter-spacing: .01em; white-space: nowrap; } /* 手机标题压成一行 */
+  .steelCard { padding: 18px 16px; } /* 手机卡片内边距收窄,正文更满 */
 }
 @media(max-width:480px) {
   .cardGrid { grid-template-columns: 1fr; }
@@ -206,3 +209,37 @@
 .legalNote { font-family:'Share Tech Mono',monospace; font-size:clamp(11px,1.3vw,12.5px); color:#7fb0c4; line-height:1.6; margin-top:20px; }
 .teamBlock { margin-top:20px; }
 .teamHead { font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:.06em; color:var(--cyan); font-size:clamp(16px,2vw,20px); margin-bottom:10px; }
+
+/* 手机端:左对齐,无大空隙(手机正文标准做法) */
+@media(max-width:767px){
+  .secBody{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; text-align:left; }
+  .ecoText{ font-size:14.5px; text-align:left; }
+}
+
+/* ===== 创始人科技卡(01/02/03)—— 青色发光、方正、对齐 ===== */
+.founderName{ font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:.08em; font-size:clamp(18px,2.4vw,24px); color:#fff; text-align:center; margin:4px 0 20px; }
+.founderName span{ color:var(--cyan); }
+.founderGrid{ display:grid; grid-template-columns:repeat(3,1fr); gap:16px; align-items:stretch; }
+.fCard{
+  position:relative; display:flex; flex-direction:column;
+  background:linear-gradient(160deg, rgba(0,26,48,.92), rgba(0,8,24,.96));
+  border:1px solid rgba(0,220,255,.35);
+  box-shadow:0 0 22px rgba(0,220,255,.10), inset 0 0 30px rgba(0,140,200,.06);
+  padding:20px 18px 22px;
+}
+.fCard::before{ content:''; position:absolute; top:0; left:0; width:16px; height:16px; border-top:2px solid var(--cyan); border-left:2px solid var(--cyan); }
+.fCard::after{ content:''; position:absolute; bottom:0; right:0; width:16px; height:16px; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan); }
+.fNum{ font-family:'Orbitron',monospace; font-weight:900; font-size:34px; line-height:1; text-align:center; color:var(--cyan); text-shadow:0 0 16px rgba(0,220,255,.7); letter-spacing:.04em; }
+.fTitleBar{ margin:14px 0 14px; padding:9px 12px; text-align:center; background:rgba(0,10,28,.85); border:1px solid rgba(0,200,255,.25); font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:.06em; font-size:13px; color:var(--cyan); text-shadow:0 0 10px rgba(0,220,255,.4); }
+.fBody{ font-family:'Share Tech Mono',monospace; font-size:13px; line-height:1.65; color:#bfe6f2; text-align:left; }
+@media(max-width:767px){
+  .founderGrid{ grid-template-columns:1fr; gap:14px; }
+  .fBody{ font-size:13px; }
+}
+
+/* 创始人卡 —— 桌面三列并排、等高方正;编号居中发光、标题条居中、正文左对齐(无 justify,英文空格不被拉大) */
+.fCard{ padding:26px 28px 24px; }
+.fNum{ font-size:42px; letter-spacing:.06em; margin-bottom:4px; }
+.fTitleBar{ display:block; width:fit-content; margin:14px auto 16px; padding:10px 26px; font-size:14px; }
+.fBody{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; text-align:justify; text-align-last:left; hyphens:auto; font-size:13.5px; line-height:1.75; }
+@media(max-width:767px){ .fCard{ padding:22px 20px; } .fNum{ font-size:38px; } .fTitleBar{ padding:9px 22px; } .fBody{ text-align:left; font-size:13px; } }

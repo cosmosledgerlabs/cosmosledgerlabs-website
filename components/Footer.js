@@ -17,6 +17,9 @@ export default function Footer() {
       <p className={styles.text}>
         © 2026 COSMOS LEDGER LABS // TORONTO, CANADA // WORKFLOW AUTOMATION INFRASTRUCTURE FOR DIGITAL ASSET OPERATIONS
       </p>
+      <p className={styles.legal}>
+        COSMOS Ledger Labs does not offer any token or digital asset. Nothing on this site is an offer to sell or a solicitation to buy securities.
+      </p>
     </footer>
   )
 }

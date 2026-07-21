@@ -6,7 +6,7 @@ export default function Hero() {
       <div className={styles.content}>
         <div className={styles.fundingBadge}>
           <span className={styles.fstar}>★</span>
-          <span>ECOSYSTEM PLATFORM HAS SECURED EXTERNAL FUNDING</span>
+          <span>ARCHITECTURE COMPLETE · CLICKABLE MVP LIVE</span>
           <span className={styles.fstar}>★</span>
         </div>
         <div className={styles.badge}>
@@ -22,12 +22,13 @@ export default function Hero() {
         </div>
         <div className={styles.gl}></div>
         <p className={styles.bodyTxt}>Secure workflow orchestration, approval coordination, transaction validation, monitoring, and recovery infrastructure for modern digital asset operations.</p>
+        <p className={styles.founderLine}>Founder is a repeat operator whose prior ventures were built with non-dilutive financing.</p>
         <div className={styles.btns}>
-          <a href="mailto:info@cosmosledgerlabs.com?subject=Investor%20Deck%20Request" className={styles.bp}>INVESTOR DECK</a>
           <a href="mailto:info@cosmosledgerlabs.com?subject=Full%20Deck%20Request" className={styles.bp}>REQUEST FULL DECK →</a>
           <a href="/architecture-diagram.pdf" target="_blank" rel="noopener noreferrer" className={styles.bp}>VIEW ARCHITECTURE</a>
-          <a href="#contact" className={styles.bs}>CONTACT US</a>
+          <a href="mailto:info@cosmosledgerlabs.com?subject=Contact%20COSMOS%20Ledger%20Labs" className={styles.bs}>CONTACT US</a>
         </div>
+        <p className={styles.discreet}>Detailed materials shared with eligible investors on request.</p>
       </div>
     </section>
   )

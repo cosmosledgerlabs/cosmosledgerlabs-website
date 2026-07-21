@@ -3,7 +3,7 @@ import Nav from '../components/Nav'
 import Hero from '../components/Hero'
 import Footer from '../components/Footer'
 import Demo from '../components/DemoSection'
-import { Problem, Solution, Architecture, Workflow, Security, Ecosystem, Roadmap, Downloads, Team, Contact } from '../components/Sections'
+import { Problem, Solution, Architecture, Workflow, Security, Ecosystem, Roadmap, Downloads, Partners, Team, Contact } from '../components/Sections'
 
 export default function Home() {
   return (
@@ -80,6 +80,8 @@ export default function Home() {
         <div className="fade-up"><Roadmap /></div>
         <hr className="divider"/>
         <div className="fade-up"><Downloads /></div>
+        <hr className="divider"/>
+        <div className="fade-up"><Partners /></div>
         <hr className="divider"/>
         <div className="fade-up"><Team /></div>
         <hr className="divider"/>
