@@ -7,7 +7,10 @@ import { runFlow, initSteps, STATUS, FLOW_STATE, readableError } from '../lib/or
 import styles from '../styles/Flow.module.css'
 
 const CLUSTER = 'devnet'
-const RPC = 'https://api.devnet.solana.com'
+// Public devnet node by default. To use a dedicated node (recommended — the
+// public one rate-limits), set NEXT_PUBLIC_SOLANA_RPC in Vercel → Settings →
+// Environment Variables and redeploy. No code change needed.
+const RPC = process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://api.devnet.solana.com'
 const EXPLORER = 'https://solscan.io'
 
 const STATUS_LABEL = {
@@ -99,7 +102,7 @@ export default function FlowPage() {
       const connection = new web3.Connection(RPC, 'confirmed')
       const pubkey = new web3.PublicKey(wallet)
 
-      const balance = await connection.getBalance(pubkey)
+      const balance = await connection.getBalance(pubkey, 'confirmed')
       if (balance <= 0) {
         say('This wallet holds no Devnet SOL. Request test tokens at faucet.solana.com and try again.', true)
         setBusy(false)
