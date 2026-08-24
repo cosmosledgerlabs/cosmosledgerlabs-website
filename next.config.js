@@ -4,7 +4,8 @@
 // - styles: 'unsafe-inline' required because the UI uses inline style={{…}} attributes;
 //   Google Fonts stylesheet is allowed explicitly
 // - fonts: Google Fonts file host
-// - connect: same-origin plus the Solana devnet RPC node (HTTPS + websocket) used by /flow
+// - connect: same-origin plus the Solana devnet RPC nodes (HTTPS + websocket) used by /flow:
+//   the public node and Helius (set via NEXT_PUBLIC_SOLANA_RPC)
 // - frame-ancestors 'none' mirrors X-Frame-Options: DENY (clickjacking)
 const ContentSecurityPolicy = [
   "default-src 'self'",
@@ -16,7 +17,7 @@ const ContentSecurityPolicy = [
   "font-src 'self' https://fonts.gstatic.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "script-src 'self'",
-  "connect-src 'self' https://api.devnet.solana.com wss://api.devnet.solana.com",
+  "connect-src 'self' https://api.devnet.solana.com wss://api.devnet.solana.com https://devnet.helius-rpc.com wss://devnet.helius-rpc.com",
   "upgrade-insecure-requests",
 ].join('; ')
 const securityHeaders = [
