@@ -1,6 +1,6 @@
 {
   "name": "cosmos-ledger-labs",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@solana/web3.js": "^1.95.3",
     "next": "^14.2.35",
     "puppeteer-core": "^25.3.0",
     "react": "^18.3.1",
