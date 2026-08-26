@@ -1,0 +1,410 @@
+/* Services page — follows the site design system:
+   Rajdhani for display type, Share Tech Mono for body,
+   steel cards with corner brackets, 8px spacing vars. */
+
+.page {
+  position: relative;
+  padding-top: 76px;
+}
+
+@media (max-width: 767px) {
+  .page { padding-top: 150px; }
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+
+/* ===== HERO ===== */
+
+.hero {
+  padding: var(--sp8) var(--side) var(--sp6);
+  text-align: center;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: rgba(0, 150, 255, .08);
+  border: 1px solid rgba(0, 220, 255, .38);
+  border-radius: 4px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  color: var(--cyan);
+  margin-bottom: var(--sp3);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px var(--cyan);
+}
+
+.title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(26px, 5.4vw, 54px);
+  font-weight: 700;
+  line-height: 1.16;
+  letter-spacing: .05em;
+  margin: 0 0 var(--sp2);
+  color: var(--text);
+}
+
+.tw { display: block; }
+.tc { color: var(--cyan); }
+
+.subline {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(10px, 1.6vw, 13px);
+  letter-spacing: .16em;
+  color: var(--text-muted);
+  margin-bottom: var(--sp3);
+}
+
+.gl {
+  width: 120px;
+  height: 2px;
+  margin: 0 auto var(--sp3);
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+}
+
+.lede {
+  max-width: 760px;
+  margin: 0 auto var(--sp4);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(14px, 1.6vw, 16px);
+  line-height: 1.75;
+  color: var(--text);
+}
+
+.btns {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.bp, .bs {
+  display: inline-block;
+  padding: 13px 26px;
+  border-radius: 4px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-decoration: none;
+  transition: all .2s ease;
+}
+
+.bp {
+  background: rgba(0, 150, 255, .12);
+  border: 1.5px solid var(--cyan);
+  color: var(--cyan);
+}
+
+.bp:hover {
+  background: var(--cyan);
+  color: var(--bg-deep);
+}
+
+.bs {
+  background: transparent;
+  border: 1.5px solid rgba(0, 220, 255, .34);
+  color: var(--text-muted);
+}
+
+.bs:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+/* ===== SECTIONS ===== */
+
+.section {
+  padding: var(--sp6) var(--side);
+  max-width: var(--max-w);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.secTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(22px, 4vw, 40px);
+  font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: 16px;
+  color: var(--text);
+  text-align: left;
+}
+
+.secBody {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(15px, 1.5vw, 16px);
+  color: var(--text);
+  line-height: 1.6;
+  text-align: left;
+}
+
+.steelCard {
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-radius: 6px;
+  padding: 32px;
+  position: relative;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.steelCard::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 14px; height: 14px;
+  border-top: 2px solid rgba(0, 220, 255, .65);
+  border-left: 2px solid rgba(0, 220, 255, .65);
+}
+
+.steelCard::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 14px; height: 14px;
+  border-bottom: 2px solid rgba(0, 220, 255, .65);
+  border-right: 2px solid rgba(0, 220, 255, .65);
+}
+
+.plainText {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(14px, 1.5vw, 16px);
+  line-height: 1.7;
+  color: var(--text);
+  margin: 0;
+}
+
+.plainStrong {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(15px, 1.6vw, 18px);
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.6;
+  color: var(--cyan);
+  margin: 0;
+}
+
+/* ===== SERVICE CARDS ===== */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin-top: var(--sp3);
+}
+
+.card {
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 190, 230, .22);
+  border-radius: 6px;
+  padding: 26px 24px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transition: border-color .2s ease;
+}
+
+.card:hover { border-color: rgba(0, 220, 255, .55); }
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 12px; height: 12px;
+  border-top: 2px solid rgba(0, 220, 255, .55);
+  border-left: 2px solid rgba(0, 220, 255, .55);
+}
+
+.cardTop {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cardNum {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  color: var(--cyan);
+}
+
+.cardName {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(14px, 1.7vw, 17px);
+  font-weight: 700;
+  letter-spacing: .05em;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.cardLead {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin: 0 0 16px;
+}
+
+.cardList {
+  flex: 1 1 auto;
+  margin-bottom: 20px;
+}
+
+.cardItem {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.95;
+  color: var(--text);
+  opacity: .82;
+}
+
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 190, 230, .22);
+}
+
+.price {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .09em;
+  color: var(--cyan);
+}
+
+.time {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  color: var(--cyan-soft);
+}
+
+.note {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  margin: var(--sp3) 0 0;
+}
+
+/* ===== PROCESS ===== */
+
+.processGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: var(--sp3);
+}
+
+.processCard {
+  background: rgba(0, 10, 28, .7);
+  border: 1px solid rgba(0, 190, 230, .2);
+  border-radius: 6px;
+  padding: 22px 20px;
+}
+
+.processNum {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: rgba(0, 232, 255, .35);
+  margin-bottom: 10px;
+}
+
+.processTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--cyan);
+  margin-bottom: 9px;
+}
+
+.processText {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text);
+  opacity: .85;
+}
+
+/* ===== EXCLUSIONS ===== */
+
+.exclusionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  margin-top: var(--sp3);
+}
+
+.exclusion {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 18px;
+  background: rgba(0, 10, 28, .6);
+  border: 1px solid rgba(180, 60, 80, .28);
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.ex {
+  flex: 0 0 auto;
+  color: #ff5f6d;
+  font-size: 15px;
+  line-height: 1.3;
+}
+
+/* ===== CONTACT ===== */
+
+.contactEmail {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(17px, 2.4vw, 24px);
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: var(--cyan);
+  margin-top: var(--sp3);
+}
+
+.contactLocation {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 12px;
+}
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 640px) {
+  .hero { padding: var(--sp6) var(--side) var(--sp4); }
+  .btns { flex-direction: column; }
+  .bp, .bs { width: 100%; text-align: center; }
+  .steelCard { padding: 22px 18px; }
+  .card { padding: 22px 18px; }
+  .cardMeta { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
