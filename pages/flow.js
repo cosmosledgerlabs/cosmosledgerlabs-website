@@ -104,7 +104,7 @@ export default function FlowPage() {
     if (!provider || !wallet) { say('Connect a wallet first.', true); return }
 
     setBusy(true)
-    say('Creating token and accounts — the wallet will prompt twice…', false)
+    say('Creating token and accounts — the wallet will prompt once…', false)
 
     try {
       const web3 = await import('@solana/web3.js')
@@ -260,7 +260,7 @@ export default function FlowPage() {
                 )}
                 <div className={styles.controlHint}>
                   Creates a test SPL token, mints {INITIAL_SUPPLY} to your account,
-                  and opens an escrow and a recipient account. Two wallet prompts.
+                  and opens an escrow and a recipient account. One wallet prompt.
                   Needed once before running the flow.
                 </div>
               </div>
