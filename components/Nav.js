@@ -9,7 +9,7 @@ export default function Nav() {
     <>
       <div className={styles.lightbar}></div>
       <nav className={styles.nav}>
-        <Link href="#top" className={styles.logo} onClick={close}>COSMOS LEDGER LABS</Link>
+        <Link href="/#top" className={styles.logo} onClick={close}>COSMOS LEDGER LABS</Link>
         <button
           className={`${styles.burger} ${open ? styles.burgerOpen : ''}`}
           onClick={() => setOpen((o) => !o)}
@@ -19,12 +19,13 @@ export default function Nav() {
           <span></span><span></span><span></span>
         </button>
         <div className={`${styles.links} ${open ? styles.linksOpen : ''}`}>
-          <a href="#problem" onClick={close}>PROBLEM</a>
-          <a href="#solution" onClick={close}>SOLUTION</a>
-          <a href="#demo" onClick={close}>DEMO</a>
-          <a href="#architecture" onClick={close}>ARCHITECTURE</a>
-          <a href="#roadmap" onClick={close}>ROADMAP</a>
-          <a href="#contact" onClick={close}>CONTACT</a>
+          <Link href="/services" onClick={close}>SERVICES</Link>
+          <Link href="/flow" onClick={close}>DEMO</Link>
+          <Link href="/#problem" onClick={close}>PROBLEM</Link>
+          <Link href="/#solution" onClick={close}>SOLUTION</Link>
+          <Link href="/#architecture" onClick={close}>ARCHITECTURE</Link>
+          <Link href="/#roadmap" onClick={close}>ROADMAP</Link>
+          <Link href="/#contact" onClick={close}>CONTACT</Link>
         </div>
       </nav>
     </>
