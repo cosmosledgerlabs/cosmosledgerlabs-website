@@ -217,8 +217,11 @@ export default function FlowPage() {
       setSetupSigs(acc.signatures)
       await refreshBalances(acc)
       say('Setup complete. ' + INITIAL_SUPPLY + ' test tokens minted to your account.', false)
-    } catch (e) {
-      say('Setup failed: ' + readableError(e), true)
+        } catch (e) {
+      console.error('SETUP ERROR — full object:', e)
+      console.error('SETUP ERROR — message:', e && e.message)
+      console.error('SETUP ERROR — logs:', e && e.logs)
+      say('Setup failed: ' + (e && e.message ? e.message : readableError(e)), true)
     } finally {
       setBusy(false)
     }
