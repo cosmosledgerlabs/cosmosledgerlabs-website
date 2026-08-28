@@ -217,7 +217,7 @@ export default function FlowPage() {
       setSetupSigs(acc.signatures)
       await refreshBalances(acc)
       say('Setup complete. ' + INITIAL_SUPPLY + ' test tokens minted to your account.', false)
-        } catch (e) {
+    } catch (e) {
       console.error('SETUP ERROR — full object:', e)
       console.error('SETUP ERROR — message:', e && e.message)
       console.error('SETUP ERROR — logs:', e && e.logs)
