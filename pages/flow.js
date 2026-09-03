@@ -350,6 +350,12 @@ export default function FlowPage() {
             <div className={styles.badge}>SOLANA DEVNET</div>
             <h1 className={styles.title}>CROSS-TRANSACTION CONSISTENCY</h1>
             <p className={styles.subtitle}>
+              Engineering demonstration on Solana devnet using test tokens. This page
+              demonstrates COSMOS&apos;s workflow engineering approach — multi-step token
+              operations with automatic on-chain compensation on failure. It is not a
+              product, not an offer, and not connected to mainnet funds.
+            </p>
+            <p className={styles.subtitle}>
               A token operation is not one transaction. Approval, vesting setup and
               distribution are separate transactions. Solana is atomic within a
               transaction — not across a sequence. When a later step fails, the

@@ -1,5 +1,6 @@
 import styles from './Footer.module.css'
 
+/* Footer: canonical boilerplate + required disclaimer */
 export default function Footer() {
   return (
     <footer className={styles.footer}>
@@ -15,11 +16,12 @@ export default function Footer() {
         </a>
       </div>
       <p className={styles.text}>
-        © 2026 COSMOS LEDGER LABS // TORONTO, CANADA // WORKFLOW AUTOMATION INFRASTRUCTURE FOR DIGITAL ASSET OPERATIONS
+        COSMOS Ledger Labs Inc. is a Toronto-based digital asset technology company. We design, build, and hand over the technical infrastructure that digital asset projects need to launch and operate: corporate websites, operations dashboards, token deployment and configuration, claim portals, data integrations and APIs, and smart contract front-ends.
       </p>
       <p className={styles.legal}>
-        COSMOS Ledger Labs does not offer any token or digital asset. Nothing on this site is an offer to sell or a solicitation to buy securities.
+        COSMOS Ledger Labs Inc. · Ontario, Canada. Demonstrations run on Solana devnet. Devnet tokens have no monetary value. Nothing on this site is an offer to sell or a solicitation to buy any security or digital asset. Third-party tools named on this site are technologies we build with; their mention does not imply partnership or endorsement.
       </p>
+      <p className={styles.legal}>© 2026 COSMOS Ledger Labs Inc.</p>
     </footer>
   )
 }

@@ -1,75 +1,55 @@
 import styles from './Sections.module.css'
 
+/* 2.2 — Problem: The delivery gap (client delivery pain, not platform narrative) */
 export function Problem() {
   return (
     <section className={styles.section} id="problem">
-      <div className="sec-tag">// SECTION 02 — PROBLEM <div className="sec-tag-line"/></div>
-      <h2 className={styles.secTitle}>THE PROBLEM</h2>
-      <p className={styles.secBody}>Managing digital asset operations across approvals, execution workflows, monitoring, and recovery processes remains fragmented and operationally complex.</p>
+      <div className="sec-tag">// SECTION 02 — THE DELIVERY GAP <div className="sec-tag-line"/></div>
+      <h2 className={styles.secTitle}>THE DELIVERY GAP</h2>
+      <p className={styles.secBody}>Digital asset teams are strong on protocol design and community — and stretched thin on delivery. Launches stall on the unglamorous work. Generic agencies don&apos;t understand on-chain mechanics; protocol engineers don&apos;t want to build front-ends. That gap is where launches slip.</p>
       <div className={styles.cardGrid}>
-        <div className={styles.card}><div className={styles.cardName}>APPROVAL FRAGMENTATION</div><div className={styles.cardText}>No unified approval coordination layer across digital asset operations.</div></div>
-        <div className={styles.card}><div className={styles.cardName}>EXECUTION COMPLEXITY</div><div className={styles.cardText}>Coordination gaps across workflow execution steps cause operational failures.</div></div>
-        <div className={styles.card}><div className={styles.cardName}>MONITORING LIMITS</div><div className={styles.cardText}>Limited visibility into live workflow status and real-time execution.</div></div>
-        <div className={styles.card}><div className={styles.cardName}>RECOVERY RISKS</div><div className={styles.cardText}>No standardized rollback and recovery mechanisms for failed workflows.</div></div>
+        <div className={styles.card}><div className={styles.cardName}>A CREDIBLE WEBSITE</div><div className={styles.cardText}>A site that earns trust from users, partners, and reviewers on day one.</div></div>
+        <div className={styles.card}><div className={styles.cardName}>AN ACCURATE DASHBOARD</div><div className={styles.cardText}>A dashboard that reflects on-chain state accurately, not approximately.</div></div>
+        <div className={styles.card}><div className={styles.cardName}>A CORRECT TOKEN SETUP</div><div className={styles.cardText}>A token deployed and configured correctly the first time.</div></div>
+        <div className={styles.card}><div className={styles.cardName}>A CLAIM PORTAL THAT HOLDS</div><div className={styles.cardText}>A claim portal that holds up on launch day, under real load.</div></div>
       </div>
     </section>
   )
 }
 
+/* 2.3 — Solution: COSMOS closes the delivery gap */
 export function Solution() {
   return (
     <section className={styles.section} id="solution">
       <div className="sec-tag">// SECTION 03 — SOLUTION <div className="sec-tag-line"/></div>
-      <h2 className={styles.secTitle}>THE SOLUTION</h2>
+      <h2 className={styles.secTitle}>COSMOS CLOSES THE DELIVERY GAP</h2>
       <div className={styles.steelCard}>
-        <p className={styles.ecoText}>COSMOS Ledger Labs builds a unified workflow automation infrastructure layer for digital asset operations — combining approval coordination, secure execution, real-time monitoring, and atomic recovery into one integrated platform built on Solana. Non-custodial by design: signing and settlement run inside the customer&apos;s own infrastructure; keys and funds never touch COSMOS.</p>
+        <p className={styles.ecoText}>COSMOS is a specialized technical delivery firm for digital asset projects. We scope, build, test, and hand over the operational infrastructure around your protocol or token — on a fixed scope, with devnet verification before anything touches mainnet, and without ever taking custody of your funds or keys. You keep control; we do the engineering.</p>
       </div>
     </section>
   )
 }
 
-export function Architecture() {
-  const layers = [
-    {n:'L1', t:'ADMIN DASHBOARD & WORKFLOW BUILDER', s:'Control UI'},
-    {n:'L2', t:'APPROVAL ENGINE', s:'Multi-sig / RBAC'},
-    {n:'L3', t:'WORKFLOW ORCHESTRATOR', s:'Scheduling / Routing'},
-    {n:'L4', t:'TOKEN ISSUANCE / VESTING / DISTRIBUTION', s:'Smart Contracts'},
-    {n:'L5', t:'ON-CHAIN EXECUTION — SOLANA', s:'CPI routing · non-custodial'},
-    {n:'L6', t:'MONITORING & RECOVERY LAYER', s:'Retry / Rollback'},
-    {n:'L7', t:'SECURITY LAYER', s:'Permissions / Audit'},
-    {n:'L8', t:'BACKEND INFRASTRUCTURE', s:'API / Queue / DB'},
-    {n:'L9', t:'DATA & LOGGING', s:'Analytics / Records'},
+/* 2.5 — Replaces the old 9-layer architecture + execution lifecycle */
+export function HowWeWork() {
+  const steps = [
+    {t:'SCOPE', d:'A call to define exactly what will be built, and what won\u2019t.'},
+    {t:'QUOTE', d:'Fixed scope, written quote, milestone schedule.'},
+    {t:'BUILD', d:'Version-controlled development against the agreed specification.'},
+    {t:'VERIFY', d:'Everything tested on Solana devnet before any mainnet action.'},
+    {t:'HANDOVER', d:'Code, credentials, and a run-book your team can operate without us.'},
   ]
   return (
-    <section className={styles.section} id="architecture">
-      <div className="sec-tag">// SECTION 05 — ARCHITECTURE <div className="sec-tag-line"/></div>
-      <h2 className={styles.secTitle}>PLATFORM ARCHITECTURE</h2>
-      <div className={styles.archList}>
-        {layers.map((l,i) => (
-          <div key={i} className={styles.archLayer}>
-            <span className={styles.archNum}>{l.n}</span>
-            <span className={styles.archTitle}>{l.t}</span>
-            <span className={styles.archSub}>{l.s}</span>
-          </div>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-export function Workflow() {
-  const steps = ['User Creates Workflow','Approval Validation','Execution Queue','Unsigned-Tx Builder','On-Chain Validation','Settlement (customer-signed)','Execution Monitoring','Audit Logging','Rollback Recovery']
-  return (
-    <section className={styles.section} id="workflow">
-      <div className="sec-tag">// SECTION 06 — WORKFLOW <div className="sec-tag-line"/></div>
-      <h2 className={styles.secTitle}>EXECUTION WORKFLOW LIFECYCLE</h2>
+    <section className={styles.section} id="how-we-work">
+      <div className="sec-tag">// SECTION 05 — HOW WE WORK <div className="sec-tag-line"/></div>
+      <h2 className={styles.secTitle}>HOW WE WORK</h2>
       <div className={styles.wfList}>
         {steps.map((s,i) => (
           <span key={i} style={{display:'contents'}}>
             <div className={styles.wfStep}>
               <div className={styles.wfDot}/>
               <span className={styles.wfNum}>{String(i+1).padStart(2,'0')} //</span>
-              <span className={styles.wfLabel}>{s}</span>
+              <span className={styles.wfLabel}>{s.t} — {s.d}</span>
             </div>
             {i < steps.length-1 && <div className={styles.wfLine}/>}
           </span>
@@ -79,20 +59,20 @@ export function Workflow() {
   )
 }
 
+/* 2.6 — Security: COSMOS's own delivery practices only; no audit-execution parties named */
 export function Security() {
   const items = [
-    {t:'PERMISSION CONTROLS', d:'Role-based access control across all workflow operations.'},
-    {t:'AUDIT LOGGING', d:'Audit logging designed into every workflow.'},
-    {t:'ATOMIC ROLLBACK', d:'Automatic rollback protection prevents partial execution failures.'},
-    {t:'MULTI-SIG APPROVAL', d:'Multi-step approval gates before any transaction execution.'},
-    {t:'EXECUTION VERIFICATION', d:'On-chain validation before and after every transaction.'},
-    {t:'REPLAY PROTECTION', d:'Prevents double execution and replay attacks on workflows.'},
+    {t:'LEAST-PRIVILEGE ACCESS', d:'Least-privilege access on every engagement; no custody of client keys or funds.'},
+    {t:'DEVNET VERIFICATION', d:'Everything is verified on Solana devnet before any mainnet action.'},
+    {t:'AUTHORITIES TO SPEC', d:'Token authorities configured only to the client\u2019s written specification.'},
+    {t:'VERSION-CONTROLLED HANDOVER', d:'Version-controlled code with a documented handover.'},
+    {t:'INDEPENDENT AUDIT REFERRAL', d:'Where an audit is required, we refer clients to qualified independent audit firms — COSMOS does not perform audits.'},
   ]
   return (
     <section className={styles.section} id="security">
-      <div className="sec-tag">// SECTION 07 — SECURITY <div className="sec-tag-line"/></div>
-      <h2 className={styles.secTitle}>SECURITY-FIRST ARCHITECTURE</h2>
-      <p className={styles.secBody}>COSMOS Ledger Labs is designed around operational security: permissions and audit logs, atomic rollback protection, and execution verification. Independent third-party security audits are planned as part of our roadmap.</p>
+      <div className="sec-tag">// SECTION 06 — SECURITY <div className="sec-tag-line"/></div>
+      <h2 className={styles.secTitle}>SECURITY AS A DELIVERY PRACTICE</h2>
+      <p className={styles.secBody}>Security on every engagement is procedural, not promotional: least-privilege access and no custody of client keys or funds; devnet verification before any mainnet action; token authorities configured only to the client&apos;s written specification; version-controlled code with a documented handover; and referral to qualified independent audit firms where an audit is required — COSMOS does not perform audits.</p>
       <div className={styles.secGrid}>
         {items.map((item,i) => (
           <div key={i} className={styles.secCard}>
@@ -105,45 +85,35 @@ export function Security() {
   )
 }
 
-export function Ecosystem() {
+/* 2.7 — Replaces the old Ecosystem positioning */
+export function Technology() {
   return (
-    <section className={styles.section} id="ecosystem">
-      <div className="sec-tag">// SECTION 08 — ECOSYSTEM <div className="sec-tag-line"/></div>
-      <h2 className={styles.secTitle}>ECOSYSTEM</h2>
+    <section className={styles.section} id="technology">
+      <div className="sec-tag">// SECTION 07 — TECHNOLOGY <div className="sec-tag-line"/></div>
+      <h2 className={styles.secTitle}>TECHNOLOGY WE BUILD WITH</h2>
       <div className={styles.steelCard}>
-        <p className={styles.ecoText}>COSMOS Ledger Labs is built on Solana — leveraging its high-performance infrastructure for fast, low-cost transaction execution. Designed to integrate with the broader Solana ecosystem, supporting institutional digital asset operations at scale.</p>
+        <p className={styles.ecoText}>Solana · React / Next.js · SPL token standards · established ecosystem tooling including Streamflow, Squads, Magna, and Helius. We build against the tools our clients already use.</p>
       </div>
     </section>
   )
 }
 
-export function Roadmap() {
-  const phases = [
-    {n:'00', phase:'PHASE 0', title:'ARCHITECTURE', cls:'rm1', titleCls:'rmTitle1', badge:'NOW — DONE', badgeCls:'badgeCurrent', tags:['Architecture design','Clickable MVP prototype','Website live','Aladdin strategic cooperation signed']},
-    {n:'01', phase:'PHASE 1', title:'ENGINE',       cls:'rm2', titleCls:'rmTitle2', badge:'0–6 MO',    badgeCls:'badgeNext',    tags:['Technical co-founder + core engineering','Core orchestration engine','Alpha — Solana devnet']},
-    {n:'02', phase:'PHASE 2', title:'BETA',         cls:'rm3', titleCls:'rmTitle3', badge:'6–12 MO',   badgeCls:'badgePlanned', tags:['Private beta (test)','First 2–3 design partners']},
-    {n:'03', phase:'PHASE 3', title:'MAINNET',      cls:'rm4', titleCls:'rmTitle4', badge:'12–15 MO',  badgeCls:'badgeFuture',  tags:['Finalize production build','Limited mainnet launch','Ready for the next growth phase']},
+/* 2.8 — Where We Are: no dates, no commitments */
+export function WhereWeAre() {
+  const items = [
+    {t:'NOW', d:'Delivering client engagements across our six service lines, with a live on-chain engineering demo on Solana devnet.'},
+    {t:'NEXT', d:'Expanding our vetted engineering partner network and publishing delivery case studies.'},
+    {t:'LATER', d:'Productizing the internal workflow-orchestration tooling behind our demo.'},
   ]
   return (
-    <section className={styles.section} id="roadmap">
-      <div className="sec-tag">// SECTION 09 — ROADMAP <div className="sec-tag-line"/></div>
-      <h2 className={styles.secTitle}>TECHNICAL ROADMAP</h2>
-      <div className={styles.roadmapList}>
-        {phases.map((p,i) => (
-          <div key={i} className={`${styles.rmItem} ${styles[p.cls]}`}>
-            <div className={styles.rmRow}>
-              <div className={styles.rmLeft}>
-                <div className={styles.rmNum}>{p.n}</div>
-                <div className={styles.rmInfo}>
-                  <div className={styles.rmPhase}>// {p.phase}</div>
-                  <div className={styles[p.titleCls]}>{p.title}</div>
-                </div>
-              </div>
-              <div className={`${styles.rmBadge} ${styles[p.badgeCls]}`}>{p.badge}</div>
-            </div>
-            <div className={styles.rmTags}>
-              {p.tags.map((tag,j) => <div key={j} className={styles.rmTag}>// {tag}</div>)}
-            </div>
+    <section className={styles.section} id="where-we-are">
+      <div className="sec-tag">// SECTION 08 — WHERE WE ARE <div className="sec-tag-line"/></div>
+      <h2 className={styles.secTitle}>WHERE WE ARE</h2>
+      <div className={styles.cardGrid}>
+        {items.map((item,i) => (
+          <div key={i} className={styles.card}>
+            <div className={styles.cardName}>{item.t}</div>
+            <div className={styles.cardText}>{item.d}</div>
           </div>
         ))}
       </div>
@@ -151,28 +121,11 @@ export function Roadmap() {
   )
 }
 
-export function Downloads() {
-  return (
-    <section className={styles.section} id="deck">
-      <div className="sec-tag">// SECTION 10 — DOCUMENTS <div className="sec-tag-line"/></div>
-      <h2 className={styles.secTitle}>DOWNLOAD DOCUMENTS</h2>
-      <div className={styles.steelCard}>
-        <p className={styles.secBody}>Access the platform vision, architecture design, roadmap, and development strategy.</p>
-        <div className={styles.dlButtons}>
-          <a href="mailto:info@cosmosledgerlabs.com?subject=Full%20Deck%20Request" className={styles.dlBtn1}>REQUEST FULL DECK →</a>
-          <a href="/architecture-diagram.pdf" target="_blank" rel="noopener noreferrer" className={styles.dlBtn2}>⬇ ARCHITECTURE DIAGRAM</a>
-          <a href="/cosmos-overview.pdf" target="_blank" rel="noopener noreferrer" className={styles.dlBtn2}>⬇ COMPANY OVERVIEW</a>
-        </div>
-        <p className={styles.legalNote}>Detailed materials shared with eligible investors on request. Contact info@cosmosledgerlabs.com</p>
-      </div>
-    </section>
-  )
-}
-
+/* 2.10 — Aladdin strategic cooperation: retained */
 export function Partners() {
   return (
     <section className={styles.section} id="partners">
-      <div className="sec-tag">// SECTION 11 — STRATEGIC COOPERATION <div className="sec-tag-line"/></div>
+      <div className="sec-tag">// SECTION 09 — STRATEGIC COOPERATION <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>STRATEGIC COOPERATION</h2>
       <div className={styles.steelCard}>
         <p className={styles.ecoText}>COSMOS Ledger Labs has signed a strategic-cooperation agreement with Aladdin Cyber Security (Dubai, UAE) — a leading UAE cybersecurity and cloud provider with proprietary technology, founded in 2023 and based in Dubai Internet City. Aladdin brings front-line experience on major security incidents for enterprises and government agencies, spanning smart-contract auditing, full-stack penetration testing, and 24/7 multi-chain incident response.</p>
@@ -182,43 +135,29 @@ export function Partners() {
   )
 }
 
+/* 2.11 — Team: founder + contracted engineering network; no equity numbers */
 export function Team() {
   return (
     <section className={styles.section} id="team">
-      <div className="sec-tag">// SECTION 12 — TEAM <div className="sec-tag-line"/></div>
+      <div className="sec-tag">// SECTION 10 — TEAM <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>TEAM</h2>
-      <div className={styles.founderName}>V Zheng — <span>Founder &amp; CEO</span> · Founder-led, building a lean technical team</div>
-      <div className={styles.founderGrid}>
-        <div className={styles.fCard}>
-          <div className={styles.fNum}>01</div>
-          <div className={styles.fTitleBar}>A REPEAT OPERATOR</div>
-          <div className={styles.fBody}>Currently leads COSMOS while operating another venture in a separate industry, built entirely through non-dilutive financing. Demonstrates a cross-sector track record of founding and scaling companies, with deep hands-on expertise in Canadian corporate structuring, operations, and regulatory compliance.</div>
-        </div>
-        <div className={styles.fCard}>
-          <div className={styles.fNum}>02</div>
-          <div className={styles.fTitleBar}>A FOUNDER WHO SHIPS</div>
-          <div className={styles.fBody}>A product-focused, non-engineering founder. Leads product definition, system architecture, and delivery at COSMOS. Designed the architecture and shipped a working clickable MVP prototype and marketing site — solo, with no outside capital and no technical co-founder.</div>
-        </div>
-        <div className={styles.fCard}>
-          <div className={styles.fNum}>03</div>
-          <div className={styles.fTitleBar}>FAST, FOCUSED EXECUTION</div>
-          <div className={styles.fBody}>Signed a scoped strategic-cooperation agreement with Aladdin Cyber Security. Lean by design, executing fast.</div>
-        </div>
+      <div className={styles.steelCard}>
+        <p className={styles.ecoText}>COSMOS was founded by V. Zheng, a repeat founder based in Toronto. She designed the company&apos;s service model, shipped its website and its on-chain devnet demonstration, and leads client engagements directly. Delivery is carried out with contracted engineering teams vetted by COSMOS; audit and other specialist work is referred to qualified independent firms.</p>
       </div>
       <div className={`${styles.steelCard} ${styles.teamBlock}`}>
-        <div className={styles.teamHead}>We&apos;re Building the Team</div>
-        <p className={styles.ecoText}>We&apos;re looking for a technical co-founder and Solana / Rust / Anchor engineers to build the next generation of digital asset infrastructure.</p>
-        <p className={styles.ecoText}><em>Early role, real ownership, working product to build on.</em></p>
-        <p className={styles.ecoText}>Interested? → <a href="mailto:info@cosmosledgerlabs.com?subject=Technical%20Co-founder%20Inquiry" className={styles.inlineLink}>info@cosmosledgerlabs.com</a></p>
+        <div className={styles.teamHead}>We&apos;re Hiring</div>
+        <p className={styles.ecoText}>A technical co-founder / senior full-stack engineer (React/Next.js + Solana) to lead client delivery.</p>
+        <p className={styles.ecoText}>Write to <a href="mailto:info@cosmosledgerlabs.com?subject=Technical%20Co-founder%20Inquiry" className={styles.inlineLink}>info@cosmosledgerlabs.com</a></p>
       </div>
     </section>
   )
 }
 
+/* 2.12 — Contact: unchanged */
 export function Contact() {
   return (
     <section className={styles.section} id="contact">
-      <div className="sec-tag">// SECTION 13 — CONTACT <div className="sec-tag-line"/></div>
+      <div className="sec-tag">// SECTION 11 — CONTACT <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>CONTACT</h2>
       <div className={styles.steelCard}>
         <div className={styles.contactEmail}><a href="mailto:info@cosmosledgerlabs.com" style={{color:'inherit',textDecoration:'none'}}>✉ info@cosmosledgerlabs.com</a></div>

@@ -3,14 +3,14 @@ import Nav from '../components/Nav'
 import Hero from '../components/Hero'
 import Footer from '../components/Footer'
 import Demo from '../components/DemoSection'
-import { Problem, Solution, Architecture, Workflow, Security, Ecosystem, Roadmap, Downloads, Partners, Team, Contact } from '../components/Sections'
+import { Problem, Solution, HowWeWork, Security, Technology, WhereWeAre, Partners, Team, Contact } from '../components/Sections'
 
 export default function Home() {
   return (
     <>
       <Head>
-        <title>COSMOS Ledger Labs — Workflow Infrastructure for Digital Asset Operations</title>
-        <meta name="description" content="COSMOS Ledger Labs builds workflow automation infrastructure for digital asset operations. Built on Solana. Toronto, Canada." />
+        <title>COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects</title>
+        <meta name="description" content="COSMOS Ledger Labs is a Toronto-based digital asset technology company. Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends." />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -20,8 +20,8 @@ export default function Home() {
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
         {/* Open Graph */}
-        <meta property="og:title" content="COSMOS Ledger Labs — Workflow Infrastructure for Digital Asset Operations" />
-        <meta property="og:description" content="Workflow automation infrastructure for digital asset operations. Built on Solana. Toronto, Canada." />
+        <meta property="og:title" content="COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects" />
+        <meta property="og:description" content="Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends for digital asset teams. Toronto, Canada." />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
@@ -29,12 +29,12 @@ export default function Home() {
         <meta property="og:image" content="https://cosmosledgerlabs.com/og-image.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="COSMOS Ledger Labs — Workflow Automation Infrastructure" />
+        <meta property="og:image:alt" content="COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="COSMOS Ledger Labs — Workflow Infrastructure for Digital Asset Operations" />
-        <meta name="twitter:description" content="Workflow automation infrastructure for digital asset operations. Built on Solana. Toronto, Canada." />
+        <meta name="twitter:title" content="COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects" />
+        <meta name="twitter:description" content="Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends for digital asset teams. Toronto, Canada." />
         <meta name="twitter:image" content="https://cosmosledgerlabs.com/og-image.png" />
 
         {/* Schema.org — Organization */}
@@ -47,7 +47,7 @@ export default function Home() {
               name: 'COSMOS Ledger Labs',
               url: 'https://cosmosledgerlabs.com/',
               description:
-                'Workflow automation infrastructure for digital asset operations, built on Solana.',
+                'Toronto-based digital asset technology company. Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends for digital asset projects.',
               email: 'info@cosmosledgerlabs.com',
               address: {
                 '@type': 'PostalAddress',
@@ -69,17 +69,13 @@ export default function Home() {
         <hr className="divider"/>
         <div className="fade-up"><Demo /></div>
         <hr className="divider"/>
-        <div className="fade-up"><Architecture /></div>
-        <hr className="divider"/>
-        <div className="fade-up"><Workflow /></div>
+        <div className="fade-up"><HowWeWork /></div>
         <hr className="divider"/>
         <div className="fade-up"><Security /></div>
         <hr className="divider"/>
-        <div className="fade-up"><Ecosystem /></div>
+        <div className="fade-up"><Technology /></div>
         <hr className="divider"/>
-        <div className="fade-up"><Roadmap /></div>
-        <hr className="divider"/>
-        <div className="fade-up"><Downloads /></div>
+        <div className="fade-up"><WhereWeAre /></div>
         <hr className="divider"/>
         <div className="fade-up"><Partners /></div>
         <hr className="divider"/>
