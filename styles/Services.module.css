@@ -201,9 +201,13 @@
 
 /* ===== SERVICE CARDS ===== */
 
+/* min() guard: a bare minmax(320px, 1fr) is a hard floor, so on a narrow
+   phone the column stays 320px wide even when the content area is smaller,
+   pushing the page into horizontal scroll. min(320px, 100%) lets the column
+   shrink below 320px when — and only when — it has to. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   gap: 20px;
   margin-top: var(--sp3);
 }
@@ -217,6 +221,7 @@
   display: flex;
   flex-direction: column;
   transition: border-color .2s ease;
+  min-width: 0;
 }
 
 .card:hover { border-color: rgba(0, 220, 255, .55); }
@@ -235,6 +240,7 @@
   align-items: baseline;
   gap: 10px;
   margin-bottom: 14px;
+  min-width: 0;
 }
 
 .cardNum {
@@ -243,15 +249,17 @@
   font-weight: 700;
   letter-spacing: .18em;
   color: var(--cyan);
+  flex: 0 0 auto;
 }
 
 .cardName {
   font-family: 'Rajdhani', sans-serif;
   font-size: clamp(14px, 1.7vw, 17px);
   font-weight: 700;
-  letter-spacing: .05em;
+  letter-spacing: .04em;
   line-height: 1.3;
   color: var(--text);
+  min-width: 0;
 }
 
 .cardLead {
@@ -273,6 +281,7 @@
   line-height: 1.95;
   color: var(--text);
   opacity: .82;
+  overflow-wrap: anywhere;
 }
 
 .cardMeta {
@@ -298,6 +307,7 @@
   font-weight: 700;
   letter-spacing: .14em;
   color: var(--cyan-soft);
+  white-space: nowrap;
 }
 
 .note {
@@ -312,7 +322,7 @@
 
 .processGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
   gap: 16px;
   margin-top: var(--sp3);
 }
@@ -322,6 +332,7 @@
   border: 1px solid rgba(0, 190, 230, .2);
   border-radius: 6px;
   padding: 22px 20px;
+  min-width: 0;
 }
 
 .processNum {
@@ -354,7 +365,7 @@
 
 .exclusionGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
   gap: 12px;
   margin-top: var(--sp3);
 }
@@ -371,6 +382,7 @@
   font-size: 13px;
   line-height: 1.6;
   color: var(--text);
+  min-width: 0;
 }
 
 .ex {
@@ -389,6 +401,7 @@
   letter-spacing: .04em;
   color: var(--cyan);
   margin-top: var(--sp3);
+  overflow-wrap: anywhere;
 }
 
 .contactLocation {
