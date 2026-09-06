@@ -6,7 +6,7 @@ import styles from '../styles/Services.module.css'
 const SERVICES = [
   {
     n: '01',
-    name: 'DASHBOARDS & DATA INTERFACES',
+    name: 'DASHBOARDS & INTERFACES',
     lead: 'Custom dashboards that bring scattered on-chain and off-chain data into one view.',
     items: [
       'Holder counts and address distribution',
@@ -21,7 +21,7 @@ const SERVICES = [
   },
   {
     n: '02',
-    name: 'CORPORATE WEBSITES & LANDING PAGES',
+    name: 'WEBSITES & LANDING PAGES',
     lead: 'Marketing sites, documentation and landing pages, built to be handed over to your team.',
     items: [
       'Design and front-end build',
@@ -34,8 +34,8 @@ const SERVICES = [
   },
   {
     n: '03',
-    name: 'TOKEN DEPLOYMENT & CONFIGURATION',
-    lead: 'Technical execution using established, audited tooling. We configure — we do not sell, distribute or market your token.',
+    name: 'TOKEN DEPLOYMENT',
+    lead: 'Technical execution and configuration using established, audited tooling. We configure — we do not sell, distribute or market your token.',
     items: [
       'Token deployment (SPL / ERC-20)',
       'Metadata and on-chain identity',
@@ -48,8 +48,8 @@ const SERVICES = [
   },
   {
     n: '04',
-    name: 'CLAIM PORTALS & DISTRIBUTION INTERFACES',
-    lead: 'Branded interfaces where recipients connect a wallet and claim their allocation.',
+    name: 'CLAIM PORTALS',
+    lead: 'Branded distribution interfaces where recipients connect a wallet and claim their allocation.',
     items: [
       'White-label UI under your own domain',
       'Wallet connection and claim flow',
@@ -61,7 +61,7 @@ const SERVICES = [
   },
   {
     n: '05',
-    name: 'BLOCKCHAIN DATA INTEGRATION & APIs',
+    name: 'DATA INTEGRATION & APIs',
     lead: 'Connect on-chain data to the systems your business already runs on.',
     items: [
       'Indexing and data pipelines',
@@ -74,8 +74,8 @@ const SERVICES = [
   },
   {
     n: '06',
-    name: 'SMART CONTRACT FRONT-ENDS',
-    lead: 'Human-usable interfaces for contracts you already have.',
+    name: 'CONTRACT FRONT-ENDS',
+    lead: 'Human-usable interfaces for the smart contracts you already have.',
     items: [
       'Interface design and build',
       'Contract interaction layer',
