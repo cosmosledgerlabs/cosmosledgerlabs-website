@@ -83,6 +83,10 @@
   font-size: clamp(14px, 1.6vw, 16px);
   line-height: 1.75;
   color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
 .btns {
@@ -150,7 +154,10 @@
   font-size: clamp(15px, 1.5vw, 16px);
   color: var(--text);
   line-height: 1.6;
-  text-align: left;
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
 .steelCard {
@@ -187,6 +194,10 @@
   line-height: 1.7;
   color: var(--text);
   margin: 0;
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
 .plainStrong {
@@ -268,6 +279,10 @@
   line-height: 1.65;
   color: var(--text-muted);
   margin: 0 0 16px;
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
 .cardList {
@@ -316,6 +331,10 @@
   line-height: 1.7;
   color: var(--text-muted);
   margin: var(--sp3) 0 0;
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
 /* ===== PROCESS ===== */
@@ -359,6 +378,10 @@
   line-height: 1.7;
   color: var(--text);
   opacity: .85;
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: auto;
+  hyphens: auto;
 }
 
 /* ===== EXCLUSIONS ===== */
