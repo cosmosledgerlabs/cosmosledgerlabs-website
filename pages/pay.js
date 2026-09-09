@@ -77,6 +77,8 @@ const T2 = {
   btnNotify: { en: '✉ EMAIL US THIS ORDER', zh: '✉ 以電子郵件通知我們此訂單' },
   btnUsdt: { en: '✉ REQUEST USDT ADDRESS', zh: '✉ 索取 USDT 收款地址' },
   btnCopy: { en: 'COPY ORDER NUMBER', zh: '複製訂單編號' },
+  btnCopyDetails: { en: 'COPY ORDER DETAILS', zh: '複製訂單內容' },
+  sendTo: { en: 'Or copy the details and email them to: info@cosmosledgerlabs.com', zh: '或複製訂單內容後，以電子郵件寄至：info@cosmosledgerlabs.com' },
   copied: { en: 'COPIED ✓', zh: '已複製 ✓' },
   btnReset: { en: 'START A NEW ORDER', zh: '建立新訂單' },
   legal: {
@@ -124,6 +126,7 @@ export default function Pay() {
   const [method, setMethod] = useState('')
   const [order, setOrder] = useState(null)
   const [copied, setCopied] = useState(false)
+  const [copiedDetails, setCopiedDetails] = useState(false)
 
   const service = SERVICES.find((s) => s.id === serviceId) || SERVICES[SERVICES.length - 1]
 
@@ -147,6 +150,7 @@ export default function Pay() {
   const generate = () => {
     if (!canGenerate) return
     setCopied(false)
+    setCopiedDetails(false)
     setOrder({
       id: makeOrderId(),
       serviceId,
@@ -160,6 +164,7 @@ export default function Pay() {
   const reset = () => {
     setOrder(null)
     setCopied(false)
+    setCopiedDetails(false)
     setMethod('')
   }
 
@@ -173,11 +178,10 @@ export default function Pay() {
     }
   }
 
-  const mailto = (subjectPrefix) => {
-    if (!order) return '#'
+  const orderText = () => {
+    if (!order) return ''
     const methodName = (METHODS.find((m) => m.id === order.method) || {}).name
-    const subject = subjectPrefix + ' ' + order.id + ' — ' + fmtAmount(order.amount, order.currency)
-    const body = [
+    return [
       'Order number: ' + order.id,
       'Service: ' + (order.serviceName ? order.serviceName.en : ''),
       'Amount: ' + fmtAmount(order.amount, order.currency),
@@ -185,6 +189,23 @@ export default function Pay() {
       '',
       'Sent from cosmosledgerlabs.com/pay',
     ].join('\n')
+  }
+
+  const copyDetails = async () => {
+    if (!order) return
+    try {
+      await navigator.clipboard.writeText(orderText())
+      setCopiedDetails(true)
+    } catch (e) {
+      setCopiedDetails(false)
+    }
+  }
+
+  const mailto = (subjectPrefix) => {
+    if (!order) return '#'
+    const methodName = (METHODS.find((m) => m.id === order.method) || {}).name
+    const subject = subjectPrefix + ' ' + order.id + ' — ' + fmtAmount(order.amount, order.currency)
+    const body = orderText()
     return (
       'mailto:info@cosmosledgerlabs.com?subject=' +
       encodeURIComponent(subject) +
@@ -345,6 +366,10 @@ export default function Pay() {
                     <p className={styles.itemStrong}>{isZh ? '匯款附言' : 'Wire reference'}: {order.id}</p>
                   </div>
                   <a className={styles.btnBig} href={mailto('Wire payment order')}>{L(T2.btnNotify)}</a>
+                  <div className={styles.hint}>{L(T2.sendTo)}</div>
+                  <button type="button" className={styles.btnGhost} onClick={copyDetails}>
+                    {copiedDetails ? L(T2.copied) : L(T2.btnCopyDetails)}
+                  </button>
                 </section>
               ) : null}
 
@@ -358,6 +383,10 @@ export default function Pay() {
                     <p className={styles.itemStrong}>{isZh ? '轉帳留言' : 'Transfer message'}: {order.id}</p>
                   </div>
                   <a className={styles.btnBig} href={mailto('e-Transfer payment order')}>{L(T2.btnNotify)}</a>
+                  <div className={styles.hint}>{L(T2.sendTo)}</div>
+                  <button type="button" className={styles.btnGhost} onClick={copyDetails}>
+                    {copiedDetails ? L(T2.copied) : L(T2.btnCopyDetails)}
+                  </button>
                 </section>
               ) : null}
 
@@ -370,6 +399,10 @@ export default function Pay() {
                     <p className={styles.itemStrong}>{isZh ? '訂單編號' : 'Order number'}: {order.id}</p>
                   </div>
                   <a className={styles.btnBig} href={mailto('USDT address request — order')}>{L(T2.btnUsdt)}</a>
+                  <div className={styles.hint}>{L(T2.sendTo)}</div>
+                  <button type="button" className={styles.btnGhost} onClick={copyDetails}>
+                    {copiedDetails ? L(T2.copied) : L(T2.btnCopyDetails)}
+                  </button>
                 </section>
               ) : null}
 
