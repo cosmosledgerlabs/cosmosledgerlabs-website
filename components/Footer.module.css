@@ -20,4 +20,32 @@
 .socialLink svg { width:18px; height:18px; }
 
 /* 页脚合规免责小字 */
-.legal{margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1.5;color:rgba(120,160,180,.45);letter-spacing:.02em;max-width:760px;margin-left:auto;margin-right:auto;text-align:center;}
+.legal{margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1.6;color:rgba(120,160,180,.45);letter-spacing:.02em;max-width:760px;margin-left:auto;margin-right:auto;text-align:justify;text-justify:inter-word;-webkit-hyphens:auto;hyphens:auto;}
+
+/* --- added: footer navigation links --- */
+.links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.footLink {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--cyan-soft);
+  text-decoration: none;
+  transition: color .2s ease;
+}
+
+.footLink:hover { color: var(--cyan); }
+
+.sep {
+  color: rgba(120,160,180,.35);
+  font-size: 11px;
+}
