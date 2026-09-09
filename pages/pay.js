@@ -27,7 +27,6 @@ const METHODS = [
 
 const WIRE = [
   { k: { en: 'Beneficiary', zh: '收款人' }, v: 'COSMOS LEDGER LABS INC.' },
-  { k: { en: 'Beneficiary address', zh: '收款人地址' }, v: 'Suite 1400, 18 King St E, Toronto, ON M5C 1C4, Canada' },
   { k: { en: 'Bank', zh: '銀行' }, v: 'Royal Bank of Canada' },
   { k: { en: 'Bank address', zh: '銀行地址' }, v: '101 Dundas St W, Toronto, ON M5G 1C4, Canada' },
   { k: { en: 'Institution number', zh: '銀行代號' }, v: '003' },
