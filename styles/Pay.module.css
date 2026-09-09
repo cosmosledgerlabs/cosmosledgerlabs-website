@@ -1,0 +1,326 @@
+/* styles/Pay.module.css
+   Layout for the /pay payment-order page. Same palette, fonts and card
+   style as the rest of the site. */
+
+.page {
+  position: relative;
+  padding-top: 76px;
+}
+
+@media (max-width: 767px) {
+  .page { padding-top: 150px; }
+}
+
+.main {
+  padding: var(--sp6) var(--side);
+  max-width: 900px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(26px, 5vw, 44px);
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.prevail {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  border-left: 2px solid rgba(0, 220, 255, .38);
+  padding-left: 14px;
+  margin-bottom: 16px;
+}
+
+.intro {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(14px, 1.5vw, 16px);
+  line-height: 1.75;
+  color: var(--text-muted);
+  margin-bottom: var(--sp4);
+  text-align: justify;
+  text-justify: inter-word;
+}
+
+.section {
+  margin-bottom: var(--sp4);
+}
+
+.stepTag {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .12em;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.h2 {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.label {
+  display: block;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.chip,
+.chipOn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-radius: 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .15s ease;
+}
+
+.chip:hover { border-color: rgba(0, 220, 255, .6); }
+
+.chipOn {
+  border: 1px solid rgba(0, 220, 255, .9);
+  background: rgba(0, 150, 255, .12);
+}
+
+.chipPrice {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.field {
+  flex: 1;
+  min-width: 180px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-radius: 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+}
+
+.input:focus { border-color: rgba(0, 220, 255, .8); }
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.seg,
+.segOn {
+  padding: 12px 22px;
+  background: transparent;
+  border: none;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.segOn {
+  background: rgba(0, 150, 255, .18);
+  color: var(--text);
+}
+
+.methodGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+
+.method,
+.methodOn {
+  padding: 16px 14px;
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-radius: 6px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color .15s ease;
+}
+
+.method:hover:not(:disabled) { border-color: rgba(0, 220, 255, .6); }
+
+.method:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.methodOn {
+  border: 1px solid rgba(0, 220, 255, .9);
+  background: rgba(0, 150, 255, .12);
+}
+
+.hint {
+  margin-top: 10px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.btnBig {
+  display: inline-block;
+  padding: 14px 28px;
+  background: rgba(0, 150, 255, .14);
+  border: 1px solid rgba(0, 220, 255, .7);
+  border-radius: 6px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: background .15s ease;
+}
+
+.btnBig:hover:not(:disabled) { background: rgba(0, 150, 255, .26); }
+
+.btnBig:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+.btnGhost {
+  display: inline-block;
+  padding: 10px 20px;
+  background: transparent;
+  border: 1px solid rgba(0, 190, 230, .4);
+  border-radius: 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-top: 12px;
+}
+
+.btnGhost:hover { border-color: rgba(0, 220, 255, .8); color: var(--text); }
+
+.orderCard {
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 220, 255, .55);
+  border-radius: 6px;
+  padding: 24px 28px;
+}
+
+.orderHead {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+
+.orderRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: var(--text);
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0, 190, 230, .15);
+  flex-wrap: wrap;
+}
+
+.orderKey { color: var(--text-muted); }
+
+.orderId {
+  font-weight: 700;
+  letter-spacing: .06em;
+}
+
+.detailCard {
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-radius: 6px;
+  padding: 22px 26px;
+  margin-bottom: 14px;
+}
+
+.body {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(14px, 1.5vw, 16px);
+  line-height: 1.75;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  margin-bottom: 12px;
+}
+
+.item {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(13px, 1.4vw, 15px);
+  line-height: 1.7;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.itemStrong {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(13px, 1.4vw, 15px);
+  line-height: 1.7;
+  color: var(--text);
+  font-weight: 700;
+  margin-bottom: 0;
+}
+
+.legal {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  border-top: 1px solid rgba(0, 190, 230, .15);
+  padding-top: 16px;
+  margin-top: var(--sp4);
+}
