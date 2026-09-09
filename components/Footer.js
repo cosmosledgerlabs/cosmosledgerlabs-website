@@ -1,7 +1,11 @@
+import Link from 'next/link'
+import { useLang, t } from '../lib/i18n'
 import styles from './Footer.module.css'
 
 /* Footer: canonical boilerplate + required disclaimer */
 export default function Footer() {
+  const { lang } = useLang()
+
   return (
     <footer className={styles.footer}>
       <div className={styles.social}>
@@ -15,12 +19,27 @@ export default function Footer() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
         </a>
       </div>
-      <p className={styles.text}>
-        COSMOS Ledger Labs Inc. is a Toronto-based digital asset technology company. We design, build, and hand over the technical infrastructure that digital asset projects need to launch and operate: corporate websites, operations dashboards, token deployment and configuration, claim portals, data integrations and APIs, and smart contract front-ends.
-      </p>
-      <p className={styles.legal}>
-        COSMOS Ledger Labs Inc. · Ontario, Canada. Demonstrations run on Solana devnet. Devnet tokens have no monetary value. Nothing on this site is an offer to sell or a solicitation to buy any security or digital asset. Third-party tools named on this site are technologies we build with; their mention does not imply partnership or endorsement.
-      </p>
+
+      <p className={styles.text}>{t('footer', 'about', lang)}</p>
+
+      <p className={styles.legal}>{t('footer', 'legal', lang)}</p>
+
+      <p className={styles.legal}>{t('footer', 'fraud', lang)}</p>
+
+      <nav className={styles.links}>
+        <Link href="/services" className={styles.footLink}>{t('footer', 'linkServices', lang)}</Link>
+        <span className={styles.sep}>·</span>
+        <Link href="/flow" className={styles.footLink}>{t('footer', 'linkDemo', lang)}</Link>
+        <span className={styles.sep}>·</span>
+        <Link href="/payment" className={styles.footLink}>{t('footer', 'linkPayment', lang)}</Link>
+        <span className={styles.sep}>·</span>
+        <Link href="/disclaimer" className={styles.footLink}>{t('footer', 'linkDisclaimer', lang)}</Link>
+        <span className={styles.sep}>·</span>
+        <Link href="/privacy" className={styles.footLink}>{t('footer', 'linkPrivacy', lang)}</Link>
+        <span className={styles.sep}>·</span>
+        <a className={styles.footLink} href="mailto:info@cosmosledgerlabs.com">{t('footer', 'linkContact', lang)}</a>
+      </nav>
+
       <p className={styles.legal}>© 2026 COSMOS Ledger Labs Inc.</p>
     </footer>
   )
