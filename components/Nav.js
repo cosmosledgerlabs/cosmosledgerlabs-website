@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import Link from 'next/link'
+import { useLang, t } from '../lib/i18n'
+import LangToggle from './LangToggle'
 import styles from './Nav.module.css'
 
-/* 2.0 — Nav: HOME · SERVICES · DEMO · CONTACT; no document links */
 export default function Nav() {
   const [open, setOpen] = useState(false)
+  const { lang, setLang } = useLang()
   const close = () => setOpen(false)
+
   return (
     <>
       <div className={styles.lightbar}></div>
@@ -20,10 +23,14 @@ export default function Nav() {
           <span></span><span></span><span></span>
         </button>
         <div className={`${styles.links} ${open ? styles.linksOpen : ''}`}>
-          <Link href="/#top" onClick={close}>HOME</Link>
-          <Link href="/services" onClick={close}>SERVICES</Link>
-          <Link href="/flow" onClick={close}>DEMO</Link>
-          <Link href="/#contact" onClick={close}>CONTACT</Link>
+          <Link href="/services" onClick={close}>{t('nav', 'services', lang)}</Link>
+          <Link href="/flow" onClick={close}>{t('nav', 'demo', lang)}</Link>
+          <Link href="/#problem" onClick={close}>{t('nav', 'problem', lang)}</Link>
+          <Link href="/#solution" onClick={close}>{t('nav', 'solution', lang)}</Link>
+          <Link href="/#architecture" onClick={close}>{t('nav', 'architecture', lang)}</Link>
+          <Link href="/#roadmap" onClick={close}>{t('nav', 'roadmap', lang)}</Link>
+          <Link href="/#contact" onClick={close}>{t('nav', 'contact', lang)}</Link>
+          <LangToggle lang={lang} setLang={setLang} />
         </div>
       </nav>
     </>
