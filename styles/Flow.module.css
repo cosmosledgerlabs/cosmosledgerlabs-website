@@ -501,3 +501,82 @@
   .verifyRow { flex-direction: column; align-items: flex-start; }
   .verifyKey { flex: 0 0 auto; }
 }
+
+/* ===== HOW TO USE + VIDEO SLOT (2026-09-09) ===== */
+
+.videoPlaceholder,
+.videoLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 10, 28, .88);
+  border: 1px dashed rgba(0, 190, 230, .4);
+  border-radius: 6px;
+  padding: 32px 20px;
+  margin-bottom: var(--sp4);
+  text-align: center;
+  text-decoration: none;
+}
+
+.videoLink {
+  border-style: solid;
+  cursor: pointer;
+  transition: border-color .2s ease;
+}
+
+.videoLink:hover {
+  border-color: rgba(0, 220, 255, .8);
+}
+
+.videoPlay {
+  font-size: 28px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.videoLabel {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(15px, 2vw, 19px);
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--text);
+}
+
+.videoNote {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.howTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(16px, 2.2vw, 22px);
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--text);
+  margin: 18px 0 12px;
+}
+
+.howList {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.howList li {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(12px, 1.4vw, 14px);
+  line-height: 1.8;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.howNote {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  border-left: 2px solid rgba(0, 220, 255, .38);
+  padding-left: 12px;
+  margin-bottom: 14px;
+}
