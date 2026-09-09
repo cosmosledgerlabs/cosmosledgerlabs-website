@@ -20,8 +20,8 @@ const SECTIONS = [
     h: { en: 'ACCEPTED PAYMENT METHODS', zh: '接受的付款方式' },
     body: [
       {
-        en: 'We accept payment by bank wire transfer, in USDT (stablecoin), and — within Canada — by Interac e-Transfer. Bank account information and the USDT deposit address and network for your project appear only on the official invoice you receive from info@cosmosledgerlabs.com; Interac e-Transfers are sent to the email address shown below. We do not publish bank account details or wallet addresses on this website.',
-        zh: '我們接受銀行電匯與 USDT（穩定幣）付款，加拿大境內亦可使用 Interac e-Transfer（電郵轉帳）。您專案的銀行帳戶資料以及 USDT 收款地址與鏈別，僅出現在您從 info@cosmosledgerlabs.com 收到的正式發票上；Interac e-Transfer 則請傳送至下方所示電子郵件地址。我們不會在本網站公開任何銀行帳戶資料或錢包地址。',
+        en: 'We accept payment by bank wire transfer, in USDT (stablecoin), and — within Canada — by Interac e-Transfer. Wire transfer details and the e-Transfer email are published below. USDT deposit addresses are provided only on the official invoice you receive from info@cosmosledgerlabs.com — we never publish wallet addresses on this website.',
+        zh: '我們接受銀行電匯與 USDT（穩定幣）付款，加拿大境內亦可使用 Interac e-Transfer（電郵轉帳）。電匯資料與 e-Transfer 收款電郵公佈於下方。USDT 收款地址僅在您從 info@cosmosledgerlabs.com 收到的正式發票上提供——我們絕不在本網站公開任何錢包地址。',
       },
     ],
   },
@@ -45,6 +45,22 @@ const NEVER = [
 const VERIFY = {
   en: 'Cryptocurrency transfers cannot be reversed. Before sending USDT, confirm the address and network directly with us by email. Any payment request that does not match these rules is fraudulent — do not pay, and forward it to info@cosmosledgerlabs.com for direct confirmation.',
   zh: '加密貨幣轉帳無法撤銷。傳送 USDT 前，請先以電子郵件直接向我們確認收款地址與鏈別。任何不符合上述規則的付款要求均屬詐騙——請勿付款，並將其轉寄至 info@cosmosledgerlabs.com 由我們直接確認。',
+}
+
+const WIRE = [
+  { k: { en: 'Beneficiary', zh: '收款人' }, v: 'COSMOS LEDGER LABS INC.' },
+  { k: { en: 'Beneficiary address', zh: '收款人地址' }, v: 'Suite 1400, 18 King St E, Toronto, ON M5C 1C4, Canada' },
+  { k: { en: 'Bank', zh: '銀行' }, v: 'Royal Bank of Canada' },
+  { k: { en: 'Bank address', zh: '銀行地址' }, v: '101 Dundas St W, Toronto, ON M5G 1C4, Canada' },
+  { k: { en: 'Institution number', zh: '銀行代號' }, v: '003' },
+  { k: { en: 'Transit number', zh: '分行代號' }, v: '02146' },
+  { k: { en: 'Account number', zh: '帳號' }, v: '100-104-9' },
+  { k: { en: 'SWIFT / BIC (international)', zh: 'SWIFT / BIC（國際匯款）' }, v: 'ROYCCAT2' },
+]
+
+const WIRENOTE = {
+  en: 'Please quote your invoice number in the wire reference. These are the only wire details we use — if you are ever given different details, treat it as fraud and confirm with us by email before paying.',
+  zh: '請在匯款附言中註明您的發票編號。以上為我們唯一使用的電匯資料——若您收到任何不同的匯款資料，請視為詐騙，付款前務必先以電子郵件向我們確認。',
 }
 
 const EMT = {
@@ -93,6 +109,16 @@ export default function Payment() {
               ))}
             </section>
           ))}
+
+          <section className={styles.section}>
+            <h2 className={styles.h2}>{isZh ? '電匯資料' : 'WIRE TRANSFER DETAILS'}</h2>
+            <div className={styles.card}>
+              {WIRE.map((r) => (
+                <p key={r.k.en} className={styles.item}>{L(r.k)}: {r.v}</p>
+              ))}
+            </div>
+            <p className={styles.body}>{L(WIRENOTE)}</p>
+          </section>
 
           <section className={styles.section}>
             <h2 className={styles.h2}>{isZh ? 'INTERAC E-TRANSFER（加拿大）' : 'INTERAC E-TRANSFER (CANADA)'}</h2>
