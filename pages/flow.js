@@ -7,6 +7,11 @@ import { runFlow, initSteps, STATUS, FLOW_STATE, readableError } from '../lib/or
 import { runSetup, readBalance, FLOW_AMOUNT, INITIAL_SUPPLY } from '../lib/spl'
 import styles from '../styles/Flow.module.css'
 
+/* Demo video: paste the YouTube link between the quotes when the video is
+   ready (e.g. 'https://www.youtube.com/watch?v=XXXX'). While empty, the page
+   shows a "coming soon" placeholder instead. */
+const VIDEO_URL = ''
+
 const CLUSTER = 'devnet'
 const RPC = process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://api.devnet.solana.com'
 const EXPLORER = 'https://solscan.io'
@@ -369,6 +374,78 @@ export default function FlowPage() {
               return to where they started.
             </p>
           </header>
+
+          {/* ---------- demo video ---------- */}
+          {VIDEO_URL ? (
+            <a
+              className={styles.videoLink}
+              href={VIDEO_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span className={styles.videoPlay}>▶</span>
+              <span className={styles.videoLabel}>WATCH THE DEMO VIDEO</span>
+              <span className={styles.videoNote}>Opens on YouTube in a new tab</span>
+            </a>
+          ) : (
+            <div className={styles.videoPlaceholder}>
+              <span className={styles.videoPlay}>▶</span>
+              <span className={styles.videoLabel}>DEMO VIDEO — COMING SOON</span>
+              <span className={styles.videoNote}>
+                A guided walkthrough of this page will be posted here.
+              </span>
+            </div>
+          )}
+
+          {/* ---------- how to use ---------- */}
+          <section className={styles.panel}>
+            <div className={styles.howTitle}>HOW TO USE THIS DEMO</div>
+            <ol className={styles.howList}>
+              <li>
+                Install the Phantom wallet browser extension and create a wallet.
+                This demo runs only on the devnet test network and never touches
+                real funds.
+              </li>
+              <li>
+                In Phantom, open Settings → Developer Settings and switch the
+                network to Solana Devnet.
+              </li>
+              <li>
+                Get free devnet SOL for transaction fees from a Solana devnet
+                faucet (for example faucet.solana.com). Devnet SOL has no monetary
+                value.
+              </li>
+              <li>
+                Click CONNECT above and approve the connection in Phantom.
+              </li>
+              <li>
+                Click RUN SETUP. This mints a fresh test token and opens the
+                accounts. Phantom will prompt twice — approve each prompt promptly.
+                Setup costs roughly 0.02 devnet SOL.
+              </li>
+              <li>
+                Under FAILURE INJECTION, choose NONE to run all three steps, or
+                FAIL AT 1 / 2 / 3 to force a failure and watch the on-chain
+                compensation. Then click EXECUTE FLOW.
+              </li>
+              <li>
+                Watch the step panel and the TOKEN ACCOUNTS balances. Every
+                transaction signature links to Solscan, so each run can be
+                verified independently on-chain.
+              </li>
+              <li>
+                To keep a record, click DOWNLOAD LOG before leaving or refreshing
+                — the setup token and run history live only in this page and reset
+                on refresh.
+              </li>
+            </ol>
+            <div className={styles.howNote}>
+              If a step shows a retry or waiting message, do not click or refresh
+              — the engine checks transaction status and recovers on its own.
+              Keep the Phantom panel open during a run; Phantom locks itself after
+              about 15 minutes of inactivity.
+            </div>
+          </section>
 
           {/* ---------- controls ---------- */}
           <section className={styles.panel}>
