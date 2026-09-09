@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
@@ -20,8 +21,8 @@ const SECTIONS = [
     h: { en: 'ACCEPTED PAYMENT METHODS', zh: '接受的付款方式' },
     body: [
       {
-        en: 'We accept payment by bank wire transfer, in USDT (stablecoin), and — within Canada — by Interac e-Transfer. Wire transfer details and the e-Transfer email are published below. USDT deposit addresses are provided only on the official invoice you receive from info@cosmosledgerlabs.com — we never publish wallet addresses on this website.',
-        zh: '我們接受銀行電匯與 USDT（穩定幣）付款，加拿大境內亦可使用 Interac e-Transfer（電郵轉帳）。電匯資料與 e-Transfer 收款電郵公佈於下方。USDT 收款地址僅在您從 info@cosmosledgerlabs.com 收到的正式發票上提供——我們絕不在本網站公開任何錢包地址。',
+        en: 'We accept payment by bank wire transfer, in USDT (stablecoin), and — within Canada — by Interac e-Transfer. For your security, payment details are not displayed publicly on this website: they are provided when you generate a payment order on our Pay page, or on the official invoice you receive from info@cosmosledgerlabs.com.',
+        zh: '我們接受銀行電匯與 USDT（穩定幣）付款，加拿大境內亦可使用 Interac e-Transfer（電郵轉帳）。為安全起見，本網站不公開顯示付款資料：付款資料將於您在付款下單頁面產生訂單後提供，或載於您從 info@cosmosledgerlabs.com 收到的正式發票上。',
       },
     ],
   },
@@ -43,29 +44,8 @@ const NEVER = [
 ]
 
 const VERIFY = {
-  en: 'Cryptocurrency transfers cannot be reversed. Before sending USDT, confirm the address and network directly with us by email. Any payment request that does not match these rules is fraudulent — do not pay, and forward it to info@cosmosledgerlabs.com for direct confirmation.',
-  zh: '加密貨幣轉帳無法撤銷。傳送 USDT 前，請先以電子郵件直接向我們確認收款地址與鏈別。任何不符合上述規則的付款要求均屬詐騙——請勿付款，並將其轉寄至 info@cosmosledgerlabs.com 由我們直接確認。',
-}
-
-const WIRE = [
-  { k: { en: 'Beneficiary', zh: '收款人' }, v: 'COSMOS LEDGER LABS INC.' },
-  { k: { en: 'Beneficiary address', zh: '收款人地址' }, v: 'Suite 1400, 18 King St E, Toronto, ON M5C 1C4, Canada' },
-  { k: { en: 'Bank', zh: '銀行' }, v: 'Royal Bank of Canada' },
-  { k: { en: 'Bank address', zh: '銀行地址' }, v: '101 Dundas St W, Toronto, ON M5G 1C4, Canada' },
-  { k: { en: 'Institution number', zh: '銀行代號' }, v: '003' },
-  { k: { en: 'Transit number', zh: '分行代號' }, v: '02146' },
-  { k: { en: 'Account number', zh: '帳號' }, v: '100-104-9' },
-  { k: { en: 'SWIFT / BIC (international)', zh: 'SWIFT / BIC（國際匯款）' }, v: 'ROYCCAT2' },
-]
-
-const WIRENOTE = {
-  en: 'Please quote your invoice number in the wire reference. These are the only wire details we use — if you are ever given different details, treat it as fraud and confirm with us by email before paying.',
-  zh: '請在匯款附言中註明您的發票編號。以上為我們唯一使用的電匯資料——若您收到任何不同的匯款資料，請視為詐騙，付款前務必先以電子郵件向我們確認。',
-}
-
-const EMT = {
-  en: 'Within Canada, Interac e-Transfers are sent to the email address below. Autodeposit is enabled: your transfer is deposited automatically to our business account, and no security question is required. Please quote your invoice number in the transfer message.',
-  zh: '加拿大境內的 Interac e-Transfer 請傳送至下方電子郵件地址。我們已啟用自動存入（Autodeposit）：您的轉帳將自動存入本公司商業帳戶，無需設定安全問題。請在轉帳留言中註明您的發票編號。',
+  en: 'Valid payment details come from only two places: a payment order you generate yourself on this website, and official invoices sent from info@cosmosledgerlabs.com. Cryptocurrency transfers cannot be reversed — confirm any USDT address with us by email before sending. A payment request from any other source is fraudulent: do not pay, and forward it to info@cosmosledgerlabs.com.',
+  zh: '有效的付款資料僅來自兩處：您親自在本網站產生的付款訂單，以及由 info@cosmosledgerlabs.com 寄出的正式發票。加密貨幣轉帳無法撤銷——傳送 USDT 前請先以電子郵件向我們核對收款地址。來自任何其他來源的付款要求均屬詐騙：請勿付款，並將其轉寄至 info@cosmosledgerlabs.com。',
 }
 
 export default function Payment() {
@@ -111,20 +91,17 @@ export default function Payment() {
           ))}
 
           <section className={styles.section}>
-            <h2 className={styles.h2}>{isZh ? '電匯資料' : 'WIRE TRANSFER DETAILS'}</h2>
             <div className={styles.card}>
-              {WIRE.map((r) => (
-                <p key={r.k.en} className={styles.item}>{L(r.k)}: {r.v}</p>
-              ))}
-            </div>
-            <p className={styles.body}>{L(WIRENOTE)}</p>
-          </section>
-
-          <section className={styles.section}>
-            <h2 className={styles.h2}>{isZh ? 'INTERAC E-TRANSFER（加拿大）' : 'INTERAC E-TRANSFER (CANADA)'}</h2>
-            <div className={styles.card}>
-              <p className={styles.body}>{L(EMT)}</p>
-              <div className={styles.email}>✉ info@cosmosledgerlabs.com</div>
+              <p className={styles.body}>
+                {isZh
+                  ? '準備付款？在付款下單頁面選擇金額與付款方式，即可產生附訂單編號的付款資料。'
+                  : 'Ready to pay? Generate a payment order with your amount, method and order number on the Pay page.'}
+              </p>
+              <p className={styles.strong}>
+                <Link href="/pay" style={{ color: 'inherit', textDecoration: 'underline' }}>
+                  {isZh ? '前往付款下單頁面 →' : 'GENERATE A PAYMENT ORDER →'}
+                </Link>
+              </p>
             </div>
           </section>
 
