@@ -4,6 +4,7 @@ import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang } from '../lib/i18n'
 import styles from '../styles/Pay.module.css'
+import { REPS } from '../lib/settings'
 
 /* ------------------------------------------------------------------ */
 /* Data                                                                */
@@ -46,6 +47,9 @@ const T2 = {
   service: { en: 'Service', zh: '服務項目' },
   amount: { en: 'Amount', zh: '金額' },
   currency: { en: 'Currency', zh: '幣別' },
+  rep: { en: 'Customer service (optional)', zh: '客服（選填）' },
+  repNone: { en: 'None', zh: '無' },
+  orderRep: { en: 'Customer service', zh: '經辦客服' },
   s2: { en: '02 — PAYMENT METHOD', zh: '02 — 付款方式' },
   emtCadOnly: {
     en: 'Interac e-Transfer is available in CAD only. Switch the currency to CAD to use it.',
@@ -95,16 +99,18 @@ const T2 = {
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
-function makeOrderId() {
+function makeOrderId(rep) {
   const d = new Date()
   const ymd =
     String(d.getFullYear()).slice(2) +
     String(d.getMonth() + 1).padStart(2, '0') +
     String(d.getDate()).padStart(2, '0')
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+  const prefix = rep ? rep.slice(0, 2).toUpperCase() : ''
   let tail = ''
-  for (let i = 0; i < 4; i++) tail += chars[Math.floor(Math.random() * chars.length)]
-  return 'CLL-' + ymd + '-' + tail
+  const n = prefix ? 2 : 4
+  for (let i = 0; i < n; i++) tail += chars[Math.floor(Math.random() * chars.length)]
+  return 'CLL-' + ymd + '-' + prefix + tail
 }
 
 function fmtAmount(amount, currency) {
@@ -124,6 +130,7 @@ export default function Pay() {
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState('CAD')
   const [method, setMethod] = useState('')
+  const [rep, setRep] = useState('')
   const [order, setOrder] = useState(null)
   const [copied, setCopied] = useState(false)
   const [copiedDetails, setCopiedDetails] = useState(false)
@@ -151,14 +158,31 @@ export default function Pay() {
     if (!canGenerate) return
     setCopied(false)
     setCopiedDetails(false)
-    setOrder({
-      id: makeOrderId(),
+    const o = {
+      id: makeOrderId(rep),
       serviceId,
       serviceName: service.name,
       amount: Number(amount),
       currency,
       method,
-    })
+      rep,
+    }
+    setOrder(o)
+    // Auto-record the order in the ledger (best-effort; the page works even if this fails)
+    try {
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: o.id,
+          service: o.serviceName.en,
+          amount: o.amount,
+          currency: o.currency,
+          method: o.method,
+          rep: o.rep,
+        }),
+      }).catch(() => {})
+    } catch (e) {}
   }
 
   const reset = () => {
@@ -186,6 +210,7 @@ export default function Pay() {
       'Service: ' + (order.serviceName ? order.serviceName.en : ''),
       'Amount: ' + fmtAmount(order.amount, order.currency),
       'Payment method: ' + (methodName ? methodName.en : order.method),
+      'Customer service: ' + (order.rep || '—'),
       '',
       'Sent from cosmosledgerlabs.com/pay',
     ].join('\n')
@@ -298,6 +323,27 @@ export default function Pay() {
               {/* ---------- step 2: method ---------- */}
               <section className={styles.section}>
                 <div className={styles.stepTag}>{L(T2.s2)}</div>
+                <label className={styles.label}>{L(T2.rep)}</label>
+                <div className={styles.serviceGrid}>
+                  <button
+                    type="button"
+                    className={rep === '' ? styles.chipOn : styles.chip}
+                    onClick={() => setRep('')}
+                  >
+                    {L(T2.repNone)}
+                  </button>
+                  {REPS.map((r) => (
+                    <button
+                      key={r}
+                      type="button"
+                      className={rep === r ? styles.chipOn : styles.chip}
+                      onClick={() => setRep(r)}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+                <label className={styles.label}>{isZh ? '付款方式' : 'Method'}</label>
                 <div className={styles.methodGrid}>
                   {METHODS.map((m) => {
                     const disabled = m.id === 'emt' && currency === 'USD'
@@ -348,6 +394,12 @@ export default function Pay() {
                     <span className={styles.orderKey}>{L(T2.orderMethod)}</span>
                     <span>{L((METHODS.find((m) => m.id === order.method) || {}).name)}</span>
                   </div>
+                  {order.rep ? (
+                    <div className={styles.orderRow}>
+                      <span className={styles.orderKey}>{L(T2.orderRep)}</span>
+                      <span>{order.rep}</span>
+                    </div>
+                  ) : null}
                   <button type="button" className={styles.btnGhost} onClick={copyOrderId}>
                     {copied ? L(T2.copied) : L(T2.btnCopy)}
                   </button>
