@@ -89,7 +89,9 @@ export default function Disclaimer() {
     <>
       <Head>
         <title>{isZh ? '免責聲明 — COSMOS Ledger Labs' : 'Disclaimer — COSMOS Ledger Labs'}</title>
-        <meta name="description" content="Disclaimer for the COSMOS Ledger Labs Inc. website: no offer, no advice, scope of services, and demonstration terms." />
+        <meta name="description" content={isZh
+          ? 'COSMOS Ledger Labs Inc. 網站免責聲明：不構成要約、不構成建議、服務範圍與演示條款。'
+          : 'Disclaimer for the COSMOS Ledger Labs Inc. website: no offer, no advice, scope of services, and demonstration terms.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -97,11 +99,12 @@ export default function Disclaimer() {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta property="og:title" content="Disclaimer — COSMOS Ledger Labs" />
-        <meta property="og:description" content="Disclaimer for the COSMOS Ledger Labs Inc. website." />
+        <meta property="og:title" content={isZh ? '免責聲明 — COSMOS Ledger Labs' : 'Disclaimer — COSMOS Ledger Labs'} />
+        <meta property="og:description" content={isZh ? 'COSMOS Ledger Labs Inc. 網站免責聲明。' : 'Disclaimer for the COSMOS Ledger Labs Inc. website.'} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/disclaimer" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
+        <meta property="og:locale" content={isZh ? 'zh_TW' : 'en_CA'} />
       </Head>
 
       <Nav />
