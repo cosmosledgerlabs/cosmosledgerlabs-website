@@ -587,28 +587,45 @@
   margin: 18px 0 12px;
 }
 
-.howList {
+.howSteps {
   margin: 0 0 14px;
-  padding-left: 26px;
 }
 
-.howList li {
+.howRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(0, 190, 230, .14);
+}
+
+.howRow:first-child { border-top: none; padding-top: 4px; }
+
+.howBadge {
+  flex: 0 0 32px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 220, 255, .5);
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--cyan);
+  margin-top: 1px;
+}
+
+.howText {
+  flex: 1 1 auto;
+  min-width: 0;
   font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
-  font-size: 13px; /* fallback: old WeChat X5, no clamp() */
-  font-size: clamp(13px, 1.5vw, 14.5px);
-  line-height: 1.8;
+  font-size: 13.5px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(13.5px, 1.5vw, 14.5px);
+  line-height: 1.6;
   color: var(--text-muted);
-  margin-bottom: 10px;
-  padding-left: 4px;
   text-align: justify;
   text-justify: inter-word;
   text-wrap: pretty;
-}
-
-/* Step numbers keep the monospace face — fixed-width digits align. */
-.howList li::marker {
-  font-family: 'Share Tech Mono', monospace;
-  color: var(--cyan-soft);
 }
 
 .howNote {
@@ -634,7 +651,7 @@
   .controlHint,
   .stepDesc,
   .verifyIntro,
-  .howList li,
+  .howText,
   .howNote,
   .disclaimer {
     text-align: left;
