@@ -623,3 +623,21 @@
   text-justify: inter-word;
   text-wrap: pretty;
 }
+
+/* ===== PHONES: left-align prose (2026-09-11 addendum 20) =====
+   Justified text needs a wide line to keep word gaps small. On phone-width
+   columns the gaps grow too large, so prose falls back to left alignment
+   there; tablets and desktops keep the flush book edges. Same approach the
+   homepage already uses (.sec-body is left-aligned on phones in globals). */
+@media (max-width: 767px) {
+  .subtitle,
+  .controlHint,
+  .stepDesc,
+  .verifyIntro,
+  .howList li,
+  .howNote,
+  .disclaimer {
+    text-align: left;
+    text-justify: auto;
+  }
+}
