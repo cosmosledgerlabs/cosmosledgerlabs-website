@@ -40,13 +40,16 @@
 }
 
 .intro {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.75;
   color: var(--text-muted);
   margin-bottom: var(--sp4);
   max-width: 62ch;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .section {
@@ -282,10 +285,13 @@
 
 .hint {
   margin-top: 10px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-muted);
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .btnBig {
@@ -409,33 +415,65 @@
 .btnCopyMini:hover { border-color: rgba(0, 220, 255, .8); color: var(--text); }
 
 .body {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.75;
   color: var(--text);
   margin-bottom: 12px;
   max-width: 68ch;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .help {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 13px;
   line-height: 1.7;
   color: var(--text-muted);
   border-top: 1px solid rgba(0, 190, 230, .15);
   padding-top: 16px;
   margin-top: var(--sp4);
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .help a { color: var(--text); }
 
 .legal {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 12px;
   line-height: 1.7;
   color: var(--text-muted);
   border-top: 1px solid rgba(0, 190, 230, .15);
   padding-top: 16px;
   margin-top: 16px;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
+}
+
+.inputAgent {
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  letter-spacing: .08em;
+  color: #fff;
+  width: 130px;
+  text-transform: uppercase;
+}
+.inputAgent:focus { outline: none; border-color: rgba(0, 220, 255, .9); }
+.inputAgent::placeholder { color: rgba(136, 221, 238, .4); }
+
+/* ---- phones: inputs at 16px so iOS Safari does not auto-zoom on focus
+   (addendum 17; iOS zooms any focused input whose font is under 16px) ---- */
+@media (max-width: 767px) {
+  .input, .inputAgent {
+    font-size: 16px;
+  }
 }
