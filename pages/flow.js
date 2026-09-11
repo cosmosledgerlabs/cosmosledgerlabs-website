@@ -209,6 +209,22 @@ const T3 = {
 export default function FlowPage() {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+
+  // Chinese overlay for step names/descriptions coming from lib/steps.js.
+  // Keyed on the English strings so no lib file needs to change.
+  // Unknown strings fall back to English automatically.
+  const STEP_LABEL_ZH = {
+    'APPROVE': '審批',
+    'VESTING SETUP': '歸屬設定',
+    'DISTRIBUTION': '分發',
+  }
+  const STEP_DESC_ZH = {
+    'RECORD AN ON-CHAIN APPROVAL FOR THIS OPERATION.': '為本次操作在鏈上記錄一筆審批。',
+    'MOVE THE ALLOCATION INTO THE ESCROW ACCOUNT. REAL SPL TOKEN TRANSFER.': '將分配額移入託管帳戶。真實的 SPL 代幣轉帳。',
+    'RELEASE THE ALLOCATION TO THE RECIPIENT. REAL SPL TOKEN TRANSFER.': '將分配額釋出給接收方。真實的 SPL 代幣轉帳。',
+  }
+  const zhStepLabel = (t) => (isZh && t && STEP_LABEL_ZH[String(t).trim().toUpperCase()]) || t
+  const zhStepDesc = (t) => (isZh && t && STEP_DESC_ZH[String(t).trim().toUpperCase()]) || t
   const LF = (obj) => (obj && (obj[lang] || obj.en))
 
   const [wallet, setWallet] = useState(null)
@@ -720,11 +736,11 @@ export default function FlowPage() {
               <div key={s.id} className={`${styles.step} ${styles[STATUS_CLASS[s.status]]}`}>
                 <div className={styles.stepHead}>
                   <span className={styles.stepIndex}>{'0' + (i + 1)}</span>
-                  <span className={styles.stepName}>{s.label}</span>
+                  <span className={styles.stepName}>{zhStepLabel(s.label)}</span>
                   <span className={styles.stepStatus}>{L(STATUS_LABEL[s.status])}</span>
                 </div>
 
-                <div className={styles.stepDesc}>{s.description}</div>
+                <div className={styles.stepDesc}>{zhStepDesc(s.description)}</div>
 
                 {s.signature ? (
                   <div className={styles.txRow}>
