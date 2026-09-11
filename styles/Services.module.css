@@ -81,14 +81,15 @@
 .lede {
   max-width: 760px;
   margin: 0 auto var(--sp4);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.6vw, 16px);
   line-height: 1.75;
   color: var(--text);
   text-justify: inter-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .btns {
@@ -153,14 +154,15 @@
 }
 
 .secBody {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 15px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(15px, 1.5vw, 16px);
   color: var(--text);
   line-height: 1.6;
   text-justify: inter-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .steelCard {
@@ -192,15 +194,16 @@
 }
 
 .plainText {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.7;
   color: var(--text);
   margin: 0;
   text-justify: inter-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .plainStrong {
@@ -280,14 +283,15 @@
 }
 
 .cardLead {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 13px;
   line-height: 1.65;
   color: var(--text-muted);
   margin: 0 0 16px;
   text-justify: inter-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .cardList {
@@ -296,12 +300,15 @@
 }
 
 .cardItem {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 12.5px;
   line-height: 1.95;
   color: var(--text);
   opacity: .82;
   overflow-wrap: anywhere;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .cardMeta {
@@ -337,8 +344,6 @@
   color: var(--text-muted);
   margin: var(--sp3) 0 0;
   text-justify: inter-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
 }
 
 /* ===== PROCESS ===== */
@@ -383,8 +388,6 @@
   color: var(--text);
   opacity: .85;
   text-justify: inter-word;
-  -webkit-hyphens: auto;
-  hyphens: auto;
 }
 
 /* ===== EXCLUSIONS ===== */
