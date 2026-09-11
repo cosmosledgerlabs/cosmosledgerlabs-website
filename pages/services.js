@@ -157,7 +157,9 @@ export default function Services() {
     <>
       <Head>
         <title>{t('services', 'metaTitle', lang)}</title>
-        <meta name="description" content="Software development for digital asset projects: dashboards, websites, deployment execution and data integration. Fixed timelines, fixed prices, full IP handover. Toronto, Canada." />
+        <meta name="description" content={isZh
+          ? '數位資產專案軟體開發：儀表板、網站、部署執行與資料整合。固定時程、固定價格、完整智慧財產權移交。加拿大多倫多。'
+          : 'Software development for digital asset projects: dashboards, websites, deployment execution and data integration. Fixed timelines, fixed prices, full IP handover. Toronto, Canada.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -166,12 +168,14 @@ export default function Services() {
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-        <meta property="og:title" content="Digital Asset Technology Services — COSMOS Ledger Labs" />
-        <meta property="og:description" content="Dashboards, websites, deployment execution and data integration for digital asset projects. Fixed timelines, fixed prices, full IP handover." />
+        <meta property="og:title" content={isZh ? '數位資產技術服務 — COSMOS Ledger Labs' : 'Digital Asset Technology Services — COSMOS Ledger Labs'} />
+        <meta property="og:description" content={isZh
+          ? '為數位資產專案提供儀表板、網站、部署執行與資料整合。固定時程、固定價格、完整智慧財產權移交。'
+          : 'Dashboards, websites, deployment execution and data integration for digital asset projects. Fixed timelines, fixed prices, full IP handover.'} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/services" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
-        <meta property="og:locale" content="en_CA" />
+        <meta property="og:locale" content={isZh ? 'zh_TW' : 'en_CA'} />
         <meta property="og:image" content="https://cosmosledgerlabs.com/og-image.png" />
       </Head>
 
@@ -197,7 +201,7 @@ export default function Services() {
             <div className={styles.gl}></div>
             <p className={styles.lede}>{t('services', 'lede', lang)}</p>
             <div className={styles.btns}>
-              <a href="mailto:info@cosmosledgerlabs.com?subject=Service%20Enquiry" className={styles.bp}>
+              <a href={isZh ? 'mailto:info@cosmosledgerlabs.com?subject=%E6%9C%8D%E5%8B%99%E6%B4%BD%E8%A9%A2' : 'mailto:info@cosmosledgerlabs.com?subject=Service%20Enquiry'} className={styles.bp}>
                 {t('services', 'btnQuote', lang)}
               </a>
               <a href="#services" className={styles.bs}>{t('services', 'btnSee', lang)}</a>
@@ -292,7 +296,7 @@ export default function Services() {
             <div className={styles.steelCard}>
               <p className={styles.plainText}>{t('services', 'contactText', lang)}</p>
               <div className={styles.contactEmail}>
-                <a href="mailto:info@cosmosledgerlabs.com?subject=Service%20Enquiry" style={{ color: 'inherit', textDecoration: 'none' }}>
+                <a href={isZh ? 'mailto:info@cosmosledgerlabs.com?subject=%E6%9C%8D%E5%8B%99%E6%B4%BD%E8%A9%A2' : 'mailto:info@cosmosledgerlabs.com?subject=Service%20Enquiry'} style={{ color: 'inherit', textDecoration: 'none' }}>
                   ✉ info@cosmosledgerlabs.com
                 </a>
               </div>
