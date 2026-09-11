@@ -6,6 +6,7 @@
 }
 .text {
   font-family: 'Rajdhani', sans-serif;
+  font-size: 9px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(9px, 1.5vw, 11px);
   font-weight: 700;
   color: var(--cyan-soft);
