@@ -31,11 +31,11 @@
 
 .prevail {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 13px;
+  font-size: 11px; /* fallback: old WeChat X5, no clamp(); 11px keeps the notice on one line */
+  font-size: clamp(9.5px, 3.4vw, 13px);
   line-height: 1.7;
+  white-space: nowrap;
   color: var(--text-muted);
-  border-left: 2px solid rgba(0, 220, 255, .38);
-  padding-left: 14px;
   margin-bottom: 16px;
 }
 
