@@ -9,7 +9,7 @@ import styles from './LangToggle.module.css'
  */
 export default function LangToggle({ lang, setLang, className }) {
   return (
-    <div className={`${styles.toggle} ${className || ''}`} role="group" aria-label="Language">
+    <div className={`${styles.toggle} ${className || ''}`} role="group" aria-label={lang === LANGS.ZH ? '語言' : 'Language'}>
       <button
         type="button"
         className={lang === LANGS.EN ? styles.active : styles.btn}
