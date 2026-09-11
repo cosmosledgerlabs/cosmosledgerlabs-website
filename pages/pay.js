@@ -4,7 +4,6 @@ import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang } from '../lib/i18n'
 import styles from '../styles/Pay.module.css'
-import { REPS } from '../lib/settings'
 
 /* ------------------------------------------------------------------ */
 /* Data                                                                */
@@ -26,14 +25,20 @@ const METHODS = [
   { id: 'usdt', name: { en: 'USDT', zh: 'USDT' } },
 ]
 
+const PLANS = [
+  { id: 'full', pct: 100, name: { en: 'Full amount', zh: '全額付款' } },
+  { id: 'deposit', pct: 50, name: { en: '50% deposit', zh: '50% 訂金' } },
+]
+
 const WIRE = [
-  { k: { en: 'Beneficiary', zh: '收款人' }, v: 'COSMOS LEDGER LABS INC.' },
+  { k: { en: 'Beneficiary', zh: '收款人' }, v: 'COSMOS LEDGER LABS INC.', copy: true },
+  { k: { en: 'Beneficiary address', zh: '收款人地址' }, v: 'Suite 1400, 18 King St E, Toronto, ON M5C 1C4, Canada', copy: true },
   { k: { en: 'Bank', zh: '銀行' }, v: 'Royal Bank of Canada' },
-  { k: { en: 'Bank address', zh: '銀行地址' }, v: '101 Dundas St W, Toronto, ON M5G 1C4, Canada' },
-  { k: { en: 'Institution number', zh: '銀行代號' }, v: '003' },
-  { k: { en: 'Transit number', zh: '分行代號' }, v: '02146' },
-  { k: { en: 'Account number', zh: '帳號' }, v: '100-104-9' },
-  { k: { en: 'SWIFT / BIC (international)', zh: 'SWIFT / BIC（國際匯款）' }, v: 'ROYCCAT2' },
+  { k: { en: 'Bank address', zh: '銀行地址' }, v: '101 Dundas St W, Toronto, ON M5G 1C4, Canada', copy: true },
+  { k: { en: 'Institution number', zh: '銀行代號' }, v: '003', copy: true },
+  { k: { en: 'Transit number', zh: '分行代號' }, v: '02146', copy: true },
+  { k: { en: 'Account number', zh: '帳號' }, v: '100-104-9', copy: true },
+  { k: { en: 'SWIFT / BIC (international)', zh: 'SWIFT / BIC（國際匯款）' }, v: 'ROYCCAT2', copy: true },
 ]
 
 const T2 = {
@@ -45,11 +50,18 @@ const T2 = {
   },
   s1: { en: '01 — SERVICE & AMOUNT', zh: '01 — 服務與金額' },
   service: { en: 'Service', zh: '服務項目' },
-  amount: { en: 'Amount', zh: '金額' },
+  amount: { en: 'Project amount', zh: '專案金額' },
   currency: { en: 'Currency', zh: '幣別' },
-  rep: { en: 'Customer service (optional)', zh: '客服（選填）' },
-  repNone: { en: 'None', zh: '無' },
-  orderRep: { en: 'Customer service', zh: '經辦客服' },
+  plan: { en: 'Payment', zh: '付款方案' },
+  planHint: {
+    en: 'Deposit and milestone percentages are set in your written agreement — use the split that matches your quote.',
+    zh: '訂金與里程碑比例以您的書面協議為準——請依您的報價選擇對應的付款比例。',
+  },
+  payNow: { en: 'AMOUNT PAYABLE NOW', zh: '本次應付金額' },
+  ofTotal: {
+    en: (pct, total) => pct + '% of project amount ' + total,
+    zh: (pct, total) => '為專案金額 ' + total + ' 的 ' + pct + '%',
+  },
   s2: { en: '02 — PAYMENT METHOD', zh: '02 — 付款方式' },
   emtCadOnly: {
     en: 'Interac e-Transfer is available in CAD only. Switch the currency to CAD to use it.',
@@ -61,37 +73,45 @@ const T2 = {
   orderHead: { en: 'PAYMENT ORDER', zh: '付款訂單' },
   orderNo: { en: 'Order number', zh: '訂單編號' },
   orderService: { en: 'Service', zh: '服務項目' },
-  orderAmount: { en: 'Amount', zh: '金額' },
+  orderPlan: { en: 'Payment', zh: '付款方案' },
+  orderAmount: { en: 'Amount payable', zh: '應付金額' },
   orderMethod: { en: 'Method', zh: '付款方式' },
   wireHead: { en: 'PAY BY BANK WIRE', zh: '以銀行電匯付款' },
   wireNote: {
     en: 'Send the wire from your bank using the details below, and quote the order number in the wire reference / payment details field. Incoming international wires can take 1–5 business days.',
     zh: '請於您的銀行依下列資料辦理電匯，並在匯款附言／參考欄位註明訂單編號。國際電匯入帳可能需要 1–5 個工作天。',
   },
+  wireRef: { en: 'Wire reference', zh: '匯款附言' },
   emtHead: { en: 'PAY BY INTERAC E-TRANSFER', zh: '以 Interac e-Transfer 付款' },
   emtNote: {
     en: 'In your Canadian online banking, send an Interac e-Transfer for the order amount to the email below, and put the order number in the transfer message. Autodeposit is enabled — no security question is needed and the payment is deposited automatically.',
     zh: '請在您的加拿大網路銀行中，將訂單金額以 Interac e-Transfer 傳送至下方電子郵件，並在轉帳留言中註明訂單編號。我們已啟用自動存入（Autodeposit）——無需設定安全問題，款項將自動入帳。',
   },
+  emtTo: { en: 'Send to', zh: '收款電郵' },
+  emtMsg: { en: 'Transfer message', zh: '轉帳留言' },
   usdtHead: { en: 'PAY IN USDT', zh: '以 USDT 付款' },
   usdtNote: {
     en: 'For your security, USDT deposit addresses are issued per order by email — never published on this website. Click the button below to request the address; we reply with the address and network. Verify the address by email before sending: cryptocurrency transfers cannot be reversed.',
     zh: '為了您的安全，USDT 收款地址依訂單以電子郵件提供——絕不公佈於本網站。請點擊下方按鈕索取地址，我們將回覆收款地址與鏈別。傳送前請以電子郵件核對地址：加密貨幣轉帳無法撤銷。',
   },
+  amountLbl: { en: 'Amount', zh: '金額' },
   btnNotify: { en: '✉ EMAIL US THIS ORDER', zh: '✉ 以電子郵件通知我們此訂單' },
   btnUsdt: { en: '✉ REQUEST USDT ADDRESS', zh: '✉ 索取 USDT 收款地址' },
-  btnCopy: { en: 'COPY ORDER NUMBER', zh: '複製訂單編號' },
-  btnCopyDetails: { en: 'COPY ORDER DETAILS', zh: '複製訂單內容' },
-  sendTo: { en: 'Or copy the details and email them to: info@cosmosledgerlabs.com', zh: '或複製訂單內容後，以電子郵件寄至：info@cosmosledgerlabs.com' },
+  btnCopy: { en: 'COPY', zh: '複製' },
   copied: { en: 'COPIED ✓', zh: '已複製 ✓' },
+  btnCopyOrder: { en: 'COPY ORDER NUMBER', zh: '複製訂單編號' },
   btnReset: { en: 'START A NEW ORDER', zh: '建立新訂單' },
+  help: {
+    en: 'Questions about your order or payment? Email us and we reply directly:',
+    zh: '對訂單或付款有任何疑問？歡迎來信，我們將直接回覆：',
+  },
   legal: {
     en: 'An order number is a payment reference only — it is not an invoice or a contract. Work is performed under a written agreement, and final pricing is confirmed by written quote. If you do not yet have a quote, contact info@cosmosledgerlabs.com first.',
     zh: '訂單編號僅作為付款參考——不構成發票或合約。所有工作均依書面協議執行，最終價格以書面報價為準。若您尚未取得報價，請先聯絡 info@cosmosledgerlabs.com。',
   },
   prevail: {
     en: '',
-    zh: '本頁為英文版本的中文翻譯，僅供參考。若中英文版本有任何歧異，以英文版本為準。',
+    zh: '本頁為英文翻譯，僅供參考；如有歧異，以英文版為準。',
   },
 }
 
@@ -99,23 +119,51 @@ const T2 = {
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
-function makeOrderId(rep) {
+function makeOrderId() {
   const d = new Date()
   const ymd =
     String(d.getFullYear()).slice(2) +
     String(d.getMonth() + 1).padStart(2, '0') +
     String(d.getDate()).padStart(2, '0')
   const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
-  const prefix = rep ? rep.slice(0, 2).toUpperCase() : ''
   let tail = ''
-  const n = prefix ? 2 : 4
-  for (let i = 0; i < n; i++) tail += chars[Math.floor(Math.random() * chars.length)]
-  return 'CLL-' + ymd + '-' + prefix + tail
+  for (let i = 0; i < 4; i++) tail += chars[Math.floor(Math.random() * chars.length)]
+  return 'CLL-' + ymd + '-' + tail
 }
 
 function fmtAmount(amount, currency) {
   const n = Number(amount) || 0
-  return currency + ' $' + n.toLocaleString('en-CA')
+  const opts = Number.isInteger(n)
+    ? { maximumFractionDigits: 0 }
+    : { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+  return currency + ' $' + n.toLocaleString('en-CA', opts)
+}
+
+/* Round to cents so 50% of odd amounts settles cleanly. */
+function payable(amount, pct) {
+  return Math.round((Number(amount) || 0) * pct) / 100
+}
+
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text)
+      return true
+    }
+  } catch (e) { /* fall through */ }
+  try {
+    const ta = document.createElement('textarea')
+    ta.value = text
+    ta.style.position = 'fixed'
+    ta.style.opacity = '0'
+    document.body.appendChild(ta)
+    ta.select()
+    const ok = document.execCommand('copy')
+    document.body.removeChild(ta)
+    return ok
+  } catch (e) {
+    return false
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -129,13 +177,14 @@ export default function Pay() {
   const [serviceId, setServiceId] = useState('custom')
   const [amount, setAmount] = useState('')
   const [currency, setCurrency] = useState('CAD')
+  const [planId, setPlanId] = useState('full')
   const [method, setMethod] = useState('')
-  const [rep, setRep] = useState('')
   const [order, setOrder] = useState(null)
-  const [copied, setCopied] = useState(false)
-  const [copiedDetails, setCopiedDetails] = useState(false)
+  const [copiedKey, setCopiedKey] = useState('')
 
   const service = SERVICES.find((s) => s.id === serviceId) || SERVICES[SERVICES.length - 1]
+  const plan = PLANS.find((p) => p.id === planId) || PLANS[0]
+  const payNow = payable(amount, plan.pct)
 
   const pickService = (id) => {
     setServiceId(id)
@@ -152,85 +201,57 @@ export default function Pay() {
     if (c === 'USD' && method === 'emt') setMethod('')
   }
 
-  const canGenerate = Number(amount) > 0 && !!method
+  const canGenerate = payNow > 0 && !!method
 
   const generate = () => {
     if (!canGenerate) return
-    setCopied(false)
-    setCopiedDetails(false)
-    const o = {
-      id: makeOrderId(rep),
+    setCopiedKey('')
+    setOrder({
+      id: makeOrderId(),
       serviceId,
       serviceName: service.name,
-      amount: Number(amount),
+      baseAmount: Number(amount),
+      planId: plan.id,
+      planPct: plan.pct,
+      planName: plan.name,
+      amount: payable(amount, plan.pct),
       currency,
       method,
-      rep,
-    }
-    setOrder(o)
-    // Auto-record the order in the ledger (best-effort; the page works even if this fails)
-    try {
-      fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: o.id,
-          service: o.serviceName.en,
-          amount: o.amount,
-          currency: o.currency,
-          method: o.method,
-          rep: o.rep,
-        }),
-      }).catch(() => {})
-    } catch (e) {}
+    })
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const reset = () => {
     setOrder(null)
-    setCopied(false)
-    setCopiedDetails(false)
+    setCopiedKey('')
     setMethod('')
   }
 
-  const copyOrderId = async () => {
-    if (!order) return
-    try {
-      await navigator.clipboard.writeText(order.id)
-      setCopied(true)
-    } catch (e) {
-      setCopied(false)
-    }
+  const copy = async (key, text) => {
+    const ok = await copyText(text)
+    setCopiedKey(ok ? key : '')
+    if (ok) setTimeout(() => setCopiedKey(''), 1800)
   }
 
-  const orderText = () => {
-    if (!order) return ''
-    const methodName = (METHODS.find((m) => m.id === order.method) || {}).name
-    return [
-      'Order number: ' + order.id,
-      'Service: ' + (order.serviceName ? order.serviceName.en : ''),
-      'Amount: ' + fmtAmount(order.amount, order.currency),
-      'Payment method: ' + (methodName ? methodName.en : order.method),
-      'Customer service: ' + (order.rep || '—'),
-      '',
-      'Sent from cosmosledgerlabs.com/pay',
-    ].join('\n')
-  }
-
-  const copyDetails = async () => {
-    if (!order) return
-    try {
-      await navigator.clipboard.writeText(orderText())
-      setCopiedDetails(true)
-    } catch (e) {
-      setCopiedDetails(false)
-    }
-  }
+  const CopyBtn = ({ id, text }) => (
+    <button type="button" className={styles.btnCopyMini} onClick={() => copy(id, text)}>
+      {copiedKey === id ? L(T2.copied) : L(T2.btnCopy)}
+    </button>
+  )
 
   const mailto = (subjectPrefix) => {
     if (!order) return '#'
     const methodName = (METHODS.find((m) => m.id === order.method) || {}).name
     const subject = subjectPrefix + ' ' + order.id + ' — ' + fmtAmount(order.amount, order.currency)
-    const body = orderText()
+    const body = [
+      'Order number: ' + order.id,
+      'Service: ' + (order.serviceName ? order.serviceName.en : ''),
+      'Payment: ' + (order.planName ? order.planName.en : '') + ' (' + order.planPct + '% of ' + fmtAmount(order.baseAmount, order.currency) + ')',
+      'Amount payable: ' + fmtAmount(order.amount, order.currency),
+      'Payment method: ' + (methodName ? methodName.en : order.method),
+      '',
+      'Sent from cosmosledgerlabs.com/pay',
+    ].join('\n')
     return (
       'mailto:info@cosmosledgerlabs.com?subject=' +
       encodeURIComponent(subject) +
@@ -243,7 +264,9 @@ export default function Pay() {
     <>
       <Head>
         <title>{L(T2.metaTitle)}</title>
-        <meta name="description" content="Generate a payment order and pay COSMOS Ledger Labs Inc. by bank wire, Interac e-Transfer or USDT." />
+        <meta name="description" content={isZh
+          ? '產生付款訂單，以銀行電匯、Interac e-Transfer 或 USDT 支付 COSMOS Ledger Labs Inc.。'
+          : 'Generate a payment order and pay COSMOS Ledger Labs Inc. by bank wire, Interac e-Transfer or USDT.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -251,11 +274,12 @@ export default function Pay() {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta property="og:title" content="Pay — COSMOS Ledger Labs" />
-        <meta property="og:description" content="Generate a payment order and pay by bank wire, Interac e-Transfer or USDT." />
+        <meta property="og:title" content={isZh ? '付款下單 — COSMOS Ledger Labs' : 'Pay — COSMOS Ledger Labs'} />
+        <meta property="og:description" content={isZh ? '產生付款訂單，以銀行電匯、Interac e-Transfer 或 USDT 付款。' : 'Generate a payment order and pay by bank wire, Interac e-Transfer or USDT.'} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/pay" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
+        <meta property="og:locale" content={isZh ? 'zh_TW' : 'en_CA'} />
       </Head>
 
       <Nav />
@@ -269,7 +293,7 @@ export default function Pay() {
 
           {!order ? (
             <>
-              {/* ---------- step 1: service & amount ---------- */}
+              {/* ---------- step 1: service, amount & plan ---------- */}
               <section className={styles.section}>
                 <div className={styles.stepTag}>{L(T2.s1)}</div>
 
@@ -291,16 +315,19 @@ export default function Pay() {
                 <div className={styles.row}>
                   <div className={styles.field}>
                     <label className={styles.label}>{L(T2.amount)}</label>
-                    <input
-                      className={styles.input}
-                      type="number"
-                      min="1"
-                      step="1"
-                      inputMode="numeric"
-                      placeholder="6000"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
+                    <div className={styles.amountWrap}>
+                      <span className={styles.amountPrefix}>{currency === 'USD' ? 'US$' : 'C$'}</span>
+                      <input
+                        className={styles.input}
+                        type="number"
+                        min="1"
+                        step="1"
+                        inputMode="decimal"
+                        placeholder="6000"
+                        value={amount}
+                        onChange={(e) => setAmount(e.target.value)}
+                      />
+                    </div>
                   </div>
                   <div className={styles.field}>
                     <label className={styles.label}>{L(T2.currency)}</label>
@@ -317,33 +344,38 @@ export default function Pay() {
                       ))}
                     </div>
                   </div>
+                  <div className={styles.field}>
+                    <label className={styles.label}>{L(T2.plan)}</label>
+                    <div className={styles.segmented}>
+                      {PLANS.map((p) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          className={planId === p.id ? styles.segOn : styles.seg}
+                          onClick={() => setPlanId(p.id)}
+                        >
+                          {L(p.name)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
+
+                <div className={styles.totalCard}>
+                  <span className={styles.totalLabel}>{L(T2.payNow)}</span>
+                  <span className={styles.totalValue}>{payNow > 0 ? fmtAmount(payNow, currency) : '—'}</span>
+                  {payNow > 0 && plan.pct < 100 ? (
+                    <span className={styles.totalSub}>
+                      {T2.ofTotal[lang] ? T2.ofTotal[lang](plan.pct, fmtAmount(amount, currency)) : T2.ofTotal.en(plan.pct, fmtAmount(amount, currency))}
+                    </span>
+                  ) : null}
+                </div>
+                {plan.pct < 100 ? <div className={styles.hint}>{L(T2.planHint)}</div> : null}
               </section>
 
               {/* ---------- step 2: method ---------- */}
               <section className={styles.section}>
                 <div className={styles.stepTag}>{L(T2.s2)}</div>
-                <label className={styles.label}>{L(T2.rep)}</label>
-                <div className={styles.serviceGrid}>
-                  <button
-                    type="button"
-                    className={rep === '' ? styles.chipOn : styles.chip}
-                    onClick={() => setRep('')}
-                  >
-                    {L(T2.repNone)}
-                  </button>
-                  {REPS.map((r) => (
-                    <button
-                      key={r}
-                      type="button"
-                      className={rep === r ? styles.chipOn : styles.chip}
-                      onClick={() => setRep(r)}
-                    >
-                      {r}
-                    </button>
-                  ))}
-                </div>
-                <label className={styles.label}>{isZh ? '付款方式' : 'Method'}</label>
                 <div className={styles.methodGrid}>
                   {METHODS.map((m) => {
                     const disabled = m.id === 'emt' && currency === 'USD'
@@ -378,31 +410,32 @@ export default function Pay() {
               <section className={styles.section}>
                 <div className={styles.orderCard}>
                   <div className={styles.orderHead}>{L(T2.orderHead)}</div>
-                  <div className={styles.orderRow}>
-                    <span className={styles.orderKey}>{L(T2.orderNo)}</span>
-                    <span className={styles.orderId}>{order.id}</span>
+                  <div className={styles.kvRow}>
+                    <span className={styles.kvKey}>{L(T2.orderNo)}</span>
+                    <span className={styles.kvVal + ' ' + styles.kvStrong}>
+                      {order.id}
+                      <CopyBtn id="orderNo" text={order.id} />
+                    </span>
                   </div>
-                  <div className={styles.orderRow}>
-                    <span className={styles.orderKey}>{L(T2.orderService)}</span>
-                    <span>{L(order.serviceName)}</span>
+                  <div className={styles.kvRow}>
+                    <span className={styles.kvKey}>{L(T2.orderService)}</span>
+                    <span className={styles.kvVal}>{L(order.serviceName)}</span>
                   </div>
-                  <div className={styles.orderRow}>
-                    <span className={styles.orderKey}>{L(T2.orderAmount)}</span>
-                    <span>{fmtAmount(order.amount, order.currency)}</span>
+                  <div className={styles.kvRow}>
+                    <span className={styles.kvKey}>{L(T2.orderPlan)}</span>
+                    <span className={styles.kvVal}>
+                      {L(order.planName)}
+                      {order.planPct < 100 ? ' · ' + order.planPct + '% × ' + fmtAmount(order.baseAmount, order.currency) : ''}
+                    </span>
                   </div>
-                  <div className={styles.orderRow}>
-                    <span className={styles.orderKey}>{L(T2.orderMethod)}</span>
-                    <span>{L((METHODS.find((m) => m.id === order.method) || {}).name)}</span>
+                  <div className={styles.kvRow}>
+                    <span className={styles.kvKey}>{L(T2.orderAmount)}</span>
+                    <span className={styles.kvVal + ' ' + styles.kvStrong}>{fmtAmount(order.amount, order.currency)}</span>
                   </div>
-                  {order.rep ? (
-                    <div className={styles.orderRow}>
-                      <span className={styles.orderKey}>{L(T2.orderRep)}</span>
-                      <span>{order.rep}</span>
-                    </div>
-                  ) : null}
-                  <button type="button" className={styles.btnGhost} onClick={copyOrderId}>
-                    {copied ? L(T2.copied) : L(T2.btnCopy)}
-                  </button>
+                  <div className={styles.kvRow}>
+                    <span className={styles.kvKey}>{L(T2.orderMethod)}</span>
+                    <span className={styles.kvVal}>{L((METHODS.find((m) => m.id === order.method) || {}).name)}</span>
+                  </div>
                 </div>
               </section>
 
@@ -413,15 +446,23 @@ export default function Pay() {
                   <p className={styles.body}>{L(T2.wireNote)}</p>
                   <div className={styles.detailCard}>
                     {WIRE.map((r) => (
-                      <p key={r.k.en} className={styles.item}>{L(r.k)}: {r.v}</p>
+                      <div key={r.k.en} className={styles.kvRow}>
+                        <span className={styles.kvKey}>{L(r.k)}</span>
+                        <span className={styles.kvVal}>
+                          {r.v}
+                          {r.copy ? <CopyBtn id={'wire-' + r.k.en} text={r.v} /> : null}
+                        </span>
+                      </div>
                     ))}
-                    <p className={styles.itemStrong}>{isZh ? '匯款附言' : 'Wire reference'}: {order.id}</p>
+                    <div className={styles.kvRow}>
+                      <span className={styles.kvKey}>{L(T2.wireRef)}</span>
+                      <span className={styles.kvVal + ' ' + styles.kvStrong}>
+                        {order.id}
+                        <CopyBtn id="wireRef" text={order.id} />
+                      </span>
+                    </div>
                   </div>
                   <a className={styles.btnBig} href={mailto('Wire payment order')}>{L(T2.btnNotify)}</a>
-                  <div className={styles.hint}>{L(T2.sendTo)}</div>
-                  <button type="button" className={styles.btnGhost} onClick={copyDetails}>
-                    {copiedDetails ? L(T2.copied) : L(T2.btnCopyDetails)}
-                  </button>
                 </section>
               ) : null}
 
@@ -430,15 +471,26 @@ export default function Pay() {
                   <h2 className={styles.h2}>{L(T2.emtHead)}</h2>
                   <p className={styles.body}>{L(T2.emtNote)}</p>
                   <div className={styles.detailCard}>
-                    <p className={styles.item}>{isZh ? '收款電郵' : 'Send to'}: info@cosmosledgerlabs.com</p>
-                    <p className={styles.item}>{isZh ? '金額' : 'Amount'}: {fmtAmount(order.amount, order.currency)}</p>
-                    <p className={styles.itemStrong}>{isZh ? '轉帳留言' : 'Transfer message'}: {order.id}</p>
+                    <div className={styles.kvRow}>
+                      <span className={styles.kvKey}>{L(T2.emtTo)}</span>
+                      <span className={styles.kvVal}>
+                        info@cosmosledgerlabs.com
+                        <CopyBtn id="emtTo" text="info@cosmosledgerlabs.com" />
+                      </span>
+                    </div>
+                    <div className={styles.kvRow}>
+                      <span className={styles.kvKey}>{L(T2.amountLbl)}</span>
+                      <span className={styles.kvVal}>{fmtAmount(order.amount, order.currency)}</span>
+                    </div>
+                    <div className={styles.kvRow}>
+                      <span className={styles.kvKey}>{L(T2.emtMsg)}</span>
+                      <span className={styles.kvVal + ' ' + styles.kvStrong}>
+                        {order.id}
+                        <CopyBtn id="emtMsg" text={order.id} />
+                      </span>
+                    </div>
                   </div>
                   <a className={styles.btnBig} href={mailto('e-Transfer payment order')}>{L(T2.btnNotify)}</a>
-                  <div className={styles.hint}>{L(T2.sendTo)}</div>
-                  <button type="button" className={styles.btnGhost} onClick={copyDetails}>
-                    {copiedDetails ? L(T2.copied) : L(T2.btnCopyDetails)}
-                  </button>
                 </section>
               ) : null}
 
@@ -447,14 +499,19 @@ export default function Pay() {
                   <h2 className={styles.h2}>{L(T2.usdtHead)}</h2>
                   <p className={styles.body}>{L(T2.usdtNote)}</p>
                   <div className={styles.detailCard}>
-                    <p className={styles.item}>{isZh ? '金額' : 'Amount'}: {fmtAmount(order.amount, order.currency)}</p>
-                    <p className={styles.itemStrong}>{isZh ? '訂單編號' : 'Order number'}: {order.id}</p>
+                    <div className={styles.kvRow}>
+                      <span className={styles.kvKey}>{L(T2.amountLbl)}</span>
+                      <span className={styles.kvVal}>{fmtAmount(order.amount, order.currency)}</span>
+                    </div>
+                    <div className={styles.kvRow}>
+                      <span className={styles.kvKey}>{L(T2.orderNo)}</span>
+                      <span className={styles.kvVal + ' ' + styles.kvStrong}>
+                        {order.id}
+                        <CopyBtn id="usdtNo" text={order.id} />
+                      </span>
+                    </div>
                   </div>
                   <a className={styles.btnBig} href={mailto('USDT address request — order')}>{L(T2.btnUsdt)}</a>
-                  <div className={styles.hint}>{L(T2.sendTo)}</div>
-                  <button type="button" className={styles.btnGhost} onClick={copyDetails}>
-                    {copiedDetails ? L(T2.copied) : L(T2.btnCopyDetails)}
-                  </button>
                 </section>
               ) : null}
 
@@ -464,6 +521,10 @@ export default function Pay() {
             </>
           )}
 
+          <p className={styles.help}>
+            {L(T2.help)}{' '}
+            <a href="mailto:info@cosmosledgerlabs.com">info@cosmosledgerlabs.com</a>
+          </p>
           <p className={styles.legal}>{L(T2.legal)}</p>
 
         </div>
