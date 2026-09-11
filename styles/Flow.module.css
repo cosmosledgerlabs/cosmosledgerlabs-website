@@ -1,6 +1,12 @@
 /* Flow page — follows the site design system:
-   Rajdhani display type, Share Tech Mono body,
-   steel cards with corner brackets, existing CSS variables. */
+   Rajdhani display type, Share Tech (proportional) for prose,
+   Share Tech Mono for hashes / balances / statuses,
+   steel cards with corner brackets, existing CSS variables.
+   2026-09-11: prose (subtitle, hints, step descriptions, how-to
+   list, notes, disclaimer) converted to the book-style typesetting
+   used site-wide — proportional font + justified, both edges flush,
+   whole words, hyphenation off. Numbers, hashes and status labels
+   stay in Share Tech Mono where fixed-width alignment is the point. */
 
 .page {
   position: relative;
@@ -53,11 +59,13 @@
 .subtitle {
   max-width: 720px;
   margin: 0 auto 14px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 13px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(13px, 1.5vw, 15px);
   line-height: 1.8;
   color: var(--text-muted);
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 /* ===== CONTROL PANEL ===== */
@@ -113,10 +121,13 @@
 
 .controlHint {
   margin-top: 10px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-muted);
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .divider {
@@ -190,6 +201,7 @@
 .segOn:disabled, .segOff:disabled { opacity: .4; cursor: not-allowed; }
 
 /* ===== MESSAGES ===== */
+/* Dynamic status text with signatures — stays Share Tech Mono. */
 
 .msgOk, .msgError {
   margin: 4px 0 0;
@@ -273,11 +285,14 @@
 }
 
 .stepDesc {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 12.5px;
   line-height: 1.65;
   color: var(--text-muted);
   margin-bottom: 12px;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 /* ===== TRANSACTION ROWS ===== */
@@ -348,6 +363,7 @@
 }
 
 /* ===== OUTCOME ===== */
+/* Contains flow IDs and dynamic content — stays Share Tech Mono. */
 
 .outcomeOk, .outcomeComp, .outcomeBad {
   padding: 20px 22px;
@@ -388,11 +404,16 @@
   margin: var(--sp4) 0 0;
   padding-top: 22px;
   border-top: 1px solid rgba(0, 190, 230, .16);
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 11.5px;
   line-height: 1.75;
   color: var(--cyan-soft);
-  text-align: center;
+  max-width: 76ch;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 /* ===== MOBILE ===== */
@@ -450,10 +471,13 @@
 
 .verifyIntro {
   margin: 0 0 12px;
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-muted);
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .verifyRow {
@@ -548,7 +572,7 @@
 }
 
 .videoNote {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 12px;
   color: var(--text-muted);
 }
@@ -565,56 +589,37 @@
 
 .howList {
   margin: 0 0 14px;
-  padding-left: 22px;
+  padding-left: 26px;
 }
 
 .howList li {
   font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
-  font-size: 12px; /* fallback: old WeChat X5, no clamp() */
-  font-size: clamp(12px, 1.4vw, 14px);
-  line-height: 1.7;
+  font-size: 13px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(13px, 1.5vw, 14.5px);
+  line-height: 1.8;
   color: var(--text-muted);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  padding-left: 4px;
   text-align: justify;
   text-justify: inter-word;
   text-wrap: pretty;
 }
 
+/* Step numbers keep the monospace face — fixed-width digits align. */
+.howList li::marker {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--cyan-soft);
+}
+
 .howNote {
   font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
-  text-align: justify;
-  text-justify: inter-word;
   font-size: 12px;
   line-height: 1.7;
   color: var(--text-muted);
   border-left: 2px solid rgba(0, 220, 255, .38);
   padding-left: 12px;
   margin-bottom: 14px;
-}
-
-/* ---- collapsible guide toggle + phone tightening (addendum 19) ---- */
-.howToggle {
-  display: block;
-  width: 100%;
-  text-align: left;
-  background: rgba(0, 150, 255, .07);
-  border: 1px solid rgba(0, 190, 230, .35);
-  border-radius: 6px;
-  padding: 11px 14px;
-  font-family: 'Rajdhani', sans-serif;
-  font-weight: 700;
-  font-size: 13px;
-  letter-spacing: .1em;
-  color: var(--cyan);
-  cursor: pointer;
-}
-.howToggle:hover { background: rgba(0, 150, 255, .13); }
-@media (max-width: 767px) {
-  .howList { padding-left: 16px; }
-  .howList li {
-    font-size: 12.5px;
-    line-height: 1.6;
-    margin-bottom: 10px;
-  }
-  .howTitle { margin: 14px 0 10px; }
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
