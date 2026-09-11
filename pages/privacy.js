@@ -4,7 +4,7 @@ import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
 import styles from '../styles/Legal.module.css'
 
-const UPDATED = '2026-09-09'
+const UPDATED = '2026-09-11'
 
 const SECTIONS = [
   {
@@ -20,8 +20,8 @@ const SECTIONS = [
     h: { en: 'WHAT THIS SITE COLLECTS', zh: '本網站收集什麼' },
     body: [
       {
-        en: 'Very little. This website has no user accounts, no contact forms, no analytics, and no advertising trackers, and it sets no cookies. We do not build profiles of visitors and we do not sell or share visitor data.',
-        zh: '幾乎不收集。本網站沒有使用者帳號、沒有聯絡表單、沒有分析工具、沒有廣告追蹤器，也不設置任何 Cookie。我們不會建立訪客檔案，亦不會出售或分享訪客資料。',
+        en: 'Very little. This website has no user accounts, no analytics, and no advertising trackers. Apart from the live chat described below, it sets no cookies. We do not build profiles of visitors and we do not sell or share visitor data.',
+        zh: '幾乎不收集。本網站沒有使用者帳號、沒有分析工具，也沒有廣告追蹤器。除下述在線聊天外，不設置任何 Cookie。我們不會建立訪客檔案，亦不會出售或分享訪客資料。',
       },
     ],
   },
@@ -49,6 +49,15 @@ const SECTIONS = [
       {
         en: 'If you email us, we receive your email address and whatever you choose to send. We use it only to respond to you and to manage any resulting engagement. We do not add you to marketing lists and we do not share your correspondence for marketing purposes.',
         zh: '若您傳送電子郵件給我們，我們會收到您的電子郵件地址及您選擇傳送的內容。我們僅將其用於回覆您以及處理後續的委託事宜。我們不會將您加入行銷名單，亦不會為行銷目的分享您的通信內容。',
+      },
+    ],
+  },
+  {
+    h: { en: 'LIVE CHAT', zh: '在線聊天' },
+    body: [
+      {
+        en: 'The chat widget on this website is provided by Crisp IM SARL, a company based in France. When the chat is available and you use it, Crisp sets cookies to keep your conversation session and processes the information you provide (such as your email address and messages) on its servers in the European Union, under its own privacy policy. We use this information only to respond to you and to manage any resulting engagement. If you prefer not to use the chat, you can contact us by email instead.',
+        zh: '本網站的聊天視窗由位於法國的 Crisp IM SARL 提供。當聊天功能開啟且您使用時，Crisp 會設置 Cookie 以維持您的對話階段，並依其自身隱私政策，在其位於歐盟的伺服器上處理您提供的資訊（例如電子郵件地址與訊息內容）。我們僅將該資訊用於回覆您及處理後續的委託事宜。若您不希望使用聊天功能，歡迎改以電子郵件與我們聯絡。',
       },
     ],
   },
@@ -89,7 +98,9 @@ export default function Privacy() {
     <>
       <Head>
         <title>{isZh ? '隱私政策 — COSMOS Ledger Labs' : 'Privacy — COSMOS Ledger Labs'}</title>
-        <meta name="description" content="Privacy policy for the COSMOS Ledger Labs Inc. website: no accounts, no analytics, no cookies. What little is processed, and by whom." />
+        <meta name="description" content={isZh
+          ? 'COSMOS Ledger Labs Inc. 網站隱私政策：無帳號、無分析工具、無 Cookie。說明少量處理的資料及其處理方。'
+          : 'Privacy policy for the COSMOS Ledger Labs Inc. website: no accounts, no analytics, no cookies. What little is processed, and by whom.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -97,11 +108,12 @@ export default function Privacy() {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta property="og:title" content="Privacy — COSMOS Ledger Labs" />
-        <meta property="og:description" content="Privacy policy for the COSMOS Ledger Labs Inc. website." />
+        <meta property="og:title" content={isZh ? '隱私政策 — COSMOS Ledger Labs' : 'Privacy — COSMOS Ledger Labs'} />
+        <meta property="og:description" content={isZh ? 'COSMOS Ledger Labs Inc. 網站隱私政策。' : 'Privacy policy for the COSMOS Ledger Labs Inc. website.'} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/privacy" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
+        <meta property="og:locale" content={isZh ? 'zh_TW' : 'en_CA'} />
       </Head>
 
       <Nav />
