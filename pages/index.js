@@ -3,14 +3,21 @@ import Nav from '../components/Nav'
 import Hero from '../components/Hero'
 import Footer from '../components/Footer'
 import Demo from '../components/DemoSection'
+import { useLang } from '../lib/i18n'
 import { Problem, Solution, HowWeWork, Security, Technology, WhereWeAre, Partners, Team, Contact } from '../components/Sections'
 
 export default function Home() {
+  const { isZh } = useLang()
+
   return (
     <>
       <Head>
-        <title>COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects</title>
-        <meta name="description" content="COSMOS Ledger Labs is a Toronto-based digital asset technology company. Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends." />
+        <title>{isZh
+          ? 'COSMOS Ledger Labs — 數位資產專案技術交付'
+          : 'COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects'}</title>
+        <meta name="description" content={isZh
+          ? 'COSMOS Ledger Labs 是一家位於多倫多的數位資產技術公司。企業網站、儀表板、代幣部署與設定、領取頁面、資料整合，以及智能合約前端介面。'
+          : 'COSMOS Ledger Labs is a Toronto-based digital asset technology company. Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -20,24 +27,36 @@ export default function Home() {
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
         {/* Open Graph */}
-        <meta property="og:title" content="COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects" />
-        <meta property="og:description" content="Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends for digital asset teams. Toronto, Canada." />
+        <meta property="og:title" content={isZh
+          ? 'COSMOS Ledger Labs — 數位資產專案技術交付'
+          : 'COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects'} />
+        <meta property="og:description" content={isZh
+          ? '為數位資產團隊打造網站、儀表板、代幣部署與設定、領取頁面、資料整合與智能合約前端。加拿大多倫多。'
+          : 'Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends for digital asset teams. Toronto, Canada.'} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
-        <meta property="og:locale" content="en_CA" />
+        <meta property="og:locale" content={isZh ? 'zh_TW' : 'en_CA'} />
         <meta property="og:image" content="https://cosmosledgerlabs.com/og-image.png" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects" />
+        <meta property="og:image:alt" content={isZh
+          ? 'COSMOS Ledger Labs — 數位資產專案技術交付'
+          : 'COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects'} />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects" />
-        <meta name="twitter:description" content="Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends for digital asset teams. Toronto, Canada." />
+        <meta name="twitter:title" content={isZh
+          ? 'COSMOS Ledger Labs — 數位資產專案技術交付'
+          : 'COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects'} />
+        <meta name="twitter:description" content={isZh
+          ? '為數位資產團隊打造網站、儀表板、代幣部署與設定、領取頁面、資料整合與智能合約前端。加拿大多倫多。'
+          : 'Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends for digital asset teams. Toronto, Canada.'} />
         <meta name="twitter:image" content="https://cosmosledgerlabs.com/og-image.png" />
 
-        {/* Schema.org — Organization */}
+        {/* Schema.org — Organization. Kept in English on purpose: this block is
+            structured data for search engines about the company's identity, and
+            one consistent version avoids duplicate-entity confusion. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
