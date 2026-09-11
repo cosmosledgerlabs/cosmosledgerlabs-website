@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
+import { useLang } from '../lib/i18n'
 import { STEPS, newFlowId } from '../lib/steps'
 import { runFlow, initSteps, STATUS, FLOW_STATE, readableError } from '../lib/orchestrator'
 import { runSetup, readBalance, FLOW_AMOUNT, INITIAL_SUPPLY } from '../lib/spl'
@@ -17,13 +18,13 @@ const RPC = process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://api.devnet.solana.com
 const EXPLORER = 'https://solscan.io'
 
 const STATUS_LABEL = {
-  [STATUS.PENDING]: 'PENDING',
-  [STATUS.RUNNING]: 'RUNNING',
-  [STATUS.SUCCESS]: 'SUCCESS',
-  [STATUS.FAILED]: 'FAILED',
-  [STATUS.COMPENSATING]: 'COMPENSATING',
-  [STATUS.COMPENSATED]: 'COMPENSATED',
-  [STATUS.SKIPPED]: 'NOT RUN',
+  [STATUS.PENDING]: { en: 'PENDING', zh: '待執行' },
+  [STATUS.RUNNING]: { en: 'RUNNING', zh: '執行中' },
+  [STATUS.SUCCESS]: { en: 'SUCCESS', zh: '成功' },
+  [STATUS.FAILED]: { en: 'FAILED', zh: '失敗' },
+  [STATUS.COMPENSATING]: { en: 'COMPENSATING', zh: '補償中' },
+  [STATUS.COMPENSATED]: { en: 'COMPENSATED', zh: '已補償' },
+  [STATUS.SKIPPED]: { en: 'NOT RUN', zh: '未執行' },
 }
 
 const STATUS_CLASS = {
@@ -36,7 +37,180 @@ const STATUS_CLASS = {
   [STATUS.SKIPPED]: 'skipped',
 }
 
+const T3 = {
+  metaTitle: {
+    en: 'Cross-Transaction Consistency Demo — COSMOS Ledger Labs',
+    zh: '跨交易一致性演示 — COSMOS Ledger Labs',
+  },
+  metaDesc: {
+    en: 'A three-step token operation on Solana devnet with automatic on-chain compensation when a step fails. Every transaction is independently verifiable.',
+    zh: '在 Solana devnet 測試網上執行三步代幣操作，步驟失敗時自動執行鏈上補償交易。每筆交易均可獨立驗證。',
+  },
+  title: { en: 'CROSS-TRANSACTION CONSISTENCY', zh: '跨交易一致性' },
+  sub1: {
+    en: "Engineering demonstration on Solana devnet using test tokens. This page demonstrates COSMOS's workflow engineering approach — multi-step token operations with automatic on-chain compensation on failure. It is not a product, not an offer, and not connected to mainnet funds.",
+    zh: '本頁為在 Solana devnet 測試網上使用測試代幣進行的工程演示，展示 COSMOS 的工作流工程方法——多步代幣操作，失敗時自動執行鏈上補償。它不是產品、不構成要約，亦不涉及主網資金。',
+  },
+  sub2: {
+    en: 'A token operation is not one transaction. Approval, vesting setup and distribution are separate transactions. Solana is atomic within a transaction — not across a sequence. When a later step fails, the earlier ones stay on-chain.',
+    zh: '一次代幣操作並非單一交易。審批、歸屬設定與分發是各自獨立的交易。Solana 只在單筆交易內具原子性——跨交易序列則否。當後面的步驟失敗時，前面的步驟仍留在鏈上。',
+  },
+  sub3: {
+    en: 'This runs the sequence with real SPL token transfers, and on failure executes real on-chain compensating transactions for the steps already completed. Nothing is deleted — a chain cannot delete. Each compensation is a new, independently verifiable transaction, and the token balances return to where they started.',
+    zh: '本演示以真實 SPL 代幣轉帳執行該序列，並在失敗時為已完成的步驟執行真實的鏈上補償交易。沒有任何內容被刪除——區塊鏈無法刪除。每筆補償都是一筆新的、可獨立驗證的交易，代幣餘額回到起點。',
+  },
+  videoWatch: { en: 'WATCH THE DEMO VIDEO', zh: '觀看演示影片' },
+  videoOpens: { en: 'Opens on YouTube in a new tab', zh: '將在新分頁開啟 YouTube' },
+  videoSoon: { en: 'DEMO VIDEO — COMING SOON', zh: '演示影片——即將推出' },
+  videoSoonNote: { en: 'A guided walkthrough of this page will be posted here.', zh: '本頁的導覽影片將發佈於此。' },
+  howTitle: { en: 'HOW TO USE THIS DEMO', zh: '本演示使用說明' },
+  how1: {
+    en: 'Install the Phantom wallet browser extension and create a wallet. This demo runs only on the devnet test network and never touches real funds.',
+    zh: '安裝 Phantom 錢包瀏覽器擴充功能並建立錢包。本演示僅在 devnet 測試網上執行，絕不涉及真實資金。',
+  },
+  how2: {
+    en: 'In Phantom, open Settings → Developer Settings and switch the network to Solana Devnet.',
+    zh: '在 Phantom 中開啟 Settings → Developer Settings，將網路切換為 Solana Devnet。',
+  },
+  how3: {
+    en: 'Get free devnet SOL for transaction fees from a Solana devnet faucet (for example faucet.solana.com). Devnet SOL has no monetary value.',
+    zh: '從 Solana devnet 水龍頭（例如 faucet.solana.com）領取免費的 devnet SOL 作為交易手續費。Devnet SOL 不具任何金錢價值。',
+  },
+  how4: {
+    en: 'Click CONNECT above and approve the connection in Phantom.',
+    zh: '點擊上方「連接錢包」，並在 Phantom 中核准連接。',
+  },
+  how5: {
+    en: 'Click RUN SETUP. This mints a fresh test token and opens the accounts. Phantom will prompt twice — approve each prompt promptly. Setup costs roughly 0.02 devnet SOL.',
+    zh: '點擊「執行初始設定」。這會鑄造一枚全新的測試代幣並開立帳戶。Phantom 會提示兩次——請即時逐一核准。初始設定約需 0.02 devnet SOL。',
+  },
+  how6: {
+    en: 'Under FAILURE INJECTION, choose NONE to run all three steps, or FAIL AT 1 / 2 / 3 to force a failure and watch the on-chain compensation. Then click EXECUTE FLOW.',
+    zh: '在「故障注入」下選擇「無」以完整執行三個步驟，或選擇「第 1／2／3 步失敗」以強制失敗並觀察鏈上補償。然後點擊「執行流程」。',
+  },
+  how7: {
+    en: 'Watch the step panel and the TOKEN ACCOUNTS balances. Every transaction signature links to Solscan, so each run can be verified independently on-chain.',
+    zh: '觀察步驟面板與「代幣帳戶」的餘額變化。每筆交易簽名都連結到 Solscan，每次執行都可在鏈上獨立驗證。',
+  },
+  how8: {
+    en: 'To keep a record, click DOWNLOAD LOG before leaving or refreshing — the setup token and run history live only in this page and reset on refresh.',
+    zh: '若要保留紀錄，請在離開或重新整理前點擊「下載紀錄」——設定的代幣與執行歷史僅存在於本頁，重新整理後即重置。',
+  },
+  howNote: {
+    en: 'If a step shows a retry or waiting message, do not click or refresh — the engine checks transaction status and recovers on its own. Keep the Phantom panel open during a run; Phantom locks itself after about 15 minutes of inactivity.',
+    zh: '若某步驟顯示重試或等待訊息，請勿點擊或重新整理——引擎會自行查核交易狀態並恢復。執行期間請保持 Phantom 面板開啟；Phantom 閒置約 15 分鐘後會自動鎖定。',
+  },
+  ctlWallet: { en: 'WALLET', zh: '錢包' },
+  ctlSetup: { en: 'SETUP', zh: '初始設定' },
+  ctlInjection: { en: 'FAILURE INJECTION', zh: '故障注入' },
+  ctlRun: { en: 'RUN', zh: '執行' },
+  ctlLog: { en: 'RUN LOG', zh: '執行紀錄' },
+  btnConnect: { en: 'CONNECT', zh: '連接錢包' },
+  btnSetup: { en: 'RUN SETUP', zh: '執行初始設定' },
+  btnResetup: { en: 'RE-RUN SETUP', zh: '重新執行設定' },
+  btnExecute: { en: 'EXECUTE FLOW', zh: '執行流程' },
+  btnRunning: { en: 'RUNNING…', zh: '執行中…' },
+  btnLog: { en: 'DOWNLOAD LOG', zh: '下載紀錄' },
+  setupHint: {
+    en: (supply) => 'Creates a test SPL token, mints ' + supply + ' to your account, and opens an escrow and a recipient account. Two wallet prompts. Needed once before running the flow.',
+    zh: (supply) => '建立測試 SPL 代幣，鑄造 ' + supply + ' 枚到您的帳戶，並開立託管與接收帳戶。錢包會提示兩次。執行流程前需先完成一次。',
+  },
+  injNone: { en: 'NONE', zh: '無' },
+  injAt: {
+    en: (n) => 'FAIL AT ' + n,
+    zh: (n) => '第 ' + n + ' 步失敗',
+  },
+  injHint: { en: 'Force a step to fail, to demonstrate compensation.', zh: '強制某一步驟失敗，以展示補償機制。' },
+  flowIdLabel: { en: 'Flow ID: ', zh: '流程編號: ' },
+  logHint: {
+    en: 'Every run in this session, with signatures, balances and a summary. Downloads as a text file (in English). Cleared if the page is refreshed.',
+    zh: '本次連線的每一次執行，含簽名、餘額與總結。以文字檔下載（內容為英文）。重新整理頁面後即清除。',
+  },
+  msgNoPhantom: {
+    en: 'No Phantom wallet detected. Install the Phantom extension and switch it to Devnet.',
+    zh: '未偵測到 Phantom 錢包。請安裝 Phantom 擴充功能並將其切換至 Devnet。',
+  },
+  msgConnected: {
+    en: 'Wallet connected. Make sure Phantom is set to Devnet.',
+    zh: '錢包已連接。請確認 Phantom 已設定為 Devnet。',
+  },
+  msgCancelled: { en: 'Connection cancelled.', zh: '已取消連接。' },
+  msgConnectFirst: { en: 'Connect a wallet first.', zh: '請先連接錢包。' },
+  msgSetupFirst: {
+    en: 'Run SETUP first — the flow moves real SPL tokens.',
+    zh: '請先執行初始設定——流程會移動真實的 SPL 代幣。',
+  },
+  msgCreating: {
+    en: 'Creating token and accounts — the wallet will prompt twice…',
+    zh: '正在建立代幣與帳戶——錢包將提示兩次…',
+  },
+  msgNoSolSetup: {
+    en: 'Not enough Devnet SOL for setup. Request more at faucet.solana.com (setup needs about 0.02 SOL).',
+    zh: 'Devnet SOL 不足，無法完成初始設定。請至 faucet.solana.com 領取（初始設定約需 0.02 SOL）。',
+  },
+  msgSetupDone: {
+    en: (supply) => 'Setup complete. ' + supply + ' test tokens minted to your account.',
+    zh: (supply) => '初始設定完成。已鑄造 ' + supply + ' 枚測試代幣到您的帳戶。',
+  },
+  msgSetupFailed: { en: 'Setup failed: ', zh: '初始設定失敗：' },
+  msgRunning: { en: 'Running…', zh: '執行中…' },
+  msgNoSolFees: {
+    en: 'Not enough Devnet SOL for fees. Request more at faucet.solana.com and try again.',
+    zh: 'Devnet SOL 不足以支付手續費。請至 faucet.solana.com 領取後再試。',
+  },
+  msgLowTokens: {
+    en: (owner, amount) => 'Your token account holds ' + owner + ', and this flow moves ' + amount + '. Run SETUP again to mint a fresh allocation.',
+    zh: (owner, amount) => '您的代幣帳戶餘額為 ' + owner + '，本流程需移動 ' + amount + '。請重新執行初始設定以鑄造新的配額。',
+  },
+  msgDone: {
+    en: 'All three steps completed. Every transaction is verifiable on Solscan.',
+    zh: '三個步驟全部完成。每筆交易皆可在 Solscan 驗證。',
+  },
+  msgComp: {
+    en: 'A step failed. Completed steps were compensated automatically — each compensation is a real on-chain transaction.',
+    zh: '有步驟失敗。已完成的步驟已自動補償——每筆補償都是真實的鏈上交易。',
+  },
+  msgBad: {
+    en: 'A step failed and compensation did not complete. Manual intervention required.',
+    zh: '有步驟失敗且補償未完成。需要人工介入。',
+  },
+  msgUnexpected: { en: 'Unexpected error: ', zh: '未預期的錯誤：' },
+  vTitle: { en: 'TOKEN ACCOUNTS', zh: '代幣帳戶' },
+  vIntro: {
+    en: (amount) => 'Real SPL token accounts on Solana devnet. Balances update after every run. Each flow moves ' + amount + ' tokens.',
+    zh: (amount) => 'Solana devnet 上的真實 SPL 代幣帳戶。每次執行後餘額都會更新。每次流程移動 ' + amount + ' 枚代幣。',
+  },
+  vMint: { en: 'Mint', zh: 'Mint' },
+  vOwner: { en: 'Your account', zh: '您的帳戶' },
+  vEscrow: { en: 'Escrow', zh: '託管帳戶' },
+  vRecipient: { en: 'Recipient', zh: '接收帳戶' },
+  vView: { en: 'VIEW', zh: '查看' },
+  txExecuted: { en: 'EXECUTED', zh: '已執行' },
+  txCompensated: { en: 'COMPENSATED', zh: '已補償' },
+  txVerify: { en: 'VERIFY', zh: '驗證' },
+  outOkStrong: { en: 'FLOW COMPLETED', zh: '流程完成' },
+  outOk: { en: ' — all three steps executed successfully.', zh: '——三個步驟全部成功執行。' },
+  outCompStrong: { en: 'FAILED AND COMPENSATED', zh: '失敗並已補償' },
+  outComp: {
+    en: ' — a step failed; every completed step was compensated by a real on-chain transaction, in reverse order. The final state matches the starting state. The transaction history does not disappear, and it should not: it is the audit trail.',
+    zh: '——有步驟失敗；每個已完成的步驟都以真實的鏈上交易逆序補償。最終狀態與起始狀態一致。交易歷史不會消失，也不應消失：它就是稽核軌跡。',
+  },
+  outBadStrong: { en: 'COMPENSATION INCOMPLETE', zh: '補償未完成' },
+  outBad: {
+    en: ' — a compensating transaction did not confirm. Manual intervention is required. This state is surfaced rather than hidden.',
+    zh: '——某筆補償交易未確認。需要人工介入。此狀態被如實呈現，而非隱藏。',
+  },
+  disclaimer: {
+    en: 'Devnet is a public test network. Tokens on Devnet have no monetary value. The escrow account in this demonstration is held by a keypair generated in the browser — sufficient to show funds genuinely leaving and returning, but not a trustless escrow. A production version would use a program-derived address. This demonstration does not constitute an offer to sell or a solicitation to buy any security or digital asset.',
+    zh: 'Devnet 為公開測試網路，其上代幣不具任何金錢價值。本演示中的託管帳戶由瀏覽器內產生的金鑰對持有——足以展示資金真實地離開與返回，但並非去信任託管。正式版本將使用程式衍生地址（PDA）。本演示不構成出售任何證券或數位資產的要約，亦不構成購買的要約邀請。',
+  },
+}
+
 export default function FlowPage() {
+  const { lang, isZh } = useLang()
+  const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+  const LF = (obj) => (obj && (obj[lang] || obj.en))
+
   const [wallet, setWallet] = useState(null)
   const [busy, setBusy] = useState(false)
   const [steps, setSteps] = useState(initSteps(STEPS))
@@ -67,15 +241,15 @@ export default function FlowPage() {
   async function connect() {
     const provider = getProvider()
     if (!provider) {
-      say('No Phantom wallet detected. Install the Phantom extension and switch it to Devnet.', true)
+      say(L(T3.msgNoPhantom), true)
       return
     }
     try {
       const res = await provider.connect()
       setWallet(res.publicKey.toString())
-      say('Wallet connected. Make sure Phantom is set to Devnet.', false)
+      say(L(T3.msgConnected), false)
     } catch (e) {
-      say('Connection cancelled.', true)
+      say(L(T3.msgCancelled), true)
     }
   }
 
@@ -106,45 +280,47 @@ export default function FlowPage() {
     }
   }
 
-  // Export every run in this session as a text file - no copying signatures by hand
+  // Export every run in this session as a text file - no copying signatures by hand.
+  // The log itself stays in English: it is a technical verification artifact
+  // (signatures, Solscan, step IDs) shared with developers and reviewers.
   function exportLog() {
     if (runHistory.length === 0) return
 
-    const L = []
-    L.push('COSMOS Flow v2 — Run Log')
-    L.push('Network: Solana devnet')
-    L.push('Wallet: ' + wallet)
+    const L2 = []
+    L2.push('COSMOS Flow v2 — Run Log')
+    L2.push('Network: Solana devnet')
+    L2.push('Wallet: ' + wallet)
     if (accounts) {
-      L.push('Mint: ' + accounts.mint)
-      L.push('Owner account: ' + accounts.ownerAta)
-      L.push('Escrow account: ' + accounts.escrowAta)
-      L.push('Recipient account: ' + accounts.recipientAta)
+      L2.push('Mint: ' + accounts.mint)
+      L2.push('Owner account: ' + accounts.ownerAta)
+      L2.push('Escrow account: ' + accounts.escrowAta)
+      L2.push('Recipient account: ' + accounts.recipientAta)
     }
-    L.push('Exported: ' + new Date().toISOString())
-    L.push('')
+    L2.push('Exported: ' + new Date().toISOString())
+    L2.push('')
 
     runHistory.forEach((r) => {
-      L.push('---')
-      L.push('Run ' + String(r.run).padStart(2, '0') + ' | ' + r.time + ' | ' + r.injection)
-      L.push('Flow ID: ' + r.flowId)
-      L.push('Result: ' + r.outcome)
+      L2.push('---')
+      L2.push('Run ' + String(r.run).padStart(2, '0') + ' | ' + r.time + ' | ' + r.injection)
+      L2.push('Flow ID: ' + r.flowId)
+      L2.push('Result: ' + r.outcome)
       if (r.balancesBefore) {
-        L.push('Before: owner ' + r.balancesBefore.owner +
+        L2.push('Before: owner ' + r.balancesBefore.owner +
                ' / escrow ' + r.balancesBefore.escrow +
                ' / recipient ' + r.balancesBefore.recipient)
       }
       if (r.balancesAfter) {
-        L.push('After:  owner ' + r.balancesAfter.owner +
+        L2.push('After:  owner ' + r.balancesAfter.owner +
                ' / escrow ' + r.balancesAfter.escrow +
                ' / recipient ' + r.balancesAfter.recipient +
                (r.balanceReturned ? '   <- returned to start' : ''))
       }
       r.steps.forEach((st, i) => {
-        if (st.executed) L.push('  Step ' + (i + 1) + ' executed:    ' + st.executed)
-        if (st.compensated) L.push('  Step ' + (i + 1) + ' compensated: ' + st.compensated)
-        if (!st.executed && !st.compensated) L.push('  Step ' + (i + 1) + ': ' + st.status)
+        if (st.executed) L2.push('  Step ' + (i + 1) + ' executed:    ' + st.executed)
+        if (st.compensated) L2.push('  Step ' + (i + 1) + ' compensated: ' + st.compensated)
+        if (!st.executed && !st.compensated) L2.push('  Step ' + (i + 1) + ': ' + st.status)
       })
-      L.push('')
+      L2.push('')
     })
 
     const total = runHistory.length
@@ -157,17 +333,17 @@ export default function FlowPage() {
     const kept = runHistory.filter((r) => r.balanceReturned === true).length
     const checked = runHistory.filter((r) => r.balanceReturned !== null).length
 
-    L.push('========================================')
-    L.push('SUMMARY')
-    L.push('Total runs:                  ' + total)
-    L.push('Completed successfully:      ' + done)
-    L.push('Failed and compensated:      ' + comp)
-    L.push('Compensation failures:       ' + bad)
-    L.push('Total on-chain transactions: ' + txs)
-    L.push('Balance integrity:           ' + kept + '/' + checked + ' runs matched the expected state')
-    L.push('========================================')
+    L2.push('========================================')
+    L2.push('SUMMARY')
+    L2.push('Total runs:                  ' + total)
+    L2.push('Completed successfully:      ' + done)
+    L2.push('Failed and compensated:      ' + comp)
+    L2.push('Compensation failures:       ' + bad)
+    L2.push('Total on-chain transactions: ' + txs)
+    L2.push('Balance integrity:           ' + kept + '/' + checked + ' runs matched the expected state')
+    L2.push('========================================')
 
-    const blob = new Blob([L.join('\n')], { type: 'text/plain;charset=utf-8' })
+    const blob = new Blob([L2.join('\n')], { type: 'text/plain;charset=utf-8' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -196,10 +372,10 @@ export default function FlowPage() {
 
   async function doSetup() {
     const provider = getProvider()
-    if (!provider || !wallet) { say('Connect a wallet first.', true); return }
+    if (!provider || !wallet) { say(L(T3.msgConnectFirst), true); return }
 
     setBusy(true)
-    say('Creating token and accounts — the wallet will prompt twice…', false)
+    say(L(T3.msgCreating), false)
 
     try {
       const web3 = await import('@solana/web3.js')
@@ -209,7 +385,7 @@ export default function FlowPage() {
 
       const balance = await connection.getBalance(owner)
       if (balance < 20000000) {
-        say('Not enough Devnet SOL for setup. Request more at faucet.solana.com (setup needs about 0.02 SOL).', true)
+        say(L(T3.msgNoSolSetup), true)
         setBusy(false)
         return
       }
@@ -221,12 +397,12 @@ export default function FlowPage() {
       setAccounts(acc)
       setSetupSigs(acc.signatures)
       await refreshBalances(acc)
-      say('Setup complete. ' + INITIAL_SUPPLY + ' test tokens minted to your account.', false)
+      say(LF(T3.msgSetupDone)(INITIAL_SUPPLY), false)
     } catch (e) {
       console.error('SETUP ERROR — full object:', e)
       console.error('SETUP ERROR — message:', e && e.message)
       console.error('SETUP ERROR — logs:', e && e.logs)
-      say('Setup failed: ' + (e && e.message ? e.message : readableError(e)), true)
+      say(L(T3.msgSetupFailed) + (e && e.message ? e.message : readableError(e)), true)
     } finally {
       setBusy(false)
     }
@@ -241,15 +417,15 @@ export default function FlowPage() {
 
   async function start() {
     const provider = getProvider()
-    if (!provider || !wallet) { say('Connect a wallet first.', true); return }
-    if (!accounts) { say('Run SETUP first — the flow moves real SPL tokens.', true); return }
+    if (!provider || !wallet) { say(L(T3.msgConnectFirst), true); return }
+    if (!accounts) { say(L(T3.msgSetupFirst), true); return }
 
     setBusy(true)
     reset()
 
     const id = newFlowId()
     setFlowId(id)
-    say('Running…', false)
+    say(L(T3.msgRunning), false)
 
     try {
       const web3 = await import('@solana/web3.js')
@@ -259,7 +435,7 @@ export default function FlowPage() {
 
       const balance = await connection.getBalance(pubkey)
       if (balance < 5000000) {
-        say('Not enough Devnet SOL for fees. Request more at faucet.solana.com and try again.', true)
+        say(L(T3.msgNoSolFees), true)
         setBusy(false)
         return
       }
@@ -268,11 +444,7 @@ export default function FlowPage() {
       // failing at step two and wasting fees
       const before = await snapshotBalances(accounts)
       if (before && Number(before.owner) < FLOW_AMOUNT) {
-        say(
-          'Your token account holds ' + before.owner + ', and this flow moves ' +
-          FLOW_AMOUNT + '. Run SETUP again to mint a fresh allocation.',
-          true
-        )
+        say(LF(T3.msgLowTokens)(before.owner, FLOW_AMOUNT), true)
         setBusy(false)
         return
       }
@@ -315,14 +487,14 @@ export default function FlowPage() {
       }]))
 
       if (result.flowState === FLOW_STATE.COMPLETED) {
-        say('All three steps completed. Every transaction is verifiable on Solscan.', false)
+        say(L(T3.msgDone), false)
       } else if (result.flowState === FLOW_STATE.FAILED_COMPENSATED) {
-        say('A step failed. Completed steps were compensated automatically — each compensation is a real on-chain transaction.', false)
+        say(L(T3.msgComp), false)
       } else {
-        say('A step failed and compensation did not complete. Manual intervention required.', true)
+        say(L(T3.msgBad), true)
       }
     } catch (e) {
-      say('Unexpected error: ' + readableError(e), true)
+      say(L(T3.msgUnexpected) + readableError(e), true)
       setFlowState(FLOW_STATE.IDLE)
     } finally {
       setBusy(false)
@@ -335,8 +507,8 @@ export default function FlowPage() {
   return (
     <>
       <Head>
-        <title>Cross-Transaction Consistency Demo — COSMOS Ledger Labs</title>
-        <meta name="description" content="A three-step token operation on Solana devnet with automatic on-chain compensation when a step fails. Every transaction is independently verifiable." />
+        <title>{L(T3.metaTitle)}</title>
+        <meta name="description" content={L(T3.metaDesc)} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -353,26 +525,10 @@ export default function FlowPage() {
 
           <header className={styles.header}>
             <div className={styles.badge}>SOLANA DEVNET</div>
-            <h1 className={styles.title}>CROSS-TRANSACTION CONSISTENCY</h1>
-            <p className={styles.subtitle}>
-              Engineering demonstration on Solana devnet using test tokens. This page
-              demonstrates COSMOS&apos;s workflow engineering approach — multi-step token
-              operations with automatic on-chain compensation on failure. It is not a
-              product, not an offer, and not connected to mainnet funds.
-            </p>
-            <p className={styles.subtitle}>
-              A token operation is not one transaction. Approval, vesting setup and
-              distribution are separate transactions. Solana is atomic within a
-              transaction — not across a sequence. When a later step fails, the
-              earlier ones stay on-chain.
-            </p>
-            <p className={styles.subtitle}>
-              This runs the sequence with real SPL token transfers, and on failure
-              executes real on-chain compensating transactions for the steps already
-              completed. Nothing is deleted — a chain cannot delete. Each compensation
-              is a new, independently verifiable transaction, and the token balances
-              return to where they started.
-            </p>
+            <h1 className={styles.title}>{L(T3.title)}</h1>
+            <p className={styles.subtitle}>{L(T3.sub1)}</p>
+            <p className={styles.subtitle}>{L(T3.sub2)}</p>
+            <p className={styles.subtitle}>{L(T3.sub3)}</p>
           </header>
 
           {/* ---------- demo video ---------- */}
@@ -384,78 +540,42 @@ export default function FlowPage() {
               rel="noopener noreferrer"
             >
               <span className={styles.videoPlay}>▶</span>
-              <span className={styles.videoLabel}>WATCH THE DEMO VIDEO</span>
-              <span className={styles.videoNote}>Opens on YouTube in a new tab</span>
+              <span className={styles.videoLabel}>{L(T3.videoWatch)}</span>
+              <span className={styles.videoNote}>{L(T3.videoOpens)}</span>
             </a>
           ) : (
             <div className={styles.videoPlaceholder}>
               <span className={styles.videoPlay}>▶</span>
-              <span className={styles.videoLabel}>DEMO VIDEO — COMING SOON</span>
-              <span className={styles.videoNote}>
-                A guided walkthrough of this page will be posted here.
-              </span>
+              <span className={styles.videoLabel}>{L(T3.videoSoon)}</span>
+              <span className={styles.videoNote}>{L(T3.videoSoonNote)}</span>
             </div>
           )}
 
           {/* ---------- how to use ---------- */}
           <section className={styles.panel}>
-            <div className={styles.howTitle}>HOW TO USE THIS DEMO</div>
+            <div className={styles.howTitle}>{L(T3.howTitle)}</div>
             <ol className={styles.howList}>
-              <li>
-                Install the Phantom wallet browser extension and create a wallet.
-                This demo runs only on the devnet test network and never touches
-                real funds.
-              </li>
-              <li>
-                In Phantom, open Settings → Developer Settings and switch the
-                network to Solana Devnet.
-              </li>
-              <li>
-                Get free devnet SOL for transaction fees from a Solana devnet
-                faucet (for example faucet.solana.com). Devnet SOL has no monetary
-                value.
-              </li>
-              <li>
-                Click CONNECT above and approve the connection in Phantom.
-              </li>
-              <li>
-                Click RUN SETUP. This mints a fresh test token and opens the
-                accounts. Phantom will prompt twice — approve each prompt promptly.
-                Setup costs roughly 0.02 devnet SOL.
-              </li>
-              <li>
-                Under FAILURE INJECTION, choose NONE to run all three steps, or
-                FAIL AT 1 / 2 / 3 to force a failure and watch the on-chain
-                compensation. Then click EXECUTE FLOW.
-              </li>
-              <li>
-                Watch the step panel and the TOKEN ACCOUNTS balances. Every
-                transaction signature links to Solscan, so each run can be
-                verified independently on-chain.
-              </li>
-              <li>
-                To keep a record, click DOWNLOAD LOG before leaving or refreshing
-                — the setup token and run history live only in this page and reset
-                on refresh.
-              </li>
+              <li>{L(T3.how1)}</li>
+              <li>{L(T3.how2)}</li>
+              <li>{L(T3.how3)}</li>
+              <li>{L(T3.how4)}</li>
+              <li>{L(T3.how5)}</li>
+              <li>{L(T3.how6)}</li>
+              <li>{L(T3.how7)}</li>
+              <li>{L(T3.how8)}</li>
             </ol>
-            <div className={styles.howNote}>
-              If a step shows a retry or waiting message, do not click or refresh
-              — the engine checks transaction status and recovers on its own.
-              Keep the Phantom panel open during a run; Phantom locks itself after
-              about 15 minutes of inactivity.
-            </div>
+            <div className={styles.howNote}>{L(T3.howNote)}</div>
           </section>
 
           {/* ---------- controls ---------- */}
           <section className={styles.panel}>
             <div className={styles.controlRow}>
-              <div className={styles.controlLabel}>WALLET</div>
+              <div className={styles.controlLabel}>{L(T3.ctlWallet)}</div>
               <div className={styles.controlBody}>
                 {wallet ? (
                   <button className={styles.btnGhost} onClick={disconnect}>{short}</button>
                 ) : (
-                  <button className={styles.btn} onClick={connect}>CONNECT</button>
+                  <button className={styles.btn} onClick={connect}>{L(T3.btnConnect)}</button>
                 )}
               </div>
             </div>
@@ -463,21 +583,19 @@ export default function FlowPage() {
             <div className={styles.divider} />
 
             <div className={styles.controlRow}>
-              <div className={styles.controlLabel}>SETUP</div>
+              <div className={styles.controlLabel}>{L(T3.ctlSetup)}</div>
               <div className={styles.controlBody}>
                 {accounts ? (
                   <button className={styles.btnGhost} onClick={doSetup} disabled={busy}>
-                    RE-RUN SETUP
+                    {L(T3.btnResetup)}
                   </button>
                 ) : (
                   <button className={styles.btn} onClick={doSetup} disabled={!wallet || busy}>
-                    RUN SETUP
+                    {L(T3.btnSetup)}
                   </button>
                 )}
                 <div className={styles.controlHint}>
-                  Creates a test SPL token, mints {INITIAL_SUPPLY} to your account,
-                  and opens an escrow and a recipient account. Two wallet prompts.
-                  Needed once before running the flow.
+                  {LF(T3.setupHint)(INITIAL_SUPPLY)}
                 </div>
               </div>
             </div>
@@ -485,45 +603,38 @@ export default function FlowPage() {
             <div className={styles.divider} />
 
             <div className={styles.controlRow}>
-              <div className={styles.controlLabel}>FAILURE INJECTION</div>
+              <div className={styles.controlLabel}>{L(T3.ctlInjection)}</div>
               <div className={styles.controlBody}>
                 <div className={styles.segmented}>
-                  {[
-                    { v: 0, t: 'NONE' },
-                    { v: 1, t: 'FAIL AT 1' },
-                    { v: 2, t: 'FAIL AT 2' },
-                    { v: 3, t: 'FAIL AT 3' },
-                  ].map((o) => (
+                  {[0, 1, 2, 3].map((v) => (
                     <button
-                      key={o.v}
-                      className={failAt === o.v ? styles.segOn : styles.segOff}
-                      onClick={() => setFailAt(o.v)}
+                      key={v}
+                      className={failAt === v ? styles.segOn : styles.segOff}
+                      onClick={() => setFailAt(v)}
                       disabled={busy}
                     >
-                      {o.t}
+                      {v === 0 ? L(T3.injNone) : LF(T3.injAt)(v)}
                     </button>
                   ))}
                 </div>
-                <div className={styles.controlHint}>
-                  Force a step to fail, to demonstrate compensation.
-                </div>
+                <div className={styles.controlHint}>{L(T3.injHint)}</div>
               </div>
             </div>
 
             <div className={styles.divider} />
 
             <div className={styles.controlRow}>
-              <div className={styles.controlLabel}>RUN</div>
+              <div className={styles.controlLabel}>{L(T3.ctlRun)}</div>
               <div className={styles.controlBody}>
                 <button
                   className={styles.btn}
                   onClick={start}
                   disabled={!wallet || busy}
                 >
-                  {busy ? 'RUNNING…' : 'EXECUTE FLOW'}
+                  {busy ? L(T3.btnRunning) : L(T3.btnExecute)}
                 </button>
                 {flowId ? (
-                  <div className={styles.controlHint}>Flow ID: {flowId}</div>
+                  <div className={styles.controlHint}>{L(T3.flowIdLabel)}{flowId}</div>
                 ) : null}
               </div>
             </div>
@@ -532,15 +643,12 @@ export default function FlowPage() {
               <>
                 <div className={styles.divider} />
                 <div className={styles.controlRow}>
-                  <div className={styles.controlLabel}>RUN LOG</div>
+                  <div className={styles.controlLabel}>{L(T3.ctlLog)}</div>
                   <div className={styles.controlBody}>
                     <button className={styles.btnGhost} onClick={exportLog} disabled={busy}>
-                      DOWNLOAD LOG ({runHistory.length})
+                      {L(T3.btnLog)} ({runHistory.length})
                     </button>
-                    <div className={styles.controlHint}>
-                      Every run in this session, with signatures, balances and a summary.
-                      Downloads as a text file. Cleared if the page is refreshed.
-                    </div>
+                    <div className={styles.controlHint}>{L(T3.logHint)}</div>
                   </div>
                 </div>
               </>
@@ -554,48 +662,45 @@ export default function FlowPage() {
           {/* ---------- accounts and balances ---------- */}
           {accounts ? (
             <section className={styles.verify}>
-              <h2 className={styles.verifyTitle}>TOKEN ACCOUNTS</h2>
-              <p className={styles.verifyIntro}>
-                Real SPL token accounts on Solana devnet. Balances update after every run.
-                Each flow moves {FLOW_AMOUNT} tokens.
-              </p>
+              <h2 className={styles.verifyTitle}>{L(T3.vTitle)}</h2>
+              <p className={styles.verifyIntro}>{LF(T3.vIntro)(FLOW_AMOUNT)}</p>
 
               <div className={styles.verifyRow}>
-                <span className={styles.verifyKey}>Mint</span>
+                <span className={styles.verifyKey}>{L(T3.vMint)}</span>
                 <span className={styles.verifyVal}>{accounts.mint}</span>
                 <a className={styles.verifyBtn}
                    href={EXPLORER + '/token/' + accounts.mint + '?cluster=' + CLUSTER}
-                   target="_blank" rel="noopener noreferrer">VIEW</a>
+                   target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
               </div>
 
               <div className={styles.verifyRow}>
                 <span className={styles.verifyKey}>
-                  Your account{balances ? ' — ' + balances.owner : ''}
+                  {L(T3.vOwner)}{balances ? ' — ' + balances.owner : ''}
                 </span>
                 <span className={styles.verifyVal}>{accounts.ownerAta}</span>
                 <a className={styles.verifyBtn}
                    href={EXPLORER + '/account/' + accounts.ownerAta + '?cluster=' + CLUSTER}
-                   target="_blank" rel="noopener noreferrer">VIEW</a>
+                   target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
               </div>
 
               <div className={styles.verifyRow}>
                 <span className={styles.verifyKey}>
-                  Escrow{balances ? ' — ' + balances.escrow : ''}
+                  {L(T3.vEscrow)}{balances ? ' — ' + balances.escrow : ''}
                 </span>
                 <span className={styles.verifyVal}>{accounts.escrowAta}</span>
                 <a className={styles.verifyBtn}
                    href={EXPLORER + '/account/' + accounts.escrowAta + '?cluster=' + CLUSTER}
-                   target="_blank" rel="noopener noreferrer">VIEW</a>
+                   target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
               </div>
 
               <div className={styles.verifyRow}>
                 <span className={styles.verifyKey}>
-                  Recipient{balances ? ' — ' + balances.recipient : ''}
+                  {L(T3.vRecipient)}{balances ? ' — ' + balances.recipient : ''}
                 </span>
                 <span className={styles.verifyVal}>{accounts.recipientAta}</span>
                 <a className={styles.verifyBtn}
                    href={EXPLORER + '/account/' + accounts.recipientAta + '?cluster=' + CLUSTER}
-                   target="_blank" rel="noopener noreferrer">VIEW</a>
+                   target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
               </div>
 
               {setupSigs.map((s2) => (
@@ -603,7 +708,7 @@ export default function FlowPage() {
                   <span className={styles.verifyKey}>{s2.label}</span>
                   <span className={styles.verifyVal}>{s2.signature}</span>
                   <a className={styles.verifyBtn} href={txUrl(s2.signature)}
-                     target="_blank" rel="noopener noreferrer">VIEW</a>
+                     target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
                 </div>
               ))}
             </section>
@@ -616,24 +721,24 @@ export default function FlowPage() {
                 <div className={styles.stepHead}>
                   <span className={styles.stepIndex}>{'0' + (i + 1)}</span>
                   <span className={styles.stepName}>{s.label}</span>
-                  <span className={styles.stepStatus}>{STATUS_LABEL[s.status]}</span>
+                  <span className={styles.stepStatus}>{L(STATUS_LABEL[s.status])}</span>
                 </div>
 
                 <div className={styles.stepDesc}>{s.description}</div>
 
                 {s.signature ? (
                   <div className={styles.txRow}>
-                    <span className={styles.txLabel}>EXECUTED</span>
+                    <span className={styles.txLabel}>{L(T3.txExecuted)}</span>
                     <span className={styles.txHash}>{s.signature}</span>
-                    <a className={styles.txLink} href={txUrl(s.signature)} target="_blank" rel="noopener noreferrer">VERIFY</a>
+                    <a className={styles.txLink} href={txUrl(s.signature)} target="_blank" rel="noopener noreferrer">{L(T3.txVerify)}</a>
                   </div>
                 ) : null}
 
                 {s.compensationSignature ? (
                   <div className={styles.txRow}>
-                    <span className={styles.txLabelComp}>COMPENSATED</span>
+                    <span className={styles.txLabelComp}>{L(T3.txCompensated)}</span>
                     <span className={styles.txHash}>{s.compensationSignature}</span>
-                    <a className={styles.txLink} href={txUrl(s.compensationSignature)} target="_blank" rel="noopener noreferrer">VERIFY</a>
+                    <a className={styles.txLink} href={txUrl(s.compensationSignature)} target="_blank" rel="noopener noreferrer">{L(T3.txVerify)}</a>
                   </div>
                 ) : null}
 
@@ -647,35 +752,23 @@ export default function FlowPage() {
           {/* ---------- outcome ---------- */}
           {flowState === FLOW_STATE.COMPLETED ? (
             <div className={styles.outcomeOk}>
-              <strong>FLOW COMPLETED</strong> — all three steps executed successfully.
+              <strong>{L(T3.outOkStrong)}</strong>{L(T3.outOk)}
             </div>
           ) : null}
 
           {flowState === FLOW_STATE.FAILED_COMPENSATED ? (
             <div className={styles.outcomeComp}>
-              <strong>FAILED AND COMPENSATED</strong> — a step failed; every completed
-              step was compensated by a real on-chain transaction, in reverse order.
-              The final state matches the starting state. The transaction history does
-              not disappear, and it should not: it is the audit trail.
+              <strong>{L(T3.outCompStrong)}</strong>{L(T3.outComp)}
             </div>
           ) : null}
 
           {flowState === FLOW_STATE.FAILED_INCOMPLETE ? (
             <div className={styles.outcomeBad}>
-              <strong>COMPENSATION INCOMPLETE</strong> — a compensating transaction did
-              not confirm. Manual intervention is required. This state is surfaced
-              rather than hidden.
+              <strong>{L(T3.outBadStrong)}</strong>{L(T3.outBad)}
             </div>
           ) : null}
 
-          <p className={styles.disclaimer}>
-            Devnet is a public test network. Tokens on Devnet have no monetary value.
-            The escrow account in this demonstration is held by a keypair generated in
-            the browser — sufficient to show funds genuinely leaving and returning, but
-            not a trustless escrow. A production version would use a program-derived
-            address. This demonstration does not constitute an offer to sell or a
-            solicitation to buy any security or digital asset.
-          </p>
+          <p className={styles.disclaimer}>{L(T3.disclaimer)}</p>
 
         </div>
       </main>
