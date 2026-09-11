@@ -61,23 +61,29 @@
 }
 
 .body {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.75;
   color: var(--text);
   text-justify: inter-word;
   margin-bottom: 12px;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .item {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 13px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(13px, 1.4vw, 15px);
   line-height: 1.7;
   color: var(--text);
   margin-bottom: 8px;
   padding-left: 4px;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .card {
@@ -99,7 +105,7 @@
 }
 
 .strong {
-  font-family: 'Share Tech Mono', monospace;
+  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.75;
@@ -107,6 +113,9 @@
   font-weight: 700;
   text-justify: inter-word;
   margin-bottom: 12px;
+  text-align: justify;
+  text-justify: inter-word;
+  text-wrap: pretty;
 }
 
 .strong:last-child,
