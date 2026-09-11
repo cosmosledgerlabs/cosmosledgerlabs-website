@@ -1,6 +1,7 @@
 /* styles/Pay.module.css
    Layout for the /pay payment-order page. Same palette, fonts and card
-   style as the rest of the site. */
+   style as the rest of the site. v3: cleaner typesetting — no justified
+   text, aligned key/value rows, per-field copy buttons, live total card. */
 
 .page {
   position: relative;
@@ -20,6 +21,7 @@
 
 .title {
   font-family: 'Rajdhani', sans-serif;
+  font-size: 26px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(26px, 5vw, 44px);
   font-weight: 700;
   letter-spacing: .06em;
@@ -39,28 +41,33 @@
 
 .intro {
   font-family: 'Share Tech Mono', monospace;
+  font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.75;
   color: var(--text-muted);
   margin-bottom: var(--sp4);
-  text-align: justify;
-  text-justify: inter-word;
+  max-width: 62ch;
 }
 
 .section {
-  margin-bottom: var(--sp4);
+  margin-bottom: var(--sp5, 40px);
 }
 
 .stepTag {
+  display: inline-block;
   font-family: 'Share Tech Mono', monospace;
   font-size: 12px;
-  letter-spacing: .12em;
-  color: var(--text-muted);
-  margin-bottom: 14px;
+  letter-spacing: .14em;
+  color: rgba(0, 220, 255, .85);
+  border: 1px solid rgba(0, 190, 230, .35);
+  border-radius: 4px;
+  padding: 4px 10px;
+  margin-bottom: 16px;
 }
 
 .h2 {
   font-family: 'Rajdhani', sans-serif;
+  font-size: 18px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(18px, 3vw, 26px);
   font-weight: 700;
   letter-spacing: .06em;
@@ -80,9 +87,13 @@
 
 .serviceGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 480px) {
+  .serviceGrid { grid-template-columns: 1fr; }
 }
 
 .chip,
@@ -97,13 +108,20 @@
   border-radius: 6px;
   font-family: 'Share Tech Mono', monospace;
   font-size: 13px;
+  line-height: 1.4;
   color: var(--text);
   cursor: pointer;
   text-align: left;
-  transition: border-color .15s ease;
+  transition: border-color .15s ease, background .15s ease;
 }
 
 .chip:hover { border-color: rgba(0, 220, 255, .6); }
+
+.chip:focus-visible,
+.chipOn:focus-visible {
+  outline: 2px solid rgba(0, 220, 255, .8);
+  outline-offset: 2px;
+}
 
 .chipOn {
   border: 1px solid rgba(0, 220, 255, .9);
@@ -120,16 +138,32 @@
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
+  align-items: flex-end;
 }
 
 .field {
   flex: 1;
-  min-width: 180px;
+  min-width: 200px;
+}
+
+.amountWrap {
+  position: relative;
+}
+
+.amountPrefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 15px;
+  color: var(--text-muted);
+  pointer-events: none;
 }
 
 .input {
   width: 100%;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 44px;
   background: rgba(0, 10, 28, .88);
   border: 1px solid rgba(0, 190, 230, .3);
   border-radius: 6px;
@@ -137,6 +171,14 @@
   font-size: 16px;
   color: var(--text);
   outline: none;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.input::-webkit-outer-spin-button,
+.input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .input:focus { border-color: rgba(0, 220, 255, .8); }
@@ -164,10 +206,51 @@
   color: var(--text);
 }
 
+.totalCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: rgba(0, 150, 255, .07);
+  border: 1px solid rgba(0, 220, 255, .45);
+  border-radius: 6px;
+}
+
+.totalLabel {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--text-muted);
+}
+
+.totalValue {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(18px, 3vw, 24px);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.totalSub {
+  width: 100%;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
 .methodGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 10px;
+}
+
+@media (max-width: 480px) {
+  .methodGrid { grid-template-columns: 1fr; }
 }
 
 .method,
@@ -182,7 +265,7 @@
   letter-spacing: .06em;
   color: var(--text);
   cursor: pointer;
-  transition: border-color .15s ease;
+  transition: border-color .15s ease, background .15s ease;
 }
 
 .method:hover:not(:disabled) { border-color: rgba(0, 220, 255, .6); }
@@ -261,59 +344,91 @@
   margin-bottom: 14px;
 }
 
-.orderRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  font-family: 'Share Tech Mono', monospace;
-  font-size: 14px;
-  color: var(--text);
-  padding: 6px 0;
-  border-bottom: 1px solid rgba(0, 190, 230, .15);
-  flex-wrap: wrap;
-}
-
-.orderKey { color: var(--text-muted); }
-
-.orderId {
-  font-weight: 700;
-  letter-spacing: .06em;
-}
-
 .detailCard {
   background: rgba(0, 10, 28, .88);
   border: 1px solid rgba(0, 190, 230, .3);
   border-radius: 6px;
-  padding: 22px 26px;
+  padding: 10px 24px;
   margin-bottom: 14px;
 }
 
+.kvRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(0, 190, 230, .13);
+  flex-wrap: wrap;
+}
+
+.kvRow:last-child { border-bottom: none; }
+
+.kvKey {
+  flex: 0 0 auto;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.kvVal {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(13px, 1.4vw, 15px);
+  line-height: 1.6;
+  color: var(--text);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.kvStrong {
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+
+.btnCopyMini {
+  flex: 0 0 auto;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid rgba(0, 190, 230, .4);
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btnCopyMini:hover { border-color: rgba(0, 220, 255, .8); color: var(--text); }
+
 .body {
   font-family: 'Share Tech Mono', monospace;
+  font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.75;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
   margin-bottom: 12px;
+  max-width: 68ch;
 }
 
-.item {
+.help {
   font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(13px, 1.4vw, 15px);
+  font-size: 13px;
   line-height: 1.7;
-  color: var(--text);
-  margin-bottom: 8px;
+  color: var(--text-muted);
+  border-top: 1px solid rgba(0, 190, 230, .15);
+  padding-top: 16px;
+  margin-top: var(--sp4);
 }
 
-.itemStrong {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(13px, 1.4vw, 15px);
-  line-height: 1.7;
-  color: var(--text);
-  font-weight: 700;
-  margin-bottom: 0;
-}
+.help a { color: var(--text); }
 
 .legal {
   font-family: 'Share Tech Mono', monospace;
@@ -322,5 +437,5 @@
   color: var(--text-muted);
   border-top: 1px solid rgba(0, 190, 230, .15);
   padding-top: 16px;
-  margin-top: var(--sp4);
+  margin-top: 16px;
 }
