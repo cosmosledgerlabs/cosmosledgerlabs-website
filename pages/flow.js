@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
@@ -63,8 +63,6 @@ const T3 = {
   videoOpens: { en: 'Opens on YouTube in a new tab', zh: '將在新分頁開啟 YouTube' },
   videoSoon: { en: 'DEMO VIDEO — COMING SOON', zh: '演示影片——即將推出' },
   videoSoonNote: { en: 'A guided walkthrough of this page will be posted here.', zh: '本頁的導覽影片將發佈於此。' },
-  howShow: { en: '▸ HOW TO USE — TAP TO OPEN', zh: '▸ 使用說明——點按展開' },
-  howHide: { en: '▾ HOW TO USE — TAP TO CLOSE', zh: '▾ 使用說明——點按收合' },
   howTitle: { en: 'HOW TO USE THIS DEMO', zh: '本演示使用說明' },
   how1: {
     en: 'Install the Phantom wallet browser extension and create a wallet. This demo runs only on the devnet test network and never touches real funds.',
@@ -233,10 +231,6 @@ export default function FlowPage() {
   const [busy, setBusy] = useState(false)
   const [steps, setSteps] = useState(initSteps(STEPS))
   const [flowState, setFlowState] = useState(FLOW_STATE.IDLE)
-  const [howOpen, setHowOpen] = useState(true)
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) setHowOpen(false)
-  }, [])
   const [flowId, setFlowId] = useState(null)
   const [failAt, setFailAt] = useState(0)
   const [message, setMessage] = useState('')
@@ -575,23 +569,16 @@ export default function FlowPage() {
 
           {/* ---------- how to use ---------- */}
           <section className={styles.panel}>
-            <button type="button" className={styles.howToggle} onClick={() => setHowOpen(!howOpen)}>
-              {L(howOpen ? T3.howHide : T3.howShow)}
-            </button>
-            {howOpen ? (<>
             <div className={styles.howTitle}>{L(T3.howTitle)}</div>
-            <ol className={styles.howList}>
-              <li>{L(T3.how1)}</li>
-              <li>{L(T3.how2)}</li>
-              <li>{L(T3.how3)}</li>
-              <li>{L(T3.how4)}</li>
-              <li>{L(T3.how5)}</li>
-              <li>{L(T3.how6)}</li>
-              <li>{L(T3.how7)}</li>
-              <li>{L(T3.how8)}</li>
-            </ol>
+            <div className={styles.howSteps}>
+              {[T3.how1, T3.how2, T3.how3, T3.how4, T3.how5, T3.how6, T3.how7, T3.how8].map((item, i) => (
+                <div className={styles.howRow} key={i}>
+                  <div className={styles.howBadge}>{String(i + 1).padStart(2, '0')}</div>
+                  <div className={styles.howText}>{L(item)}</div>
+                </div>
+              ))}
+            </div>
             <div className={styles.howNote}>{L(T3.howNote)}</div>
-            </>) : null}
           </section>
 
           {/* ---------- controls ---------- */}
