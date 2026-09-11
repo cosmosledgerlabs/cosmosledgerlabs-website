@@ -641,11 +641,14 @@
   text-wrap: pretty;
 }
 
-/* ===== PHONES: left-align prose (2026-09-11 addendum 20) =====
-   Justified text needs a wide line to keep word gaps small. On phone-width
-   columns the gaps grow too large, so prose falls back to left alignment
-   there; tablets and desktops keep the flush book edges. Same approach the
-   homepage already uses (.sec-body is left-aligned on phones in globals). */
+/* ===== PHONES: flush both edges, tightened gaps (2026-09-11 addendum 23) =====
+   Justified text on a phone-width column needs hyphenation to keep word gaps
+   small: the browser splits a long word at the line end with a hyphen, so both
+   edges stay flush. Requires the html lang attribute — already set to en-CA
+   in pages/_document.js. word-spacing pulls the base gap in slightly and the
+   hyphenate limits allow more break points, so stretched lines are rarer and
+   tighter. Old in-app browsers that cannot hyphenate fall back to justified
+   text with larger gaps. */
 @media (max-width: 767px) {
   .subtitle,
   .controlHint,
@@ -654,7 +657,13 @@
   .howText,
   .howNote,
   .disclaimer {
-    text-align: left;
-    text-justify: auto;
+    text-align: justify;
+    text-justify: inter-word;
+    -webkit-hyphens: auto;
+    hyphens: auto;
+    word-spacing: -0.06em;
+    -webkit-hyphenate-limit-before: 3;
+    -webkit-hyphenate-limit-after: 2;
+    hyphenate-limit-chars: 6 3 2;
   }
 }
