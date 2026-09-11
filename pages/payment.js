@@ -56,7 +56,9 @@ export default function Payment() {
     <>
       <Head>
         <title>{isZh ? '付款 — COSMOS Ledger Labs' : 'Payment — COSMOS Ledger Labs'}</title>
-        <meta name="description" content="How COSMOS Ledger Labs Inc. invoices and accepts payment, and how to recognise fraudulent payment requests." />
+        <meta name="description" content={isZh
+          ? 'COSMOS Ledger Labs Inc. 的發票與收款方式說明，以及如何辨識詐騙付款要求。'
+          : 'How COSMOS Ledger Labs Inc. invoices and accepts payment, and how to recognise fraudulent payment requests.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -64,11 +66,12 @@ export default function Payment() {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta property="og:title" content="Payment — COSMOS Ledger Labs" />
-        <meta property="og:description" content="How COSMOS Ledger Labs Inc. invoices and accepts payment." />
+        <meta property="og:title" content={isZh ? '付款 — COSMOS Ledger Labs' : 'Payment — COSMOS Ledger Labs'} />
+        <meta property="og:description" content={isZh ? 'COSMOS Ledger Labs Inc. 的發票與收款方式說明。' : 'How COSMOS Ledger Labs Inc. invoices and accepts payment.'} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/payment" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
+        <meta property="og:locale" content={isZh ? 'zh_TW' : 'en_CA'} />
       </Head>
 
       <Nav />
