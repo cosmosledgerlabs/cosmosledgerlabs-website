@@ -64,37 +64,45 @@ const T3 = {
   videoSoon: { en: 'DEMO VIDEO — COMING SOON', zh: '演示影片——即將推出' },
   videoSoonNote: { en: 'A guided walkthrough of this page will be posted here.', zh: '本頁的導覽影片將發佈於此。' },
   howTitle: { en: 'HOW TO USE THIS DEMO', zh: '本演示使用說明' },
+  howT1: { en: 'INSTALL PHANTOM', zh: '安裝 PHANTOM' },
   how1: {
-    en: 'Install the Phantom wallet browser extension and create a wallet. This demo runs only on the devnet test network and never touches real funds.',
-    zh: '安裝 Phantom 錢包瀏覽器擴充功能並建立錢包。本演示僅在 devnet 測試網上執行，絕不涉及真實資金。',
+    en: 'Install the Phantom browser extension and create a wallet. The demo uses only the devnet test network — never real funds.',
+    zh: '安裝 Phantom 瀏覽器擴充功能並建立錢包。本演示僅使用 devnet 測試網，絕不涉及真實資金。',
   },
+  howT2: { en: 'SWITCH TO DEVNET', zh: '切換至 DEVNET' },
   how2: {
-    en: 'In Phantom, open Settings, then open Developer Settings, and set the network to Solana Devnet.',
-    zh: '在 Phantom 中開啟 Settings → Developer Settings，將網路切換為 Solana Devnet。',
+    en: 'In Phantom: Settings \u2192 Developer Settings \u2192 set the network to Solana Devnet.',
+    zh: '在 Phantom 中：Settings \u2192 Developer Settings \u2192 將網路設為 Solana Devnet。',
   },
+  howT3: { en: 'GET TEST SOL', zh: '領取測試 SOL' },
   how3: {
-    en: 'Get free devnet SOL to pay the transaction fees from any Solana devnet faucet, for example faucet.solana.com. Devnet SOL has no monetary value.',
-    zh: '從 Solana devnet 水龍頭（例如 faucet.solana.com）領取免費的 devnet SOL 作為交易手續費。Devnet SOL 不具任何金錢價值。',
+    en: 'Get free devnet SOL from any faucet, e.g. faucet.solana.com. It has no monetary value.',
+    zh: '從任一水龍頭（如 faucet.solana.com）領取免費 devnet SOL，其不具任何金錢價值。',
   },
+  howT4: { en: 'CONNECT WALLET', zh: '連接錢包' },
   how4: {
-    en: 'Click CONNECT above and approve the connection in Phantom.',
+    en: 'Click CONNECT above and approve in Phantom.',
     zh: '點擊上方「連接錢包」，並在 Phantom 中核准連接。',
   },
+  howT5: { en: 'RUN SETUP', zh: '執行初始設定' },
   how5: {
-    en: 'Click RUN SETUP. This mints a fresh test token and opens the accounts. Phantom will prompt twice — approve each prompt promptly. Setup costs roughly 0.02 devnet SOL.',
-    zh: '點擊「執行初始設定」。這會鑄造一枚全新的測試代幣並開立帳戶。Phantom 會提示兩次——請即時逐一核准。初始設定約需 0.02 devnet SOL。',
+    en: 'Click RUN SETUP to mint a test token and open the accounts. Approve both Phantom prompts. Costs about 0.02 devnet SOL.',
+    zh: '點擊「執行初始設定」鑄造測試代幣並開立帳戶，兩次彈窗均需核准。約需 0.02 devnet SOL。',
   },
+  howT6: { en: 'CHOOSE FAILURE MODE', zh: '選擇故障注入' },
   how6: {
-    en: 'Under FAILURE INJECTION, choose NONE to run all three steps, or FAIL AT 1 / 2 / 3 to force a failure and watch the on-chain compensation. Then click EXECUTE FLOW.',
-    zh: '在「故障注入」下選擇「無」以完整執行三個步驟，或選擇「第 1／2／3 步失敗」以強制失敗並觀察鏈上補償。然後點擊「執行流程」。',
+    en: 'Choose NONE to run all three steps, or FAIL AT 1 / 2 / 3 to force a failure and watch the on-chain compensation. Then click EXECUTE FLOW.',
+    zh: '選「無」完整執行三步，或選「第 1／2／3 步失敗」強制失敗並觀察鏈上補償，然後點擊「執行流程」。',
   },
+  howT7: { en: 'WATCH & VERIFY', zh: '觀察與驗證' },
   how7: {
-    en: 'Watch the step panel and the TOKEN ACCOUNTS balances. Every transaction signature links to Solscan, so each run can be verified independently on-chain.',
-    zh: '觀察步驟面板與「代幣帳戶」的餘額變化。每筆交易簽名都連結到 Solscan，每次執行都可在鏈上獨立驗證。',
+    en: 'Watch the step panel and the TOKEN ACCOUNTS balances. Every signature links to Solscan for independent verification.',
+    zh: '觀察步驟面板與「代幣帳戶」餘額，每筆簽名均可在 Solscan 獨立驗證。',
   },
+  howT8: { en: 'DOWNLOAD THE LOG', zh: '下載執行紀錄' },
   how8: {
-    en: 'To keep a record, click DOWNLOAD LOG before leaving or refreshing — the setup token and run history live only in this page and reset on refresh.',
-    zh: '若要保留紀錄，請在離開或重新整理前點擊「下載紀錄」——設定的代幣與執行歷史僅存在於本頁，重新整理後即重置。',
+    en: 'Click DOWNLOAD LOG before leaving — the run history lives only on this page and resets on refresh.',
+    zh: '離開或重新整理前點擊「下載紀錄」——執行歷史僅存於本頁，重新整理即重置。',
   },
   howNote: {
     en: 'If a step shows a retry or waiting message, do not click or refresh — the engine checks transaction status and recovers on its own. Keep the Phantom panel open during a run; Phantom locks itself after about 15 minutes of inactivity.',
@@ -571,9 +579,16 @@ export default function FlowPage() {
           <section className={styles.panel}>
             <div className={styles.howTitle}>{L(T3.howTitle)}</div>
             <div className={styles.howSteps}>
-              {[T3.how1, T3.how2, T3.how3, T3.how4, T3.how5, T3.how6, T3.how7, T3.how8].map((item, i) => (
-                <div className={styles.howRow} key={i}>
-                  <div className={styles.howText}>{L(item)}</div>
+              {[
+                [T3.howT1, T3.how1], [T3.howT2, T3.how2], [T3.howT3, T3.how3], [T3.howT4, T3.how4],
+                [T3.howT5, T3.how5], [T3.howT6, T3.how6], [T3.howT7, T3.how7], [T3.howT8, T3.how8],
+              ].map(([t, d], i) => (
+                <div className={styles.howCard} key={i}>
+                  <div className={styles.howCardHead}>
+                    <span className={styles.howCardNum}>{String(i + 1).padStart(2, '0')}</span>
+                    <span className={styles.howCardTitle}>{L(t)}</span>
+                  </div>
+                  <div className={styles.howCardText}>{L(d)}</div>
                 </div>
               ))}
             </div>
