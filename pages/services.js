@@ -214,20 +214,17 @@ export default function Services() {
             <div className="sec-tag">{t('services', 'tagServices', lang)} <div className="sec-tag-line" /></div>
             <h2 className={styles.secTitle}>{t('services', 'headServices', lang)}</h2>
 
-            <div className={styles.grid}>
+            <div className={styles.ledger}>
               {SERVICES.map((s) => (
-                <div key={s.n} className={styles.card}>
-                  <div className={styles.cardTop}>
-                    <span className={styles.cardNum}>{s.n}</span>
-                    <span className={styles.cardName}>{L(s.name)}</span>
+                <div key={s.n} className={styles.row}>
+                  <div className={styles.rowHead}>
+                    <span className={styles.rowNum}>{s.n}</span>
+                    <span className={styles.rowName}>{L(s.name)}</span>
                   </div>
-                  <p className={styles.cardLead}>{L(s.lead)}</p>
-                  <div className={styles.cardList}>
-                    {s.items.map((it) => (
-                      <div key={it.en} className={styles.cardItem}>// {L(it)}</div>
-                    ))}
+                  <div className={styles.rowText}>
+                    {L(s.lead)} {s.items.map((it) => L(it)).join(' // ')}
                   </div>
-                  <div className={styles.cardMeta}>
+                  <div className={styles.rowMeta}>
                     <span className={styles.price}>
                       {t('services', 'priceFrom', lang)} {s.price}
                     </span>
