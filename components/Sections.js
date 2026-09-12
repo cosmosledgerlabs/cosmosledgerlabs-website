@@ -17,13 +17,13 @@ export function Problem() {
     <section className={styles.section} id="problem">
       <div className="sec-tag">{L({ en: '// SECTION 02 — THE DELIVERY GAP', zh: '// 第 02 節 — 交付缺口' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'THE DELIVERY GAP', zh: '交付缺口' })}</h2>
-      <p className={styles.secBody}>{L({
+      <p className={`${styles.secBody} ${styles.gapProse}`}>{L({
         en: "Digital asset teams are strong on protocol design and community — and stretched thin on delivery. Launches stall on the unglamorous work. Generic agencies don't understand on-chain mechanics; protocol engineers don't want to build front-ends. That gap is where launches slip.",
         zh: '數位資產團隊擅長協議設計與社群經營——卻在交付上人力吃緊。專案往往卡在那些不起眼的工作上。一般代理商不懂鏈上機制；協議工程師不想做前端。專案延誤，正是卡在這個缺口。',
       })}</p>
       <div className={styles.cardGrid}>
         {cards.map((c) => (
-          <div key={c.t.en} className={styles.card}><div className={styles.cardName}>{L(c.t)}</div><div className={styles.cardText}>{L(c.d)}</div></div>
+          <div key={c.t.en} className={`${styles.card} ${styles.gapTight}`}><div className={styles.cardName}>{L(c.t)}</div><div className={`${styles.cardText} ${styles.gapProse}`}>{L(c.d)}</div></div>
         ))}
       </div>
     </section>
