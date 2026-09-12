@@ -82,6 +82,7 @@
   max-width: 760px;
   margin: 0 auto var(--sp4);
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 500;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.6vw, 16px);
   line-height: 1.75;
@@ -155,6 +156,7 @@
 
 .secBody {
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 500;
   font-size: 15px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(15px, 1.5vw, 16px);
   color: var(--text);
@@ -195,6 +197,7 @@
 
 .plainText {
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 500;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.7;
@@ -284,6 +287,7 @@
 
 .cardLead {
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 500;
   font-size: 13px;
   line-height: 1.65;
   color: var(--text-muted);
@@ -301,6 +305,7 @@
 
 .cardItem {
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 500;
   font-size: 12.5px;
   line-height: 1.95;
   color: var(--text);
@@ -452,7 +457,7 @@
   .cardMeta { flex-direction: column; align-items: flex-start; gap: 6px; }
 }
 
-/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 34 FINAL — right edge aligned) =====
+/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 35 FINAL — right edge aligned, medium weight) =====
    Justified text on a phone-width column needs hyphenation to keep word gaps
    small: the browser splits a long word at the line end with a hyphen, so both
    edges stay flush. Requires the html lang attribute — already set to en-CA
