@@ -67,7 +67,18 @@
   white-space: nowrap; /* 保持一行 */
   overflow: hidden; text-overflow: ellipsis;
 }
-.cardText { font-family:'Share Tech Mono',monospace; font-size:clamp(13px,1.4vw,14px); color:var(--text); line-height:1.6; }
+.cardText {
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: clamp(13.5px, 1.4vw, 14.5px);
+  color: var(--text);
+  line-height: 1.55;
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  text-wrap: pretty;
+}
 
 /* ===== ARCHITECTURE ===== */
 .archList { display:flex; flex-direction:column; gap:4px; margin-top:16px; }
