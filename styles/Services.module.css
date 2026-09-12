@@ -171,7 +171,7 @@
   background: rgba(0, 10, 28, .88);
   border: 1px solid rgba(0, 190, 230, .3);
   border-radius: 6px;
-  padding: 32px;
+  padding: 16px 20px;
   position: relative;
   margin-top: 16px;
   width: 100%;
@@ -197,9 +197,9 @@
 
 .plainText {
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
-  font-weight: 600;
-  font-size: 14px; /* fallback: old WeChat X5, no clamp() */
-  font-size: clamp(14px, 1.5vw, 16px);
+  font-weight: 700;
+  font-size: 15px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(15px, 1.6vw, 17px);
   line-height: 1.7;
   color: var(--text);
   margin: 0;
@@ -338,11 +338,8 @@
 }
 
 .processCard {
-  background: rgba(0, 10, 28, .7);
-  border: 1px solid rgba(0, 190, 230, .2);
-  border-radius: 6px;
-  padding: 22px 20px;
-  min-width: 0;
+  border-top: 2px solid rgba(0, 220, 255, .45);
+  padding: 14px 2px 0;
 }
 
 .processNum {
