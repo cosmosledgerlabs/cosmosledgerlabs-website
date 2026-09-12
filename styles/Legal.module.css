@@ -132,7 +132,7 @@
   margin-top: 8px;
 }
 
-/* ===== PHONES: flush both edges, tightened gaps (2026-09-12 addendum 26) =====
+/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 30 FINAL) =====
    Justified text on a phone-width column needs hyphenation to keep word gaps
    small: the browser splits a long word at the line end with a hyphen, so both
    edges stay flush. Requires the html lang attribute — already set to en-CA
@@ -146,11 +146,8 @@
   .item {
     text-align: justify;
     text-justify: inter-word;
-    -webkit-hyphens: auto;
-    hyphens: auto;
-    word-spacing: -0.08em;
-    -webkit-hyphenate-limit-before: 3;
-    -webkit-hyphenate-limit-after: 2;
-    hyphenate-limit-chars: 6 3 2;
+    -webkit-hyphens: none;
+    hyphens: none;
+    word-spacing: -0.10em;
   }
 }
