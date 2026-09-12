@@ -61,7 +61,7 @@
 }
 
 .body {
-  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.75;
@@ -74,7 +74,7 @@
 }
 
 .item {
-  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-size: 13px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(13px, 1.4vw, 15px);
   line-height: 1.7;
@@ -105,7 +105,7 @@
 }
 
 .strong {
-  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.75;
@@ -132,7 +132,7 @@
   margin-top: 8px;
 }
 
-/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 30 FINAL) =====
+/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 32 FINAL) =====
    Justified text on a phone-width column needs hyphenation to keep word gaps
    small: the browser splits a long word at the line end with a hyphen, so both
    edges stay flush. Requires the html lang attribute — already set to en-CA
