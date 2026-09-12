@@ -478,19 +478,24 @@
   }
 }
 
-/* ===== PHONES: left-aligned, whole words, even gaps (2026-09-12 addendum 33 FINAL) =====
-   Final layout decision: phones read left-aligned — every word whole, every
-   gap identical, right edge natural. Desktop and tablet keep the justified
-   flush-edge book look, where wide lines carry it cleanly. */
+/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 34 FINAL — right edge aligned) =====
+   Justified text on a phone-width column needs hyphenation to keep word gaps
+   small: the browser splits a long word at the line end with a hyphen, so both
+   edges stay flush. Requires the html lang attribute — already set to en-CA
+   in pages/_document.js. word-spacing pulls the base gap in slightly and the
+   hyphenate limits allow more break points, so stretched lines are rarer and
+   tighter. Old in-app browsers that cannot hyphenate fall back to justified
+   text with larger gaps. */
 @media (max-width: 767px) {
   .intro,
   .hint,
   .body,
   .help,
   .legal {
-    text-align: left;
-    word-spacing: normal;
+    text-align: justify;
+    text-justify: inter-word;
     -webkit-hyphens: none;
     hyphens: none;
+    word-spacing: -0.04em;
   }
 }
