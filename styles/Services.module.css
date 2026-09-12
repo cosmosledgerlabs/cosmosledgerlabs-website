@@ -291,7 +291,7 @@
   font-size: 13px;
   line-height: 1.65;
   color: var(--text-muted);
-  margin: 0 0 16px;
+  margin: 0 0 4px; /* 2026-09-12: bullets moved up ~half a centimetre */
   text-justify: inter-word;
   text-align: justify;
   text-justify: inter-word;
@@ -300,6 +300,7 @@
 
 .cardList {
   flex: 1 1 auto;
+  margin-top: 0;
   margin-bottom: 20px;
 }
 
