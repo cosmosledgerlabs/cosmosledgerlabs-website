@@ -69,11 +69,16 @@ const T3 = {
     zh: '安裝 Phantom 錢包瀏覽器擴充功能並建立錢包。本演示僅在 devnet 測試網上執行，絕不涉及真實資金。',
   },
   how2: {
-    en: 'In Phantom, open Settings → Developer Settings and switch the network to Solana Devnet.',
+    en: 'In Phantom, open Settings → Devel\u00ADoper Settings and switch the net\u00ADwork to Solana Devnet.',
     zh: '在 Phantom 中開啟 Settings → Developer Settings，將網路切換為 Solana Devnet。',
   },
   how3: {
-    en: 'Get free devnet SOL for transaction fees from a Solana devnet faucet (for example faucet.solana.com). Devnet SOL has no monetary value.',
+    en: (
+      <>
+        Get free devnet SOL for transac{'\u00AD'}tion fees from a Solana devnet faucet
+        (for example faucet.solana.<wbr />com). Devnet SOL has no monetary value.
+      </>
+    ),
     zh: '從 Solana devnet 水龍頭（例如 faucet.solana.com）領取免費的 devnet SOL 作為交易手續費。Devnet SOL 不具任何金錢價值。',
   },
   how4: {
