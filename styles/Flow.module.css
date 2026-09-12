@@ -594,27 +594,58 @@
 }
 
 .howSteps {
-  margin: 0 0 14px;
+  margin: 4px 0 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
-.howRow {
-  padding: 12px 0;
-  border-top: 1px solid rgba(0, 190, 230, .14);
+@media (max-width: 767px) {
+  .howSteps { grid-template-columns: 1fr; }
 }
 
-.howRow:first-child { border-top: none; padding-top: 4px; }
+.howCard {
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-left: 3px solid rgba(0, 220, 255, .65);
+  border-radius: 5px;
+  background: rgba(0, 10, 28, .75);
+  padding: 13px 14px;
+}
 
-.howText {
-  text-wrap: balance; /* even out line lengths so no single line carries big gaps */
+.howCardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 25, 50, .9);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 9px;
+}
+
+.howCardNum {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--cyan);
+}
+
+.howCardTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(14px, 1.7vw, 15.5px);
+  letter-spacing: .06em;
+  color: var(--text);
+}
+
+.howCardText {
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-weight: 500;
-  font-size: 13.5px; /* fallback: old WeChat X5, no clamp() */
-  font-size: clamp(13.5px, 1.5vw, 14.5px);
-  line-height: 1.6;
+  font-size: 14px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(14px, 1.5vw, 15px);
+  line-height: 1.55;
   color: var(--text-muted);
-  text-align: justify;
-  text-justify: inter-word;
-  text-wrap: pretty;
 }
 
 .howNote {
@@ -631,7 +662,7 @@
   text-wrap: pretty;
 }
 
-/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 35 FINAL — right edge aligned, medium weight) =====
+/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 36 — step cards) =====
    Justified text on a phone-width column needs hyphenation to keep word gaps
    small: the browser splits a long word at the line end with a hyphen, so both
    edges stay flush. Requires the html lang attribute — already set to en-CA
@@ -644,7 +675,6 @@
   .controlHint,
   .stepDesc,
   .verifyIntro,
-  .howText,
   .howNote,
   .disclaimer {
     text-align: justify;
