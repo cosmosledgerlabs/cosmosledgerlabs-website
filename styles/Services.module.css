@@ -81,7 +81,7 @@
 .lede {
   max-width: 760px;
   margin: 0 auto var(--sp4);
-  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.6vw, 16px);
   line-height: 1.75;
@@ -154,7 +154,7 @@
 }
 
 .secBody {
-  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-size: 15px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(15px, 1.5vw, 16px);
   color: var(--text);
@@ -194,7 +194,7 @@
 }
 
 .plainText {
-  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-size: 14px; /* fallback: old WeChat X5, no clamp() */
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.7;
@@ -283,7 +283,7 @@
 }
 
 .cardLead {
-  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-size: 13px;
   line-height: 1.65;
   color: var(--text-muted);
@@ -300,7 +300,7 @@
 }
 
 .cardItem {
-  font-family: 'Share Tech', 'Share Tech Mono', sans-serif;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-size: 12.5px;
   line-height: 1.95;
   color: var(--text);
@@ -452,7 +452,7 @@
   .cardMeta { flex-direction: column; align-items: flex-start; gap: 6px; }
 }
 
-/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 30 FINAL) =====
+/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 32 FINAL) =====
    Justified text on a phone-width column needs hyphenation to keep word gaps
    small: the browser splits a long word at the line end with a hyphen, so both
    edges stay flush. Requires the html lang attribute — already set to en-CA
