@@ -66,6 +66,28 @@ export default function App({ Component, pageProps }) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
+      <Script id="wechat-font-lock" strategy="afterInteractive">
+        {`
+          // WeChat's in-app "Text Size" setting force-scales webpage fonts.
+          // The official WeixinJSBridge callback resets pages to normal size.
+          // Runs only inside WeChat - WeixinJSBridge does not exist anywhere else.
+          (function () {
+            function lock() {
+              try {
+                WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 });
+                WeixinJSBridge.on('menu:setfont', function () {
+                  WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 });
+                });
+              } catch (e) {}
+            }
+            if (typeof WeixinJSBridge === 'object' && typeof WeixinJSBridge.invoke === 'function') {
+              lock();
+            } else {
+              document.addEventListener('WeixinJSBridgeReady', lock, false);
+            }
+          })();
+        `}
+      </Script>
       <Component {...pageProps} />
 
       {CRISP_ID ? (
