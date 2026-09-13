@@ -27,7 +27,7 @@ export default function Demo() {
     <section className={styles.section} id="demo">
       <div className="sec-tag">{L(T.tag)} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L(T.title)}</h2>
-      <div className={styles.steelCard}>
+      <div className={`${styles.steelCard} ${styles.tightCard}`}>
         <p className={styles.ecoText}>{L(T.body)}</p>
         <div className={styles.dlButtons}>
           <Link href="/flow" className={styles.dlBtn1}>{L(T.btn)}</Link>
