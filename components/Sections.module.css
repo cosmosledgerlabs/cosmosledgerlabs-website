@@ -412,3 +412,8 @@
   text-align: left;
   text-align-last: left;
 }
+
+/* four marked boxes only: text fills the frame (2026-09-13) */
+.tightCard {
+  padding: 14px 16px;
+}
