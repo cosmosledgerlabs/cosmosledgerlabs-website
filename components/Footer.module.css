@@ -21,7 +21,7 @@
 .socialLink svg { width:18px; height:18px; }
 
 /* 页脚合规免责小字 */
-.legal{margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1.6;color:rgba(120,160,180,.45);letter-spacing:.02em;max-width:760px;margin-left:auto;margin-right:auto;text-align:justify;text-justify:inter-word;-webkit-hyphens:auto;hyphens:auto;}
+.legal{margin-top:10px;font-family:'Saira Condensed','Share Tech',sans-serif;font-weight:600;font-size:11px;line-height:1.6;color:rgba(120,160,180,.55);letter-spacing:.03em;max-width:760px;margin-left:auto;margin-right:auto;text-align:center;}
 
 /* --- added: footer navigation links --- */
 .links {
