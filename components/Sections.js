@@ -118,12 +118,10 @@ export function Technology() {
     <section className={styles.section} id="technology">
       <div className="sec-tag">{L({ en: '// SECTION 07 — TECHNOLOGY', zh: '// 第 07 節 — 技術' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'TECHNOLOGY WE BUILD WITH', zh: '我們使用的技術' })}</h2>
-      <div className={`${styles.steelCard} ${styles.tightCard}`}>
-        <p className={`${styles.ecoText} ${styles.techCenter}`}>{L({
-          en: 'Solana · React / Next.js · SPL token standards · established ecosystem tooling including Streamflow, Squads, Magna, and Helius. We build against the tools our clients already use.',
-          zh: 'Solana · React / Next.js · SPL 代幣標準 · 成熟的生態系工具，包括 Streamflow、Squads、Magna 與 Helius。我們以客戶已在使用的工具為基礎進行建置。',
-        })}</p>
-      </div>
+      <p className={`${styles.ecoText} ${styles.techCenter}`}>{L({
+        en: 'Solana · React / Next.js · SPL token standards · established ecosystem tooling including Streamflow, Squads, Magna, and Helius. We build against the tools our clients already use.',
+        zh: 'Solana · React / Next.js · SPL 代幣標準 · 成熟的生態系工具，包括 Streamflow、Squads、Magna 與 Helius。我們以客戶已在使用的工具為基礎進行建置。',
+      })}</p>
     </section>
   )
 }
