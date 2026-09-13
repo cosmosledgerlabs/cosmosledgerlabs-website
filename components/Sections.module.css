@@ -117,20 +117,20 @@
 .secGrid {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 2px;
+  margin-top: 10px;
 }
 .secCard {
   background: none;
   border: none;
   padding: 0;
 }
-.secCardTitle { font-family:'Rajdhani',sans-serif; font-size: 13px; font-weight:700; color:var(--cyan); letter-spacing:.07em; }
+.secCardTitle { font-family:'Rajdhani',sans-serif; font-size: 13px; font-weight:700; color:var(--cyan); letter-spacing:.07em; line-height: 1.15; margin: 0; }
 .secCardText {
   font-size: 15px;
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-weight: 600;
-  line-height: 1.55;
+  line-height: 1.4;
   color: var(--text);
   text-align: justify;
   text-justify: inter-word;
