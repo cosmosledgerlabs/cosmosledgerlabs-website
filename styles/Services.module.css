@@ -271,6 +271,7 @@
   text-justify: inter-word;
   -webkit-hyphens: none;
   hyphens: none;
+  overflow-wrap: anywhere;
   text-wrap: pretty;
 }
 
@@ -370,6 +371,7 @@
   text-justify: inter-word;
   -webkit-hyphens: none;
   hyphens: none;
+  overflow-wrap: anywhere;
   text-wrap: pretty;
 }
 
@@ -450,6 +452,7 @@
     text-justify: inter-word;
     -webkit-hyphens: none;
     hyphens: none;
+    overflow-wrap: anywhere;
     word-spacing: -0.04em;
   }
 }
