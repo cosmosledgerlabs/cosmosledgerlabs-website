@@ -409,6 +409,6 @@
 
 /* technology line: centred in its box (2026-09-13) */
 .techCenter {
-  text-align: center;
-  text-align-last: center;
+  text-align: left;
+  text-align-last: left;
 }
