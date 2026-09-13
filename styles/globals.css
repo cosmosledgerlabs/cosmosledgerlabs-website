@@ -23,7 +23,7 @@ html {
 }
 /* the nav wraps to 2–3 rows on phones, so it's taller there */
 @media (max-width: 767px) {
-  html { scroll-padding-top: 150px; }
+  html { scroll-padding-top: 96px; }
 }
 body {
   background: #00010a;
