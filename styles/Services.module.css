@@ -399,6 +399,23 @@
   min-width: 0;
 }
 
+.exclusion span:last-child {
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.5;
+  word-spacing: 2px;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .ex {
   flex: 0 0 auto;
   color: #ff5f6d;
