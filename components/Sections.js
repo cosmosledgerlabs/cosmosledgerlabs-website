@@ -118,7 +118,7 @@ export function Technology() {
     <section className={styles.section} id="technology">
       <div className="sec-tag">{L({ en: '// SECTION 07 — TECHNOLOGY', zh: '// 第 07 節 — 技術' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'TECHNOLOGY WE BUILD WITH', zh: '我們使用的技術' })}</h2>
-      <div className={styles.steelCard}>
+      <div className={`${styles.steelCard} ${styles.tightCard}`}>
         <p className={`${styles.ecoText} ${styles.techCenter}`}>{L({
           en: 'Solana · React / Next.js · SPL token standards · established ecosystem tooling including Streamflow, Squads, Magna, and Helius. We build against the tools our clients already use.',
           zh: 'Solana · React / Next.js · SPL 代幣標準 · 成熟的生態系工具，包括 Streamflow、Squads、Magna 與 Helius。我們以客戶已在使用的工具為基礎進行建置。',
@@ -161,7 +161,7 @@ export function Partners() {
     <section className={styles.section} id="partners">
       <div className="sec-tag">{L({ en: '// SECTION 09 — STRATEGIC COOPERATION', zh: '// 第 09 節 — 策略合作' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'STRATEGIC COOPERATION', zh: '策略合作' })}</h2>
-      <div className={styles.steelCard}>
+      <div className={`${styles.steelCard} ${styles.tightCard}`}>
         <p className={styles.ecoText}>{L({
           en: 'COSMOS Ledger Labs has signed a strategic-cooperation agreement with Aladdin Cyber Security (Dubai, UAE) — a leading UAE cybersecurity and cloud provider with proprietary technology, founded in 2023 and based in Dubai Internet City. Aladdin brings front-line experience on major security incidents for enterprises and government agencies, spanning smart-contract auditing, full-stack penetration testing, and 24/7 multi-chain incident response.',
           zh: 'COSMOS Ledger Labs 已與 Aladdin Cyber Security（阿聯杜拜）簽署策略合作協議——該公司為阿聯領先的資安與雲端服務商，擁有自主技術，成立於 2023 年，總部位於杜拜網際網路城。Aladdin 具備處理企業與政府機構重大資安事件的一線經驗，涵蓋智能合約稽核、全端滲透測試與 7×24 多鏈事件應變。',
@@ -180,7 +180,7 @@ export function Team() {
     <section className={styles.section} id="team">
       <div className="sec-tag">{L({ en: '// SECTION 10 — TEAM', zh: '// 第 10 節 — 團隊' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'TEAM', zh: '團隊' })}</h2>
-      <div className={styles.steelCard}>
+      <div className={`${styles.steelCard} ${styles.tightCard}`}>
         <p className={styles.ecoText}>{L({
           en: "COSMOS was founded by V. Zheng, a repeat founder based in Toronto. She designed the company's service model, shipped its website and its on-chain devnet demonstration, and leads client engagements directly. Delivery is carried out with contracted engineering teams vetted by COSMOS; audit and other specialist work is referred to qualified independent firms.",
           zh: 'COSMOS 由 V. Zheng 創立，她是常駐多倫多的連續創業者。她設計了公司的服務模式，親自完成網站與鏈上 devnet 演示的交付，並直接主導客戶專案。交付工作由 COSMOS 審核的特約工程團隊執行；稽核與其他專業工作則轉介合格的獨立機構。',
