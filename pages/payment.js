@@ -59,6 +59,12 @@ const VERIFY_LINES = [
   },
 ]
 
+const withEmailLine = (text, cls) => {
+  const i = text.indexOf('\n')
+  if (i === -1) return text
+  return (<>{text.slice(0, i)}{'\n'}<span className={cls}>{text.slice(i + 1)}</span></>)
+}
+
 export default function Payment() {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
@@ -101,12 +107,12 @@ export default function Payment() {
               {s.boxed ? (
                 <div className={styles.card}>
                   {s.body.map((p) => (
-                    <p key={p.en} className={styles.body}>{L(p)}</p>
+                    <p key={p.en} className={styles.body}>{withEmailLine(L(p), styles.emailLine)}</p>
                   ))}
                 </div>
               ) : (
                 s.body.map((p) => (
-                  <p key={p.en} className={styles.body}>{L(p)}</p>
+                  <p key={p.en} className={styles.body}>{withEmailLine(L(p), styles.emailLine)}</p>
                 ))
               )}
             </section>
@@ -129,9 +135,9 @@ export default function Payment() {
 
           <section className={styles.section}>
             <h2 className={styles.h2}>{isZh ? '防詐騙警示' : 'FRAUD WARNING'}</h2>
-            <div className={styles.warnCard}>
+            <div className={styles.warnList}>
               {NEVER.map((p) => (
-                <p key={p.en} className={styles.strong}>× {L(p)}</p>
+                <p key={p.en} className={styles.strong}>× {withEmailLine(L(p), styles.emailLine)}</p>
               ))}
             </div>
             <div className={styles.card}>
