@@ -115,22 +115,19 @@
 
 /* ===== SECURITY — 3+3 grid ===== */
 .secGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3列 */
-  gap: 16px; margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 16px;
 }
 .secCard {
-  background: rgba(0,10,28,.88);
-  border: 1px solid rgba(0,185,225,.22);
-  border-radius: 6px; padding: 24px;
-  position: relative;
-  display: flex; flex-direction: column; gap: 8px;
-  height: 100%; /* 等高 */
+  background: none;
+  border: none;
+  padding: 0;
 }
-.secCard::before { content:''; position:absolute; top:0; left:0; width:9px; height:9px; border-top:1.5px solid rgba(0,210,255,.5); border-left:1.5px solid rgba(0,210,255,.5); }
-.secCardTitle { font-family:'Rajdhani',sans-serif; font-size:clamp(11px,1.4vw,13px); font-weight:700; color:var(--cyan); letter-spacing:.07em; }
+.secCardTitle { font-family:'Rajdhani',sans-serif; font-size: 13px; font-weight:700; color:var(--cyan); letter-spacing:.07em; }
 .secCardText {
-  font-size:clamp(13px,1.3vw,14px);
+  font-size: 15px;
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-weight: 600;
   line-height: 1.55;
