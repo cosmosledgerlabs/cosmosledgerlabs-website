@@ -103,6 +103,9 @@
   flex-direction: column;
   gap: 4px;
   margin-top: 10px;
+  background: rgba(120, 15, 25, .28);
+  border-radius: 6px;
+  padding: 14px 16px;
 }
 
 .strong {
