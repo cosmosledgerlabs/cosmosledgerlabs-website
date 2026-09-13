@@ -43,10 +43,20 @@ const NEVER = [
   },
 ]
 
-const VERIFY = {
-  en: 'Valid payment details come from only two places: a payment order you generate yourself on this website, and official invoices sent from info@cosmosledgerlabs.com. Cryptocurrency transfers cannot be reversed — confirm any USDT address with us by email before sending. A payment request from any other source is fraudulent: do not pay, and forward it to info@cosmosledgerlabs.com.',
-  zh: '有效的付款資料僅來自兩處：您親自在本網站產生的付款訂單，以及由 info@cosmosledgerlabs.com 寄出的正式發票。加密貨幣轉帳無法撤銷——傳送 USDT 前請先以電子郵件向我們核對收款地址。來自任何其他來源的付款要求均屬詐騙：請勿付款，並將其轉寄至 info@cosmosledgerlabs.com。',
-}
+const VERIFY_LINES = [
+  {
+    en: 'Valid payment details come from only two places: a payment order you generate yourself on this website, and official invoices sent from info@cosmosledgerlabs.com.',
+    zh: '有效的付款資料僅來自兩處：您親自在本網站產生的付款訂單，以及由 info@cosmosledgerlabs.com 寄出的正式發票。',
+  },
+  {
+    en: 'Cryptocurrency transfers cannot be reversed — confirm any USDT address with us by email before sending.',
+    zh: '加密貨幣轉帳無法撤銷——傳送 USDT 前請先以電子郵件向我們核對收款地址。',
+  },
+  {
+    en: 'A payment request from any other source is fraudulent: do not pay, and forward it to info@cosmosledgerlabs.com.',
+    zh: '來自任何其他來源的付款要求均屬詐騙：請勿付款，並將其轉寄至 info@cosmosledgerlabs.com。',
+  },
+]
 
 export default function Payment() {
   const { lang, isZh } = useLang()
@@ -116,7 +126,9 @@ export default function Payment() {
               ))}
             </div>
             <div className={styles.card}>
-              <p className={styles.body}>{L(VERIFY)}</p>
+              {VERIFY_LINES.map((line, i) => (
+                <p className={styles.body} key={i}>{L(line)}</p>
+              ))}
               <div className={styles.email}>✉ info@cosmosledgerlabs.com</div>
             </div>
           </section>
