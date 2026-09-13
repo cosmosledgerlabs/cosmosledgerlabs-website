@@ -98,13 +98,11 @@
   width: 100%;
 }
 
-.warnCard {
-  background: rgba(28, 4, 4, .88);
-  border: 1px solid rgba(255, 96, 96, .45);
-  border-radius: 6px;
-  padding: 28px;
-  margin-top: 12px;
-  width: 100%;
+.warnList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
 }
 
 .strong {
@@ -160,4 +158,9 @@
 /* boxed paragraphs read one step larger (2026-09-13) */
 .card .body {
   font-size: 16px;
+}
+
+/* standalone email lines read as deliberate contact info (2026-09-13) */
+.emailLine {
+  color: var(--cyan);
 }
