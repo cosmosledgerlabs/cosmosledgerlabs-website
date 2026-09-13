@@ -21,10 +21,11 @@
 }
 .secBody {
   font-size: clamp(14.5px, 1.5vw, 15.5px);
-  color: var(--text); max-width: none;
+  max-width: none;
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-weight: 600;
   line-height: 1.55;
+  color: var(--text);
   text-align: justify;
   text-justify: inter-word;
   -webkit-hyphens: none;
@@ -90,7 +91,19 @@
 .archLayer::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(180deg,var(--cyan),rgba(0,100,200,.3)); }
 .archNum { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:700; color:var(--cyan); min-width:28px; letter-spacing:.1em; flex-shrink:0; }
 .archTitle { font-family:'Rajdhani',sans-serif; font-size:clamp(12px,1.5vw,14px); font-weight:700; color:var(--text); letter-spacing:.06em; flex:1; }
-.archSub { font-family:'Share Tech Mono',monospace; font-size:clamp(10px,1.2vw,11px); color:#88ccdd; white-space:nowrap; flex-shrink:0; }
+.archSub {
+  font-size:clamp(10px,1.2vw,11px);
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
 
 /* ===== WORKFLOW ===== */
 .wfList { display:flex; flex-direction:column; gap:4px; margin-top:16px; }
@@ -116,7 +129,19 @@
 }
 .secCard::before { content:''; position:absolute; top:0; left:0; width:9px; height:9px; border-top:1.5px solid rgba(0,210,255,.5); border-left:1.5px solid rgba(0,210,255,.5); }
 .secCardTitle { font-family:'Rajdhani',sans-serif; font-size:clamp(11px,1.4vw,13px); font-weight:700; color:var(--cyan); letter-spacing:.07em; }
-.secCardText { font-family:'Share Tech Mono',monospace; font-size:clamp(13px,1.3vw,14px); color:var(--text); line-height:1.6; }
+.secCardText {
+  font-size:clamp(13px,1.3vw,14px);
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
 
 /* ===== ECOSYSTEM ===== */
 .ecoText {
@@ -175,7 +200,19 @@
 .badgeFuture  { color:#7fa3b5; background:rgba(0,45,80,.24); border:1.5px solid rgba(0,80,120,.38); }
 
 .rmTags { display:flex; flex-wrap:wrap; gap:4px 16px; }
-.rmTag { font-family:'Share Tech Mono',monospace; font-size:clamp(12px,1.3vw,13px); color:#88aacc; }
+.rmTag {
+  font-size:clamp(12px,1.3vw,13px);
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
 
 /* ===== DOWNLOADS ===== */
 .dlButtons { display:flex; gap:16px; flex-wrap:wrap; margin-top:24px; align-items:center; }
@@ -211,7 +248,18 @@
   
   .cardGrid { grid-template-columns: 1fr 1fr; }
   .secGrid { grid-template-columns: 1fr 1fr; } /* 手机2+2+2 */
-  .archSub { display: none; } /* 手机隐藏副标签 */
+  .archSub {
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+} /* 手机隐藏副标签 */
   /* Stack the phase title and status badge vertically so they can never overlap */
   .rmRow { flex-direction: column; align-items: flex-start; gap: 12px; }
   .rmBadge { width: 108px; padding: 7px 0; align-self: flex-start; } /* uniform badge size */
@@ -229,13 +277,38 @@
 /* --- added: inline email link + investor legal note + team block spacing --- */
 .inlineLink { color:var(--cyan); text-decoration:none; border-bottom:1px solid rgba(0,232,255,.4); transition:opacity .2s; }
 .inlineLink:hover { opacity:.8; }
-.legalNote { font-family:'Share Tech Mono',monospace; font-size:clamp(11px,1.3vw,12.5px); color:#7fb0c4; line-height:1.6; margin-top:20px; }
+.legalNote {
+  font-size:clamp(11px,1.3vw,12.5px);
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
 .teamBlock { margin-top:20px; }
 .teamHead { font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:.06em; color:var(--cyan); font-size:clamp(16px,2vw,20px); margin-bottom:10px; }
 
 /* 手机端:左对齐,无大空隙(手机正文标准做法) */
 @media(max-width:767px){
-  .secBody{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; text-align:left; }
+  .secBody {
+  font-size:14px;
+  max-width: none;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
   .ecoText{ font-size:14.5px; text-align:left; }
 }
 
@@ -254,18 +327,66 @@
 .fCard::after{ content:''; position:absolute; bottom:0; right:0; width:16px; height:16px; border-bottom:2px solid var(--cyan); border-right:2px solid var(--cyan); }
 .fNum{ font-family:'Orbitron',monospace; font-weight:900; font-size:34px; line-height:1; text-align:center; color:var(--cyan); text-shadow:0 0 16px rgba(0,220,255,.7); letter-spacing:.04em; }
 .fTitleBar{ margin:14px 0 14px; padding:9px 12px; text-align:center; background:rgba(0,10,28,.85); border:1px solid rgba(0,200,255,.25); font-family:'Rajdhani',sans-serif; font-weight:700; letter-spacing:.06em; font-size:13px; color:var(--cyan); text-shadow:0 0 10px rgba(0,220,255,.4); }
-.fBody{ font-family:'Share Tech Mono',monospace; font-size:13px; line-height:1.65; color:#bfe6f2; text-align:left; }
+.fBody {
+  font-size:13px;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
 @media(max-width:767px){
   .founderGrid{ grid-template-columns:1fr; gap:14px; }
-  .fBody{ font-size:13px; }
+  .fBody {
+  font-size:13px;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
 }
 
 /* 创始人卡 —— 桌面三列并排、等高方正;编号居中发光、标题条居中、正文左对齐(无 justify,英文空格不被拉大) */
 .fCard{ padding:26px 28px 24px; }
 .fNum{ font-size:42px; letter-spacing:.06em; margin-bottom:4px; }
 .fTitleBar{ display:block; width:fit-content; margin:14px auto 16px; padding:10px 26px; font-size:14px; }
-.fBody{ font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; text-align:justify; text-align-last:left; hyphens:auto; font-size:13.5px; line-height:1.75; }
-@media(max-width:767px){ .fCard{ padding:22px 20px; } .fNum{ font-size:38px; } .fTitleBar{ padding:9px 22px; } .fBody{ text-align:left; font-size:13px; } }
+.fBody {
+  font-size:13.5px;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+@media(max-width:767px){ .fCard{ padding:22px 20px; } .fNum{ font-size:38px; } .fTitleBar{ padding:9px 22px; } .fBody {
+  font-size:13px;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--text);
+  text-align: justify;
+  text-justify: inter-word;
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+} }
 
 /* ===== DELIVERY GAP section only: bold condensed, justified (2026-09-12) ===== */
 .gapProse {
