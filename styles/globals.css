@@ -16,6 +16,7 @@ html {
   /* Stop WeChat / Samsung / Android in-app browsers from auto-inflating text,
      which was overflowing badges and overlapping roadmap titles. */
   -webkit-text-size-adjust: 100%;
+  max-height: 999999px; /* disables Android/WeChat text autosizing (font boosting) */
   -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
   overflow-x: hidden;
