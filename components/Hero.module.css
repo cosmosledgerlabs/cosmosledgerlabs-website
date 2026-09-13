@@ -5,7 +5,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-top: 60px;
+  padding-top: 36px;
   overflow: hidden;
 }
 
@@ -155,7 +155,7 @@
 }
 
 @media(max-width:767px) {
-  .hero { padding-top: 96px; }
+  .hero { padding-top: 48px; }
   .title { font-size: clamp(24px, 8vw, 42px); }
   .btns { flex-direction: column; align-items: center; }
   .bp, .bs { width: 100%; max-width: 280px; text-align: center; }
