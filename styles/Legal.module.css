@@ -4,11 +4,11 @@
 
 .page {
   position: relative;
-  padding-top: 76px;
+  padding-top: 64px;
 }
 
 @media (max-width: 767px) {
-  .page { padding-top: 150px; }
+  .page { padding-top: 96px; }
 }
 
 .main {
