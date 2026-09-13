@@ -72,6 +72,7 @@
   text-align: justify;
   text-justify: inter-word;
   text-wrap: pretty;
+  white-space: pre-line;
 }
 
 .item {
@@ -151,7 +152,12 @@
     text-justify: inter-word;
     -webkit-hyphens: none;
     hyphens: none;
-    overflow-wrap: anywhere;
+    overflow-wrap: normal;
     word-spacing: -0.04em;
   }
+}
+
+/* boxed paragraphs read one step larger (2026-09-13) */
+.card .body {
+  font-size: 16px;
 }
