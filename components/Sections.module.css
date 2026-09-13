@@ -117,8 +117,8 @@
 .secGrid {
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 12px;
 }
 .secCard {
   background: none;
