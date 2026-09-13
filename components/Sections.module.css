@@ -406,3 +406,9 @@
   padding: 14px 16px;
   gap: 4px;
 }
+
+/* technology line: centred in its box (2026-09-13) */
+.techCenter {
+  text-align: center;
+  text-align-last: center;
+}
