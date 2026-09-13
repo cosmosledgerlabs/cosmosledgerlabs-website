@@ -19,9 +19,10 @@ const SECTIONS = [
   },
   {
     h: { en: 'ACCEPTED PAYMENT METHODS', zh: '接受的付款方式' },
+    boxed: true,
     body: [
       {
-        en: 'We accept payment by bank wire transfer, in USDT (stablecoin), and — within Canada — by Interac e-Transfer. For your security, payment details are not displayed publicly on this website: they are provided when you generate a payment order on our Pay page, or on the official invoice you receive from info@cosmosledgerlabs.com.',
+        en: 'We accept payment by bank wire transfer, in USDT (stablecoin), and — within Canada — by Interac e-Transfer. For your security, payment details are not displayed publicly on this website: they are provided when you generate a payment order on our Pay page, or on the official invoice you receive from\ninfo@cosmosledgerlabs.com.',
         zh: '我們接受銀行電匯與 USDT（穩定幣）付款，加拿大境內亦可使用 Interac e-Transfer（電郵轉帳）。為安全起見，本網站不公開顯示付款資料：付款資料將於您在付款下單頁面產生訂單後提供，或載於您從 info@cosmosledgerlabs.com 收到的正式發票上。',
       },
     ],
@@ -34,7 +35,7 @@ const NEVER = [
     zh: '我們絕不會透過聊天軟體、社群媒體或未經預期的電子郵件傳送付款資料。',
   },
   {
-    en: 'We never ask you to send USDT or any cryptocurrency to a wallet address received in a chat message or social media post. A USDT address is valid only when it appears on an official invoice from info@cosmosledgerlabs.com.',
+    en: 'We never ask you to send USDT or any cryptocurrency to a wallet address received in a chat message or social media post. A USDT address is valid only when it appears on an official invoice from\ninfo@cosmosledgerlabs.com.',
     zh: '我們絕不會要求您將 USDT 或任何加密貨幣轉入以聊天訊息或社群貼文提供的錢包地址。USDT 收款地址僅在 info@cosmosledgerlabs.com 寄出的正式發票上載明方為有效。',
   },
   {
@@ -45,7 +46,7 @@ const NEVER = [
 
 const VERIFY_LINES = [
   {
-    en: 'Valid payment details come from only two places: a payment order you generate yourself on this website, and official invoices sent from info@cosmosledgerlabs.com.',
+    en: 'Valid payment details come from only two places: a payment order you generate yourself on this website, and official invoices sent from\ninfo@cosmosledgerlabs.com.',
     zh: '有效的付款資料僅來自兩處：您親自在本網站產生的付款訂單，以及由 info@cosmosledgerlabs.com 寄出的正式發票。',
   },
   {
@@ -97,9 +98,17 @@ export default function Payment() {
           {SECTIONS.map((s) => (
             <section key={s.h.en} className={styles.section}>
               <h2 className={styles.h2}>{L(s.h)}</h2>
-              {s.body.map((p) => (
-                <p key={p.en} className={styles.body}>{L(p)}</p>
-              ))}
+              {s.boxed ? (
+                <div className={styles.card}>
+                  {s.body.map((p) => (
+                    <p key={p.en} className={styles.body}>{L(p)}</p>
+                  ))}
+                </div>
+              ) : (
+                s.body.map((p) => (
+                  <p key={p.en} className={styles.body}>{L(p)}</p>
+                ))
+              )}
             </section>
           ))}
 
