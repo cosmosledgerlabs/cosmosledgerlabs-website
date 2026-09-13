@@ -29,6 +29,7 @@
   text-justify: inter-word;
   -webkit-hyphens: none;
   hyphens: none;
+  overflow-wrap: anywhere;
   text-wrap: pretty;
 }
 
@@ -83,6 +84,7 @@
   text-justify: inter-word;
   -webkit-hyphens: none;
   hyphens: none;
+  overflow-wrap: anywhere;
   text-wrap: pretty;
 }
 .archLayer::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(180deg,var(--cyan),rgba(0,100,200,.3)); }
@@ -128,6 +130,7 @@
   text-justify: inter-word;
   -webkit-hyphens: none;
   hyphens: none;
+  overflow-wrap: anywhere;
   text-wrap: pretty;
 }
 
@@ -274,6 +277,7 @@
   text-justify: inter-word;
   -webkit-hyphens: none;
   hyphens: none;
+  overflow-wrap: anywhere;
   text-wrap: pretty;
 }
 
