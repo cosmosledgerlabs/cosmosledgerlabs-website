@@ -1,4 +1,62 @@
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Saira+Condensed:wght@400;500;600;700&family=Share+Tech&family=Share+Tech+Mono&display=swap');
+/* Fonts are self-hosted from /public/fonts - no external font requests.
+   (Google Fonts was loaded via a blocking @import and is unreachable from
+   mainland China, which stalled every page load there.) */
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/rajdhani-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Rajdhani';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/rajdhani-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Saira Condensed';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/saira-condensed-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Saira Condensed';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/saira-condensed-latin-500-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Saira Condensed';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/saira-condensed-latin-600-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Saira Condensed';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/saira-condensed-latin-700-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Share Tech';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/share-tech-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Share Tech Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/share-tech-mono-latin-400-normal.woff2') format('woff2');
+}
 
 /* Self-hosted Orbitron (industrial / tech display font) */
 @font-face {
@@ -12,7 +70,7 @@
 html {
   scroll-behavior: smooth;
   /* leave room for the fixed nav when jumping to #anchors (was getting cut off) */
-  scroll-padding-top: 76px;
+  scroll-padding-top: 64px;
   /* Stop WeChat / Samsung / Android in-app browsers from auto-inflating text,
      which was overflowing badges and overlapping roadmap titles. */
   -webkit-text-size-adjust: 100%;
