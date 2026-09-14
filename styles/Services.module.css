@@ -4,11 +4,11 @@
 
 .page {
   position: relative;
-  padding-top: 64px;
+  padding-top: 72px;
 }
 
 @media (max-width: 767px) {
-  .page { padding-top: 96px; }
+  .page { padding-top: 116px; }
 }
 
 .wrap {
@@ -20,7 +20,7 @@
 /* ===== HERO ===== */
 
 .hero {
-  padding: 16px var(--side) 24px;
+  padding: 24px var(--side) 12px;
   text-align: center;
 }
 
@@ -137,7 +137,7 @@
 /* ===== SECTIONS ===== */
 
 .section {
-  padding: var(--sp6) var(--side);
+  padding: 24px var(--side) var(--sp6);
   max-width: var(--max-w);
   margin: 0 auto;
   width: 100%;
@@ -446,7 +446,7 @@
 /* ===== MOBILE ===== */
 
 @media (max-width: 640px) {
-  .hero { padding: 12px var(--side) 16px; }
+  .hero { padding: 20px var(--side) 8px; }
   .btns { flex-direction: column; }
   .bp, .bs { width: 100%; text-align: center; }
   .steelCard { padding: 22px 18px; }
