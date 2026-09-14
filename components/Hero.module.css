@@ -1,11 +1,11 @@
 .hero {
   position: relative;
-  min-height: 100vh;
   background: #050505;
   display: flex;
-  align-items: flex-start; /* content anchors to the top - the centering slack was the gap */
+  align-items: flex-start;
   justify-content: center;
   padding-top: 96px;
+  padding-bottom: 56px; /* hero now ends just after its content - the 100vh bottom slack is gone */
   overflow: hidden;
 }
 
