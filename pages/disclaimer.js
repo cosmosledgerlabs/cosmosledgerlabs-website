@@ -17,15 +17,6 @@ const SECTIONS = [
     ],
   },
   {
-    h: { en: 'NO OFFER', zh: '不構成要約' },
-    body: [
-      {
-        en: 'COSMOS Ledger Labs Inc. has not issued and does not offer any token or digital asset. Nothing on this website is an offer to sell, or a solicitation of an offer to buy, any security or digital asset, in any jurisdiction.',
-        zh: 'COSMOS Ledger Labs Inc. 未發行亦不提供任何代幣或數位資產。本網站的任何內容，在任何司法管轄區內，均不構成出售任何證券或數位資產的要約，亦不構成購買的要約邀請。',
-      },
-    ],
-  },
-  {
     h: { en: 'NO ADVICE', zh: '不構成建議' },
     body: [
       {
@@ -90,8 +81,8 @@ export default function Disclaimer() {
       <Head>
         <title>{isZh ? '免責聲明 — COSMOS Ledger Labs' : 'Disclaimer — COSMOS Ledger Labs'}</title>
         <meta name="description" content={isZh
-          ? 'COSMOS Ledger Labs Inc. 網站免責聲明：不構成要約、不構成建議、服務範圍與演示條款。'
-          : 'Disclaimer for the COSMOS Ledger Labs Inc. website: no offer, no advice, scope of services, and demonstration terms.'} />
+          ? 'COSMOS Ledger Labs Inc. 網站免責聲明：不構成建議、服務範圍與演示條款。'
+          : 'Disclaimer for the COSMOS Ledger Labs Inc. website: no advice, scope of services, and demonstration terms.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
