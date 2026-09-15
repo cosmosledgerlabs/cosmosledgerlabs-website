@@ -1,10 +1,9 @@
 /* pages/api/hours.js
-   POST   (team or admin passcode) — record a worked day
+   POST   (team or admin passcode) — record a worked day (free-typed name)
    GET    (admin) — list a month's entries: ?month=YYYY-MM
    DELETE (admin) — remove an entry: { id }                    */
 
 import { ensureTables, sql, isAdmin, isTeam } from '../../lib/db'
-import { REPS } from '../../lib/settings'
 
 export default async function handler(req, res) {
   try {
@@ -13,14 +12,15 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       if (!isTeam(req)) return res.status(401).json({ error: 'unauthorized' })
       const b = req.body || {}
+      const rep = String(b.rep || '').trim().slice(0, 40)
       const hours = Number(b.hours)
       const ok =
-        REPS.includes(b.rep) &&
+        rep.length >= 2 &&
         /^\d{4}-\d{2}-\d{2}$/.test(String(b.date)) &&
         Number.isFinite(hours) && hours > 0 && hours <= 24
       if (!ok) return res.status(400).json({ error: 'invalid entry' })
       await sql`INSERT INTO hours (work_date, rep, hours, holiday, note)
-                VALUES (${b.date}, ${b.rep}, ${hours}, ${b.holiday === true},
+                VALUES (${b.date}, ${rep}, ${hours}, ${b.holiday === true},
                         ${String(b.note || '').slice(0, 200)})`
       return res.status(200).json({ ok: true })
     }
