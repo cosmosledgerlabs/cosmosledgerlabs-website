@@ -6,7 +6,6 @@ import { useState } from 'react'
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import { REPS } from '../lib/settings'
 import styles from '../styles/Pay.module.css'
 
 function today() {
@@ -28,17 +27,18 @@ export default function Team() {
 
   const submit = async () => {
     setMsg('')
-    if (!rep || !date || !(Number(hours) > 0)) { setMsg('Pick your name, date and hours.'); return }
+    const name = rep.trim()
+    if (!name || !date || !(Number(hours) > 0)) { setMsg('Type your name, date and hours.'); return }
     setBusy(true)
     try {
       const r = await fetch('/api/hours', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-passcode': code },
-        body: JSON.stringify({ rep, date, hours: Number(hours), holiday, note }),
+        body: JSON.stringify({ rep: name, date, hours: Number(hours), holiday, note }),
       })
       if (r.status === 401) { setUnlocked(false); setMsg('Wrong passcode.'); return }
       if (!r.ok) { setMsg('Not saved — check the entry and try again.'); return }
-      setLog([{ rep, date, hours, holiday, note }, ...log])
+      setLog([{ rep: name, date, hours, holiday, note }, ...log])
       setMsg('RECORDED ✓')
       setHours(''); setHoliday(false); setNote('')
     } catch (e) {
@@ -73,14 +73,9 @@ export default function Team() {
           ) : (
             <>
               <section className={styles.section}>
-                <label className={styles.label}>Your name</label>
-                <div className={styles.serviceGrid}>
-                  {REPS.map((r) => (
-                    <button key={r} type="button"
-                            className={rep === r ? styles.chipOn : styles.chip}
-                            onClick={() => setRep(r)}>{r}</button>
-                  ))}
-                </div>
+                <label className={styles.label}>Your name (type it the same way every time)</label>
+                <input className={styles.input} value={rep} maxLength={40}
+                       onChange={(e) => setRep(e.target.value)} placeholder="Your name" />
                 <div className={styles.row}>
                   <div className={styles.field}>
                     <label className={styles.label}>Date</label>
