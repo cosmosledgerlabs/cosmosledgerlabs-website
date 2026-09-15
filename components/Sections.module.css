@@ -127,6 +127,16 @@
   gap: 14px;
   margin-top: 14px;
 }
+
+/* desktop: five practices in two aligned columns (2026-09-15) */
+@media (min-width: 768px) {
+  .secGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 40px;
+    align-items: start;
+  }
+}
 .secCard {
   background: none;
   border: none;
