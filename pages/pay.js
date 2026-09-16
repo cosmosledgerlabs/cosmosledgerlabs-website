@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
@@ -57,6 +57,11 @@ const T2 = {
     en: 'Deposit and milestone percentages are set in your written agreement — use the split that matches your quote.',
     zh: '訂金與里程碑比例以您的書面協議為準——請依您的報價選擇對應的付款比例。',
   },
+  cs: { en: 'Customer service (optional)', zh: '客服人員（選填）' },
+  csHint: {
+    en: 'If one of our customer service staff assisted you, type their name here so we can credit them.',
+    zh: '若我們的客服人員曾協助您，請在此填寫其姓名，以便我們記錄。',
+  },
   payNow: { en: 'AMOUNT PAYABLE NOW', zh: '本次應付金額' },
   ofTotal: {
     en: (pct, total) => pct + '% of project amount ' + total,
@@ -76,6 +81,7 @@ const T2 = {
   orderPlan: { en: 'Payment', zh: '付款方案' },
   orderAmount: { en: 'Amount payable', zh: '應付金額' },
   orderMethod: { en: 'Method', zh: '付款方式' },
+  orderCs: { en: 'Customer service', zh: '客服人員' },
   wireHead: { en: 'PAY BY BANK WIRE', zh: '以銀行電匯付款' },
   wireNote: {
     en: 'Send the wire from your bank using the details below, and quote the order number in the wire reference / payment details field. Incoming international wires can take 1–5 business days.',
@@ -179,8 +185,17 @@ export default function Pay() {
   const [currency, setCurrency] = useState('CAD')
   const [planId, setPlanId] = useState('full')
   const [method, setMethod] = useState('')
+  const [rep, setRep] = useState('')
   const [order, setOrder] = useState(null)
   const [copiedKey, setCopiedKey] = useState('')
+
+  /* Pre-fill the customer-service name from a personal link like /pay?rep=Lily */
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search).get('rep')
+      if (q) setRep(q.slice(0, 40))
+    } catch (e) { /* ignore */ }
+  }, [])
 
   const service = SERVICES.find((s) => s.id === serviceId) || SERVICES[SERVICES.length - 1]
   const plan = PLANS.find((p) => p.id === planId) || PLANS[0]
@@ -206,8 +221,10 @@ export default function Pay() {
   const generate = () => {
     if (!canGenerate) return
     setCopiedKey('')
+    const id = makeOrderId()
+    const csName = rep.trim().slice(0, 40)
     setOrder({
-      id: makeOrderId(),
+      id,
       serviceId,
       serviceName: service.name,
       baseAmount: Number(amount),
@@ -217,7 +234,24 @@ export default function Pay() {
       amount: payable(amount, plan.pct),
       currency,
       method,
+      rep: csName,
     })
+    /* Auto-record the order in the back office. Never blocks the client:
+       if this fails, they still get their payment details. */
+    try {
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          service: service.name.en,
+          amount: payable(amount, plan.pct),
+          currency,
+          method,
+          rep: csName,
+        }),
+      }).catch(() => {})
+    } catch (e) { /* ignore */ }
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -249,9 +283,10 @@ export default function Pay() {
       'Payment: ' + (order.planName ? order.planName.en : '') + ' (' + order.planPct + '% of ' + fmtAmount(order.baseAmount, order.currency) + ')',
       'Amount payable: ' + fmtAmount(order.amount, order.currency),
       'Payment method: ' + (methodName ? methodName.en : order.method),
+      order.rep ? 'Customer service: ' + order.rep : '',
       '',
       'Sent from cosmosledgerlabs.com/pay',
-    ].join('\n')
+    ].filter((line, i) => line !== '' || i >= 5).join('\n')
     return (
       'mailto:info@cosmosledgerlabs.com?subject=' +
       encodeURIComponent(subject) +
@@ -361,6 +396,16 @@ export default function Pay() {
                   </div>
                 </div>
 
+                <label className={styles.label} style={{ marginTop: 14 }}>{L(T2.cs)}</label>
+                <input
+                  className={styles.input}
+                  value={rep}
+                  maxLength={40}
+                  onChange={(e) => setRep(e.target.value)}
+                  placeholder={isZh ? '例如：Lily' : 'e.g. Lily'}
+                />
+                <div className={styles.hint}>{L(T2.csHint)}</div>
+
                 <div className={styles.totalCard}>
                   <span className={styles.totalLabel}>{L(T2.payNow)}</span>
                   <span className={styles.totalValue}>{payNow > 0 ? fmtAmount(payNow, currency) : '—'}</span>
@@ -436,6 +481,12 @@ export default function Pay() {
                     <span className={styles.kvKey}>{L(T2.orderMethod)}</span>
                     <span className={styles.kvVal}>{L((METHODS.find((m) => m.id === order.method) || {}).name)}</span>
                   </div>
+                  {order.rep ? (
+                    <div className={styles.kvRow}>
+                      <span className={styles.kvKey}>{L(T2.orderCs)}</span>
+                      <span className={styles.kvVal}>{order.rep}</span>
+                    </div>
+                  ) : null}
                 </div>
               </section>
 
