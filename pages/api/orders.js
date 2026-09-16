@@ -5,7 +5,6 @@
    DELETE (admin)   — remove an order: { id }                                */
 
 import { ensureTables, sql, isAdmin } from '../../lib/db'
-import { REPS } from '../../lib/settings'
 
 const ID_RE = /^CLL-\d{6}-[A-Z0-9]{2,6}$/
 const METHODS = ['wire', 'emt', 'usdt']
@@ -17,16 +16,16 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const b = req.body || {}
       const amount = Number(b.amount)
+      const rep = String(b.rep || '').trim().slice(0, 40)
       const ok =
         typeof b.id === 'string' && ID_RE.test(b.id) &&
         Number.isFinite(amount) && amount > 0 && amount < 100000000 &&
         METHODS.includes(b.method) &&
-        ['CAD', 'USD'].includes(b.currency) &&
-        (b.rep === '' || REPS.includes(b.rep))
+        ['CAD', 'USD'].includes(b.currency)
       if (!ok) return res.status(400).json({ error: 'invalid order' })
       await sql`INSERT INTO orders (id, service, amount, currency, method, rep)
                 VALUES (${b.id}, ${String(b.service || '').slice(0, 80)}, ${amount},
-                        ${b.currency}, ${b.method}, ${b.rep})
+                        ${b.currency}, ${b.method}, ${rep})
                 ON CONFLICT (id) DO NOTHING`
       return res.status(200).json({ ok: true })
     }
