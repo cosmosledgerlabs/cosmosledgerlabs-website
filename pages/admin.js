@@ -1,6 +1,7 @@
 /* pages/admin.js
-   Owner-only page: order ledger (mark PAID / delete) and the automatic
-   monthly settlement. Requires the ADMIN passcode. Not publicly linked. */
+   Owner-only page: order ledger (mark PAID / delete), hours entries
+   (delete), and the automatic monthly settlement.
+   Requires the ADMIN passcode. Not publicly linked. */
 
 import { useState } from 'react'
 import Head from 'next/head'
@@ -20,6 +21,7 @@ export default function Admin() {
   const [unlocked, setUnlocked] = useState(false)
   const [month, setMonth] = useState(thisMonth())
   const [orders, setOrders] = useState([])
+  const [hoursList, setHoursList] = useState([])
   const [settle, setSettle] = useState(null)
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
@@ -29,14 +31,16 @@ export default function Admin() {
   const loadAll = async () => {
     setMsg(''); setBusy(true)
     try {
-      const [ro, rs] = await Promise.all([
+      const [ro, rs, rh] = await Promise.all([
         fetch('/api/orders', { headers: H }),
         fetch('/api/settle?month=' + month, { headers: H }),
+        fetch('/api/hours?month=' + month, { headers: H }),
       ])
-      if (ro.status === 401 || rs.status === 401) { setUnlocked(false); setMsg('Wrong passcode.'); return }
-      if (!ro.ok || !rs.ok) { setMsg('Load failed — try again.'); return }
+      if (ro.status === 401 || rs.status === 401 || rh.status === 401) { setUnlocked(false); setMsg('Wrong passcode.'); return }
+      if (!ro.ok || !rs.ok || !rh.ok) { setMsg('Load failed — try again.'); return }
       setOrders((await ro.json()).orders || [])
       setSettle(await rs.json())
+      setHoursList((await rh.json()).hours || [])
       setUnlocked(true)
     } catch (e) {
       setMsg('Network error — try again.')
@@ -58,6 +62,15 @@ export default function Admin() {
     setBusy(true)
     try {
       const r = await fetch('/api/orders', { method: 'DELETE', headers: H, body: JSON.stringify({ id }) })
+      if (r.ok) await loadAll()
+    } finally { setBusy(false) }
+  }
+
+  const removeHours = async (id) => {
+    if (!confirm('Delete this hours entry? This cannot be undone.')) return
+    setBusy(true)
+    try {
+      const r = await fetch('/api/hours', { method: 'DELETE', headers: H, body: JSON.stringify({ id }) })
       if (r.ok) await loadAll()
     } finally { setBusy(false) }
   }
@@ -131,6 +144,22 @@ export default function Admin() {
                     ))}
                   </>
                 ) : null}
+              </section>
+
+              {/* ---------- hours entries ---------- */}
+              <section className={styles.section}>
+                <div className={styles.stepTag}>HOURS ENTRIES ({month}) — delete test or wrong entries here</div>
+                {hoursList.map((h) => (
+                  <div key={h.id} className={styles.detailCard} style={{ marginBottom: 10 }}>
+                    <p className={styles.itemStrong}>{h.work_date} — {h.rep} — {Number(h.hours).toFixed(1)}h{h.holiday ? ' — HOLIDAY' : ''}</p>
+                    {h.note ? <p className={styles.item}>{h.note}</p> : null}
+                    <div className={styles.row}>
+                      <button type="button" className={styles.btnGhost} disabled={busy}
+                              onClick={() => removeHours(h.id)}>DELETE</button>
+                    </div>
+                  </div>
+                ))}
+                {hoursList.length === 0 ? <div className={styles.hint}>No hours recorded this month.</div> : null}
               </section>
 
               {/* ---------- orders ledger ---------- */}
