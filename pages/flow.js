@@ -13,6 +13,11 @@ import styles from '../styles/Flow.module.css'
    shows a "coming soon" placeholder instead. */
 const VIDEO_URL = ''
 
+/* Demo video hosted on this website: the video file sits in the repo's
+   public folder as cosmos-demo.mp4 and plays directly on the page.
+   Set to '' to hide the player again. */
+const VIDEO_FILE = '/cosmos-demo.mp4'
+
 const CLUSTER = 'devnet'
 const RPC = process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://api.devnet.solana.com'
 const EXPLORER = 'https://solscan.io'
@@ -556,7 +561,22 @@ export default function FlowPage() {
           </header>
 
           {/* ---------- demo video ---------- */}
-          {VIDEO_URL ? (
+          {VIDEO_FILE ? (
+            <video
+              src={VIDEO_FILE}
+              controls
+              playsInline
+              preload="metadata"
+              style={{
+                display: 'block',
+                width: '100%',
+                maxWidth: '100%',
+                background: '#000',
+                border: '1px solid rgba(0, 190, 230, .4)',
+                borderRadius: '6px',
+              }}
+            />
+          ) : VIDEO_URL ? (
             <a
               className={styles.videoLink}
               href={VIDEO_URL}
