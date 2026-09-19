@@ -14,10 +14,44 @@ import ErrorBoundary from '../components/ErrorBoundary'
 // To enable: Vercel -> Settings -> Environment Variables
 //            NEXT_PUBLIC_CRISP_WEBSITE_ID = <the ID from crisp.chat>
 //            then redeploy.
+//
+// The loader runs inside the site's own bundled JavaScript (useEffect below),
+// not as an inline <script>, because the site's Content-Security-Policy
+// (next.config.js) blocks inline scripts. next.config.js allows *.crisp.chat.
 const CRISP_ID = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID
+
+function loadCrisp() {
+  if (!CRISP_ID || typeof window === 'undefined' || window.$crisp) return
+  window.$crisp = []
+  window.CRISP_WEBSITE_ID = CRISP_ID
+  // Match the chat language to the site language (?lang= wins, then the
+  // stored toggle choice, otherwise English). Crisp reads
+  // CRISP_RUNTIME_CONFIG once at load, so a toggle after load applies on
+  // the next page view.
+  try {
+    let lang = 'en'
+    const param = new URLSearchParams(window.location.search).get('lang')
+    if (param === 'zh' || param === 'zh-TW' || param === 'zh-Hant') {
+      lang = 'zh'
+    } else if (param !== 'en') {
+      try {
+        if (window.localStorage.getItem('cll_lang') === 'zh') lang = 'zh'
+      } catch (e) {}
+    }
+    window.CRISP_RUNTIME_CONFIG = { locale: lang === 'zh' ? 'zh-tw' : 'en' }
+  } catch (e) {}
+  const s = document.createElement('script')
+  s.src = 'https://client.crisp.chat/l.js'
+  s.async = true
+  document.head.appendChild(s)
+}
 
 export default function App({ Component, pageProps }) {
   const router = useRouter()
+
+  useEffect(() => {
+    loadCrisp()
+  }, [])
 
   useEffect(() => {
     let observer
@@ -90,36 +124,6 @@ export default function App({ Component, pageProps }) {
       </Script>
       <Component {...pageProps} />
 
-      {CRISP_ID ? (
-        <Script id="crisp-widget" strategy="afterInteractive">
-          {`
-            window.$crisp = [];
-            window.CRISP_WEBSITE_ID = "${CRISP_ID}";
-            // Match the chat language to the site language (?lang= wins,
-            // then the stored toggle choice, otherwise English). Crisp reads
-            // CRISP_RUNTIME_CONFIG once at load, so a toggle after load
-            // applies on the next page view.
-            try {
-              var cllLang = "en";
-              var cllParam = new URLSearchParams(window.location.search).get("lang");
-              if (cllParam === "zh" || cllParam === "zh-TW" || cllParam === "zh-Hant") {
-                cllLang = "zh";
-              } else if (cllParam !== "en") {
-                try {
-                  if (window.localStorage.getItem("cll_lang") === "zh") cllLang = "zh";
-                } catch (e) {}
-              }
-              window.CRISP_RUNTIME_CONFIG = { locale: cllLang === "zh" ? "zh-tw" : "en" };
-            } catch (e) {}
-            (function () {
-              var d = document, s = d.createElement("script");
-              s.src = "https://client.crisp.chat/l.js";
-              s.async = 1;
-              d.getElementsByTagName("head")[0].appendChild(s);
-            })();
-          `}
-        </Script>
-      ) : null}
     </ErrorBoundary>
   )
 }
