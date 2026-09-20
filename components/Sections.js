@@ -257,10 +257,10 @@ export function Contact() {
           ))}
         </div>
 
-        <div className={styles.contactEmail} style={{ marginTop: '22px' }}>
+        <div className={styles.contactEmail} style={{ marginTop: '22px', textAlign: 'center' }}>
           <a href="mailto:info@cosmosledgerlabs.com" style={{ color: 'inherit', textDecoration: 'none' }}>✉ info@cosmosledgerlabs.com</a>
         </div>
-        <div className={styles.contactLocation}>{L({ en: '📍 Toronto, Ontario, Canada', zh: '📍 加拿大安大略省多倫多' })}</div>
+        <div className={styles.contactLocation} style={{ textAlign: 'center' }}>{L({ en: '📍 Toronto, Ontario, Canada', zh: '📍 加拿大安大略省多倫多' })}</div>
       </div>
 
       <style jsx>{`
