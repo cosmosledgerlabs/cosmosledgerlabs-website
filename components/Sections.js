@@ -249,7 +249,7 @@ export function Contact() {
               aria-label={c.label}
               title={c.label}
             >
-              <span className="channelDot" style={{ background: c.color, color: c.fg || '#fff' }}>
+              <span className="channelDot">
                 <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d={c.path}/></svg>
               </span>
               <span className="channelLabel">{c.label}</span>
@@ -286,14 +286,17 @@ export function Contact() {
           width: 58px;
           height: 58px;
           border-radius: 50%;
-          color: #fff;
-          box-shadow: 0 4px 14px rgba(0, 0, 0, .45);
-          transition: transform .18s ease, box-shadow .18s ease;
+          color: var(--cyan-soft);
+          border: 1px solid rgba(0, 160, 210, .25);
+          background: rgba(0, 10, 25, .4);
+          transition: transform .18s ease, color .2s, border-color .2s, box-shadow .2s;
         }
         .channelDot svg { width: 26px; height: 26px; }
         .channelBtn:hover .channelDot {
-          transform: translateY(-3px) scale(1.06);
-          box-shadow: 0 8px 22px rgba(0, 180, 220, .45);
+          transform: translateY(-3px);
+          color: var(--cyan);
+          border-color: rgba(0, 215, 255, .6);
+          box-shadow: 0 0 14px rgba(0, 180, 220, .35);
         }
         .channelLabel {
           font-family: 'Rajdhani', sans-serif;
