@@ -37,7 +37,7 @@ const SERVICES = [
       { en: 'Deployment and full source code handover', zh: '部署與完整原始碼移交' },
     ],
     price: 'US$3,000',
-    time: { en: '2–3 WEEKS', zh: '2–3 週' },
+    time: { en: '4–6 WEEKS', zh: '4–6 週' },
   },
   {
     n: '03',
@@ -54,7 +54,7 @@ const SERVICES = [
       { en: 'Testnet rehearsal, then mainnet execution', zh: '測試網演練後再執行主網' },
     ],
     price: 'US$2,500',
-    time: { en: '1–2 WEEKS', zh: '1–2 週' },
+    time: { en: '4–6 WEEKS', zh: '4–6 週' },
   },
   {
     n: '04',
@@ -70,7 +70,7 @@ const SERVICES = [
       { en: 'Testnet rehearsal before launch', zh: '上線前測試網演練' },
     ],
     price: 'US$3,000',
-    time: { en: '2–3 WEEKS', zh: '2–3 週' },
+    time: { en: '4–6 WEEKS', zh: '4–6 週' },
   },
   {
     n: '05',
@@ -86,7 +86,7 @@ const SERVICES = [
       { en: 'Monitoring setup', zh: '監控設定' },
     ],
     price: 'US$8,000',
-    time: { en: '4–8 WEEKS', zh: '4–8 週' },
+    time: { en: '4–6 WEEKS', zh: '4–6 週' },
   },
   {
     n: '06',
@@ -101,7 +101,7 @@ const SERVICES = [
       { en: 'Transaction handling and error states', zh: '交易處理與錯誤狀態' },
     ],
     price: 'US$6,000',
-    time: { en: '3–5 WEEKS', zh: '3–5 週' },
+    time: { en: '4–6 WEEKS', zh: '4–6 週' },
   },
 ]
 
