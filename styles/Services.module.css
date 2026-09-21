@@ -482,5 +482,7 @@
 @media (min-width: 768px) {
   :global(html[lang^="zh"]) .lede {
     max-width: none;
+    text-align: center;
+    text-align-last: center;
   }
 }
