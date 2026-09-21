@@ -486,3 +486,12 @@
     text-align-last: center;
   }
 }
+
+
+/* English, tablet and desktop: the intro runs to two lines, so the short
+   last line is centred under the first instead of starting at the left. */
+@media (min-width: 768px) {
+  :global(html:not([lang^="zh"])) .lede {
+    text-align-last: center;
+  }
+}
