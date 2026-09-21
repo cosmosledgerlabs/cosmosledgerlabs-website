@@ -26,11 +26,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 
@@ -81,11 +81,11 @@
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-weight: 600;
   line-height: 1.55;
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 .archLayer::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:linear-gradient(180deg,var(--cyan),rgba(0,100,200,.3)); }
@@ -97,11 +97,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 
@@ -117,7 +117,7 @@
 }
 .wfDot { width:8px; height:8px; border-radius:50%; flex-shrink:0; background:var(--cyan); }
 .wfNum { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:700; color:#44bbcc; min-width:40px; letter-spacing:.1em; flex-shrink:0; }
-.wfLabel { font-family:'Rajdhani',sans-serif; font-size:clamp(14px,1.6vw,15px); font-weight:700; color:var(--text); letter-spacing:.05em; flex:1 1 auto; min-width:0; text-align:justify; text-justify:inter-word; -webkit-hyphens:none; hyphens:none; }
+.wfLabel { font-family:'Rajdhani',sans-serif; font-size:clamp(14px,1.6vw,15px); font-weight:700; color:var(--text); letter-spacing:.05em; flex:1 1 auto; min-width:0; text-align: var(--para-align, justify); text-justify: var(--para-justify, inter-word); -webkit-hyphens:none; hyphens:none; }
 .wfLine { display:none; }
 
 /* ===== SECURITY — 3+3 grid ===== */
@@ -149,11 +149,11 @@
   font-weight: 600;
   line-height: 1.4;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 
@@ -165,11 +165,11 @@
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-weight: 600;
   line-height: 1.55;
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 
@@ -220,11 +220,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 
@@ -253,7 +253,7 @@
 .contactEmail {
   font-family:'Rajdhani',sans-serif; font-size:clamp(14px,2vw,18px); font-weight:700;
   color:var(--cyan); letter-spacing:.06em;
-  overflow-wrap: anywhere; /* wrap cleanly if needed, no mid-word cuts on normal widths */
+  overflow-wrap: break-word; /* wrap cleanly if needed, no mid-word cuts on normal widths */
 }
 .contactLocation { font-family:'Rajdhani',sans-serif; font-size:clamp(13px,1.6vw,15px); font-weight:600; color:var(--text-muted); margin-top:16px; letter-spacing:.08em; }
 
@@ -267,11 +267,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 } /* 手机隐藏副标签 */
   /* Stack the phase title and status badge vertically so they can never overlap */
@@ -297,11 +297,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 .teamBlock { margin-top:20px; }
@@ -316,11 +316,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
   .ecoText{ font-size:14.5px; }
@@ -347,11 +347,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 @media(max-width:767px){
@@ -362,11 +362,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 }
@@ -381,11 +381,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 @media(max-width:767px){ .fCard{ padding:22px 20px; } .fNum{ font-size:38px; } .fTitleBar{ padding:9px 22px; } .fBody {
@@ -394,11 +394,11 @@
   font-weight: 600;
   line-height: 1.55;
   color: var(--text);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 } }
 
@@ -408,11 +408,11 @@
   font-weight: 600;
   font-size: clamp(14px, 1.5vw, 15px);
   line-height: 1.55;
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 
@@ -423,8 +423,8 @@
 
 /* technology line: centred in its box (2026-09-13) */
 .techCenter {
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   text-align-last: left;
 }
 
