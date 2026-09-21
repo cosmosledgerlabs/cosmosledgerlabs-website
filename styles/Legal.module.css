@@ -169,9 +169,14 @@
 }
 
 
-/* Email address inside a paragraph (privacy page): its own line, so the
-   justified line before it is not stretched with big gaps. */
+/* Email address inside a paragraph (privacy page), phones only: its own
+   line, so the justified line before it is not stretched with big gaps.
+   On wider screens the lines are long enough that it stays inline. */
 .mailLine {
-  display: block;
   white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .mailLine {
+    display: block;
+  }
 }
