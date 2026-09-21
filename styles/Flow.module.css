@@ -65,8 +65,8 @@
   font-size: clamp(13px, 1.5vw, 15px);
   line-height: 1.8;
   color: var(--text-muted);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
 }
 
 /* ===== CONTROL PANEL ===== */
@@ -127,8 +127,8 @@
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-muted);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   text-wrap: pretty;
 }
 
@@ -293,8 +293,8 @@
   line-height: 1.65;
   color: var(--text-muted);
   margin-bottom: 12px;
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   text-wrap: pretty;
 }
 
@@ -415,8 +415,8 @@
   max-width: 76ch;
   margin-left: auto;
   margin-right: auto;
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   text-wrap: pretty;
 }
 
@@ -480,8 +480,8 @@
   font-size: 12px;
   line-height: 1.6;
   color: var(--text-muted);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   text-wrap: pretty;
 }
 
@@ -646,11 +646,11 @@
   font-size: clamp(14px, 1.5vw, 15px);
   line-height: 1.55;
   color: var(--text-muted);
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   -webkit-hyphens: none;
   hyphens: none;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   text-wrap: pretty;
 }
 
@@ -663,8 +663,8 @@
   border-left: 2px solid rgba(0, 220, 255, .38);
   padding-left: 12px;
   margin-bottom: 14px;
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   text-wrap: pretty;
 }
 
@@ -683,11 +683,23 @@
   .verifyIntro,
   .howNote,
   .disclaimer {
-    text-align: justify;
-    text-justify: inter-word;
+    text-align: var(--para-align, justify);
+    text-justify: var(--para-justify, inter-word);
     -webkit-hyphens: none;
     hyphens: none;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     word-spacing: -0.04em;
+  }
+}
+
+
+/* Chinese, tablet and desktop: remove the narrow width cap so short
+   intro text runs on one line instead of leaving a few characters on a
+   second line. (The cap was sized for English; Chinese characters are
+   twice as wide as the "ch" unit, so it cut Chinese lines too early.) */
+@media (min-width: 768px) {
+  :global(html[lang^="zh"]) .subtitle,
+  :global(html[lang^="zh"]) .disclaimer {
+    max-width: none;
   }
 }
