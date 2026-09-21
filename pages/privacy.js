@@ -4,6 +4,19 @@ import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
 import styles from '../styles/Legal.module.css'
 
+/* A long email address cannot be split, so in a justified paragraph the
+   line before it was stretched with big gaps. The address (with its closing
+   punctuation) is placed on its own line instead, so no line is stretched. */
+const MAIL_RE = /(info@cosmosledgerlabs\.com[.。，,]?)/
+function withMail(text) {
+  if (typeof text !== 'string' || !MAIL_RE.test(text)) return text
+  return text.split(MAIL_RE).map((part, i) =>
+    MAIL_RE.test(part)
+      ? <span key={i} className={styles.mailLine}>{part}</span>
+      : part
+  )
+}
+
 const UPDATED = '2026-09-11'
 
 const SECTIONS = [
@@ -130,7 +143,7 @@ export default function Privacy() {
             <section key={s.h.en} className={styles.section}>
               <h2 className={styles.h2}>{L(s.h)}</h2>
               {s.body.map((p) => (
-                <p key={p.en} className={styles.body}>{L(p)}</p>
+                <p key={p.en} className={styles.body}>{withMail(L(p))}</p>
               ))}
             </section>
           ))}
