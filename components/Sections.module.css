@@ -432,3 +432,12 @@
 .tightCard {
   padding: 14px 16px;
 }
+
+/* How We Work lines 03 + 04 (English, phones only): smaller text, no letter
+   spacing, so each line fills the box with whole words and no big gaps (2026-09-21) */
+@media (max-width: 767px) {
+  .wfLabelTight {
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+}
