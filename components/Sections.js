@@ -55,8 +55,8 @@ export function HowWeWork() {
   const steps = [
     { t: { en: 'SCOPE', zh: '需求界定' }, d: { en: 'A call to define exactly what will be built, and what won\u2019t.', zh: '一通會議，明確定義要建什麼、不建什麼。' } },
     { t: { en: 'QUOTE', zh: '報價' }, d: { en: 'Fixed scope, written quote, milestone schedule.', zh: '固定範圍、書面報價、里程碑時程。' } },
-    { t: { en: 'BUILD', zh: '建置' }, d: { en: 'Version-controlled development against the agreed specification.', zh: '依約定規格進行版本控管的開發。' } },
-    { t: { en: 'VERIFY', zh: '驗證' }, d: { en: 'Everything tested on Solana devnet before any mainnet action.', zh: '任何主網操作前，一律先在 Solana devnet 完整測試。' } },
+    { t: { en: 'BUILD', zh: '建置' }, d: { en: 'Version-controlled development against the agreed specification.', zh: '依約定規格進行版本控管的開發。' }, tight: true },
+    { t: { en: 'VERIFY', zh: '驗證' }, d: { en: 'Everything tested on Solana devnet before any mainnet action.', zh: '任何主網操作前，一律先在 Solana devnet 完整測試。' }, tight: true },
     { t: { en: 'HANDOVER', zh: '交付' }, d: { en: 'Code, credentials, and a run-book your team can operate without us.', zh: '程式碼、憑證與操作手冊，您的團隊無需我們也能營運。' } },
   ]
   return (
@@ -69,7 +69,7 @@ export function HowWeWork() {
             <div className={styles.wfStep}>
               <div className={styles.wfDot}/>
               <span className={styles.wfNum}>{String(i + 1).padStart(2, '0')} //</span>
-              <span className={styles.wfLabel}>{L(s.t)} — {L(s.d)}</span>
+              <span className={s.tight && lang === 'en' ? `${styles.wfLabel} ${styles.wfLabelTight}` : styles.wfLabel}>{L(s.t)} — {L(s.d)}</span>
             </div>
             {i < steps.length - 1 && <div className={styles.wfLine}/>}
           </span>
