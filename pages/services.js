@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import { useEffect, useRef } from 'react'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
@@ -149,8 +150,88 @@ const EXCLUSIONS = [
   { en: 'Provide investment, legal, tax or accounting advice', zh: '提供投資、法律、稅務或會計建議' },
 ]
 
+/* Straight right edge for the two short notes on this page (the fee box and
+   the multi-chain note), English on phones only. Each line keeps its whole
+   words; the leftover space at the end of a line is shared as a tiny amount
+   between the letters and the rest between the words, so no gap gets large.
+   Nothing else on the site is affected. */
+function fitLines(el) {
+  if (!el) return
+  // If React has replaced the text (e.g. after a language switch), the plain
+  // text is the new original; otherwise use the text saved before splitting.
+  const fitted = el.dataset.fitText !== undefined && el.querySelector('span')
+  const original = fitted ? el.dataset.fitText : el.textContent
+  el.textContent = original
+  delete el.dataset.fitText
+  if (window.innerWidth > 480) return
+  const cs = getComputedStyle(el)
+  const fs = parseFloat(cs.fontSize)
+  const words = original.replace(/\s+/g, ' ').trim().split(' ')
+  el.dataset.fitText = original
+  el.textContent = ''
+  const spans = words.map((w, i) => {
+    const s = document.createElement('span')
+    s.textContent = w
+    s.style.whiteSpace = 'nowrap' // keep words like "EVM-compatible" whole
+    el.appendChild(s)
+    if (i < words.length - 1) el.appendChild(document.createTextNode(' '))
+    return s
+  })
+  const lines = []
+  let cur = []
+  let top = null
+  spans.forEach((s) => {
+    const t = s.offsetTop
+    if (top === null || Math.abs(t - top) < 3) cur.push(s.textContent)
+    else { lines.push(cur); cur = [s.textContent] }
+    top = t
+  })
+  lines.push(cur)
+  const avail = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+  const baseLs = cs.letterSpacing === 'normal' ? 0 : parseFloat(cs.letterSpacing) || 0
+  el.textContent = ''
+  lines.forEach((ln, i) => {
+    const line = document.createElement('span')
+    line.textContent = ln.join(' ')
+    line.style.display = 'block'
+    el.appendChild(line)
+    if (i === lines.length - 1 || ln.length < 2) return
+    line.style.display = 'inline-block'
+    line.style.whiteSpace = 'nowrap'
+    const natural = line.getBoundingClientRect().width
+    const chars = line.textContent.length
+    const ls = Math.max(0, Math.min(((avail - natural) * 0.65) / chars, 0.07 * fs))
+    line.style.display = 'block'
+    line.style.letterSpacing = (baseLs + ls).toFixed(3) + 'px'
+    line.style.textAlign = 'justify'
+    line.style.textAlignLast = 'justify'
+  })
+}
+
 export default function Services() {
   const { lang, isZh } = useLang()
+  const noteRef = useRef(null)
+  const feeRef = useRef(null)
+
+  useEffect(() => {
+    const fit = () => {
+      ;[noteRef.current, feeRef.current].forEach((el) => {
+        if (!el) return
+        if (isZh) {
+          if (el.dataset.fitText !== undefined && el.querySelector('span')) el.textContent = el.dataset.fitText
+          delete el.dataset.fitText
+          return
+        }
+        try { fitLines(el) } catch (e) {}
+      })
+    }
+    fit()
+    let timer
+    const onResize = () => { clearTimeout(timer); timer = setTimeout(fit, 150) }
+    window.addEventListener('resize', onResize)
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit)
+    return () => { window.removeEventListener('resize', onResize); clearTimeout(timer) }
+  }, [lang, isZh])
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
 
   return (
@@ -234,7 +315,7 @@ export default function Services() {
               ))}
             </div>
 
-            <p className={styles.note}>{t('services', 'note', lang)}</p>
+            <p ref={noteRef} className={styles.note}>{t('services', 'note', lang)}</p>
           </section>
 
           <hr className="divider" />
@@ -271,7 +352,7 @@ export default function Services() {
               ))}
             </div>
             <div className={styles.steelCard}>
-              <p className={styles.plainStrong}>{t('services', 'feeNote', lang)}</p>
+              <p ref={feeRef} className={styles.plainStrong}>{t('services', 'feeNote', lang)}</p>
             </div>
           </section>
 
