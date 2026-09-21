@@ -180,3 +180,14 @@
     display: block;
   }
 }
+
+/* Marked privacy paragraphs: the email stays on the same line as the word
+   before it ("contact" / "請聯絡"); slightly smaller on phones so it fits (2026-09-21) */
+.mailKeep {
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .mailSmall {
+    font-size: .9em;
+  }
+}
