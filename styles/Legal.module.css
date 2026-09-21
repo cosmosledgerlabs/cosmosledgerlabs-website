@@ -67,10 +67,10 @@
   font-size: clamp(14px, 1.5vw, 16px);
   line-height: 1.75;
   color: var(--text);
-  text-justify: inter-word;
+  text-justify: var(--para-justify, inter-word);
   margin-bottom: 12px;
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   text-wrap: pretty;
   white-space: pre-line;
 }
@@ -84,8 +84,8 @@
   color: var(--text);
   margin-bottom: 8px;
   padding-left: 4px;
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   text-wrap: pretty;
 }
 
@@ -116,10 +116,10 @@
   line-height: 1.75;
   color: var(--text);
   font-weight: 700;
-  text-justify: inter-word;
+  text-justify: var(--para-justify, inter-word);
   margin-bottom: 12px;
-  text-align: justify;
-  text-justify: inter-word;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
   text-wrap: pretty;
 }
 
@@ -149,8 +149,8 @@
   .body,
   .strong,
   .item {
-    text-align: justify;
-    text-justify: inter-word;
+    text-align: var(--para-align, justify);
+    text-justify: var(--para-justify, inter-word);
     -webkit-hyphens: none;
     hyphens: none;
     overflow-wrap: normal;
