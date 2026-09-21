@@ -8,13 +8,23 @@ import styles from '../styles/Legal.module.css'
    line before it was stretched with big gaps. The address (with its closing
    punctuation) is placed on its own line instead, so no line is stretched. */
 const MAIL_RE = /(info@cosmosledgerlabs\.com[.。，,]?)/
-function withMail(text) {
+function withMail(text, inline) {
   if (typeof text !== 'string' || !MAIL_RE.test(text)) return text
-  return text.split(MAIL_RE).map((part, i) =>
-    MAIL_RE.test(part)
-      ? <span key={i} className={styles.mailLine}>{part}</span>
-      : part
-  )
+  const parts = text.split(MAIL_RE)
+  return parts.map((part, i) => {
+    if (!MAIL_RE.test(part)) {
+      /* Marked paragraphs: the word before the email is held on the same
+         line as the email, so the email is never left on a line by itself. */
+      if (inline && i + 1 < parts.length && MAIL_RE.test(parts[i + 1])) {
+        const trimmed = part.replace(/\s+$/, '')
+        const cut = Math.max(trimmed.lastIndexOf(' '), trimmed.lastIndexOf('，'))
+        return <span key={i}>{trimmed.slice(0, cut + 1)}<span className={styles.mailKeep}>{trimmed.slice(cut + 1)} <span className={styles.mailSmall}>{parts[i + 1]}</span></span></span>
+      }
+      return part
+    }
+    if (inline) return null
+    return <span key={i} className={styles.mailLine}>{part}</span>
+  })
 }
 
 const UPDATED = '2026-09-11'
@@ -26,6 +36,7 @@ const SECTIONS = [
       {
         en: 'This website is operated by COSMOS Ledger Labs Inc., a digital asset technology company based in Toronto, Ontario, Canada. For anything in this policy, contact info@cosmosledgerlabs.com.',
         zh: '本網站由 COSMOS Ledger Labs Inc. 營運，是一家位於加拿大安大略省多倫多的數位資產技術公司。與本政策相關的任何事項，請聯絡 info@cosmosledgerlabs.com。',
+        mailInline: ['en', 'zh'],
       },
     ],
   },
@@ -89,6 +100,7 @@ const SECTIONS = [
       {
         en: 'If you have emailed us and would like to know what correspondence we hold, or would like it deleted where we have no legal or contractual reason to keep it, contact info@cosmosledgerlabs.com.',
         zh: '若您曾與我們通信，並希望了解我們保存了哪些通信內容，或在我們無法律或合約上保存理由的情況下希望刪除該內容，請聯絡 info@cosmosledgerlabs.com。',
+        mailInline: ['zh'],
       },
     ],
   },
@@ -143,7 +155,7 @@ export default function Privacy() {
             <section key={s.h.en} className={styles.section}>
               <h2 className={styles.h2}>{L(s.h)}</h2>
               {s.body.map((p) => (
-                <p key={p.en} className={styles.body}>{withMail(L(p))}</p>
+                <p key={p.en} className={styles.body}>{withMail(L(p), (p.mailInline || []).includes(isZh ? 'zh' : 'en'))}</p>
               ))}
             </section>
           ))}
