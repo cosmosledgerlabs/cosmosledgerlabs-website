@@ -167,3 +167,11 @@
 .emailLine {
   color: var(--cyan);
 }
+
+
+/* Email address inside a paragraph (privacy page): its own line, so the
+   justified line before it is not stretched with big gaps. */
+.mailLine {
+  display: block;
+  white-space: nowrap;
+}
