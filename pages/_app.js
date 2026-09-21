@@ -2,7 +2,6 @@ import '../styles/globals.css'
 import Head from 'next/head'
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import Script from 'next/script'
 import ErrorBoundary from '../components/ErrorBoundary'
 
 // Crisp live chat.
@@ -46,10 +45,35 @@ function loadCrisp() {
   document.head.appendChild(s)
 }
 
+// WeChat font lock.
+// WeChat's in-app "Text Size" setting force-scales webpage fonts, which makes
+// the whole site look oversized inside WeChat. The official WeixinJSBridge
+// callback resets the page to normal size. Runs only inside WeChat -
+// WeixinJSBridge does not exist anywhere else.
+// This runs from the site's own bundled JavaScript, because the
+// Content-Security-Policy blocks inline <script> tags.
+function lockWeChatFontSize() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return
+  const lock = () => {
+    try {
+      window.WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 })
+      window.WeixinJSBridge.on('menu:setfont', () => {
+        window.WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 })
+      })
+    } catch (e) {}
+  }
+  if (window.WeixinJSBridge && typeof window.WeixinJSBridge.invoke === 'function') {
+    lock()
+  } else {
+    document.addEventListener('WeixinJSBridgeReady', lock, false)
+  }
+}
+
 export default function App({ Component, pageProps }) {
   const router = useRouter()
 
   useEffect(() => {
+    lockWeChatFontSize()
     loadCrisp()
   }, [])
 
@@ -100,28 +124,6 @@ export default function App({ Component, pageProps }) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
-      <Script id="wechat-font-lock" strategy="afterInteractive">
-        {`
-          // WeChat's in-app "Text Size" setting force-scales webpage fonts.
-          // The official WeixinJSBridge callback resets pages to normal size.
-          // Runs only inside WeChat - WeixinJSBridge does not exist anywhere else.
-          (function () {
-            function lock() {
-              try {
-                WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 });
-                WeixinJSBridge.on('menu:setfont', function () {
-                  WeixinJSBridge.invoke('setFontSizeCallback', { fontSize: 0 });
-                });
-              } catch (e) {}
-            }
-            if (typeof WeixinJSBridge === 'object' && typeof WeixinJSBridge.invoke === 'function') {
-              lock();
-            } else {
-              document.addEventListener('WeixinJSBridgeReady', lock, false);
-            }
-          })();
-        `}
-      </Script>
       <Component {...pageProps} />
 
     </ErrorBoundary>
