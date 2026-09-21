@@ -488,10 +488,9 @@
 }
 
 
-/* English, tablet and desktop: the intro runs to two lines, so the short
-   last line is centred under the first instead of starting at the left. */
-@media (min-width: 768px) {
-  :global(html:not([lang^="zh"])) .lede {
-    text-align-last: center;
-  }
+/* Intro paragraph, both languages, every screen size: full lines run
+   edge to edge, and the short last line is centred under them instead of
+   starting at the left, matching the centred title and buttons. */
+.lede {
+  text-align-last: center;
 }
