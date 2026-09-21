@@ -253,17 +253,14 @@ section[id]{scroll-margin-top:90px;}
    --para-align, so the rule below controls all pages from one place.
 
    - Desktop, both languages: justified (flush left and right edges).
-   - Phone, English: left-aligned. On a narrow screen, justified English
-     stretches the spaces between words and opens big gaps.
+   - Phone, English: justified too (flush left and right edges). The big
+     word gaps seen earlier came from WeChat enlarging the text; with the
+     WeChat font lock in _app.js the text is normal size and gaps stay small.
    - Phone and desktop, Chinese: justified. Chinese has no spaces, so the
      browser spreads the characters evenly and every line ends flush.
    - Words are never hyphenated or split. Only something that cannot fit
      on a line by itself (for example a long email address) may wrap.   */
 :root { --para-align: justify; --para-justify: inter-word; }
-
-@media (max-width: 767px) {
-  html:not([lang^="zh"]) { --para-align: left; }
-}
 
 /* Chinese: "inter-word" would only stretch spaces, and Chinese has none,
    so lines stayed ragged. "auto" lets the browser spread the characters. */
