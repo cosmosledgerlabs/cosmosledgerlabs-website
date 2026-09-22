@@ -105,20 +105,22 @@
   text-wrap: pretty;
 }
 
-/* ===== WORKFLOW ===== */
-.wfList { display:flex; flex-direction:column; gap:6px; margin-top:12px; }
-.wfStep {
-  display:flex; align-items:center; gap:12px;
+/* ===== WORKFLOW (How We Work) — 5 boxes: number + title line, text below (2026-09-21) ===== */
+.wfGrid { display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
+@media (min-width: 900px) { .wfGrid { grid-template-columns:repeat(5, 1fr); } }
+.wfBox {
   border: 1px solid rgba(0, 190, 230, .3);
-  border-left: 3px solid rgba(0, 220, 255, .65);
+  border-top: 3px solid rgba(0, 220, 255, .65);
   border-radius: 5px;
   background: rgba(0, 10, 28, .8);
-  padding: 9px 11px;
+  padding: 12px 14px;
 }
-.wfDot { width:8px; height:8px; border-radius:50%; flex-shrink:0; background:var(--cyan); }
-.wfNum { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:700; color:#44bbcc; min-width:40px; letter-spacing:.1em; flex-shrink:0; }
-.wfLabel { font-family:'Rajdhani',sans-serif; font-size:clamp(14px,1.6vw,15px); font-weight:700; color:var(--text); letter-spacing:.05em; flex:1 1 auto; min-width:0; text-align: var(--para-align, justify); text-justify: var(--para-justify, inter-word); -webkit-hyphens:none; hyphens:none; }
-.wfLine { display:none; }
+.wfHead { display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+.wfNum { font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; color:var(--cyan); text-shadow:0 0 10px rgba(0,232,255,.6); line-height:1; }
+.wfTitle { font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:700; letter-spacing:.1em; color:var(--text); }
+.wfDesc { font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:600; letter-spacing:.02em; line-height:1.5; color:#cfeff7; text-align:left; margin:0; -webkit-hyphens:none; hyphens:none; }
+/* QUOTE line on phones: no letter spacing so the whole sentence fits on one line */
+@media (max-width: 767px) { .wfDescOne { letter-spacing:0; } }
 
 /* ===== SECURITY — 3+3 grid ===== */
 .secGrid {
@@ -431,13 +433,4 @@
 /* four marked boxes only: text fills the frame (2026-09-13) */
 .tightCard {
   padding: 14px 16px;
-}
-
-/* How We Work lines 03 + 04 (English, phones only): smaller text, no letter
-   spacing, so each line fills the box with whole words and no big gaps (2026-09-21) */
-@media (max-width: 767px) {
-  .wfLabelTight {
-    font-size: 13px;
-    letter-spacing: 0;
-  }
 }
