@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
+import { MailLink, linkMail } from '../lib/mail'
 import styles from '../styles/Legal.module.css'
 
 const UPDATED = '2026-09-09'
@@ -70,8 +71,7 @@ const FIT_STEP = 0.25
 const FIT_OK = 2         // widest allowed gap = 2 normal spaces
 
 function worstGap(el) {
-  const tn = el.firstChild
-  if (!tn || tn.nodeType !== 3) return 0
+  if (!el.firstChild) return 0
   const probe = document.createElement('span')
   probe.textContent = ' '
   probe.style.whiteSpace = 'pre'
@@ -79,17 +79,22 @@ function worstGap(el) {
   const space = probe.getBoundingClientRect().width || 1
   el.removeChild(probe)
   const rects = []
-  let pos = 0
-  tn.textContent.split(' ').forEach((w) => {
-    if (w.length) {
-      const r = document.createRange()
-      r.setStart(tn, pos)
-      r.setEnd(tn, pos + w.length)
-      const rs = r.getClientRects()
-      if (rs.length) rects.push(rs[0])
-    }
-    pos += w.length + 1
-  })
+  /* every text node, including the text inside the email link */
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+  let tn
+  while ((tn = walker.nextNode())) {
+    let pos = 0
+    tn.textContent.split(' ').forEach((w) => {
+      if (w.length) {
+        const r = document.createRange()
+        r.setStart(tn, pos)
+        r.setEnd(tn, pos + w.length)
+        const rs = r.getClientRects()
+        if (rs.length) rects.push(rs[0])
+      }
+      pos += w.length + 1
+    })
+  }
   if (rects.length < 2) return 0
   const lastTop = rects[rects.length - 1].top
   let worst = 0
@@ -124,8 +129,8 @@ const FIT_LINES = [1, 2]   // "Cryptocurrency transfers…" and "A payment reque
 
 const withEmailLine = (text, cls) => {
   const i = text.indexOf('\n')
-  if (i === -1) return text
-  return (<>{text.slice(0, i)}{'\n'}<span className={cls}>{text.slice(i + 1)}</span></>)
+  if (i === -1) return linkMail(text)
+  return (<>{linkMail(text.slice(0, i))}{'\n'}<span className={cls}>{linkMail(text.slice(i + 1))}</span></>)
 }
 
 export default function Payment() {
@@ -221,9 +226,9 @@ export default function Payment() {
             </div>
             <div className={styles.card}>
               {VERIFY_LINES.map((line, i) => (
-                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{L(line)}</p>
+                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{linkMail(L(line))}</p>
               ))}
-              <div className={styles.email}>✉ info@cosmosledgerlabs.com</div>
+              <div className={styles.email}><MailLink>✉ info@cosmosledgerlabs.com</MailLink></div>
             </div>
           </section>
 
