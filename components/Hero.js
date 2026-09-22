@@ -48,17 +48,6 @@ export default function Hero() {
         <div className={styles.subline}>{L(T.subline)}</div>
         <div className={styles.gl}></div>
         <p className={styles.bodyTxt}>{L(T.body)}</p>
-        <div className={styles.btns}>
-          <Link href="/services" className={styles.bp}>{L(T.btnServices)}</Link>
-          <a
-            href={isZh
-              ? 'mailto:info@cosmosledgerlabs.com?subject=%E5%A0%B1%E5%83%B9%E8%AB%8B%E6%B1%82'
-              : 'mailto:info@cosmosledgerlabs.com?subject=Quote%20Request'}
-            className={styles.bs}
-          >
-            {L(T.btnQuote)}
-          </a>
-        </div>
       </div>
     </section>
   )
