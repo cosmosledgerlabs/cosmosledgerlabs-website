@@ -12,8 +12,8 @@ import styles from '../styles/Pay.module.css'
 
 const SERVICES = [
   { id: 'dashboards', name: { en: 'Dashboards & Interfaces', zh: '儀表板與介面' }, amount: 8000 },
-  { id: 'websites', name: { en: 'Websites & Landing Pages', zh: '網站與登陸頁' }, amount: 3000 },
-  { id: 'token', name: { en: 'Token Deployment', zh: '代幣部署' }, amount: 2500 },
+  { id: 'websites', name: { en: 'Websites & Landing Pages', zh: '網站與登陸頁' }, amount: 3800 },
+  { id: 'token', name: { en: 'Token Deployment', zh: '代幣部署' }, amount: 3800 },
   { id: 'claim', name: { en: 'Claim Portals', zh: '領取頁面' }, amount: 3000 },
   { id: 'data', name: { en: 'Data Integration & APIs', zh: '資料整合與 API' }, amount: 8000 },
   { id: 'frontends', name: { en: 'Contract Front-ends', zh: '合約前端介面' }, amount: 6000 },
