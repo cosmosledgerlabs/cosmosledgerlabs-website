@@ -191,3 +191,20 @@
     font-size: .9em;
   }
 }
+
+/* Privacy page: stand-alone contact line under WHO WE ARE — tappable email (2026-09-21) */
+.contactLine {
+  display: inline-block;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 15px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(15px, 1.5vw, 16px);
+  color: var(--cyan);
+  text-decoration: none;
+  letter-spacing: .02em;
+  margin-top: 4px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 190, 230, .35);
+  border-radius: 5px;
+  background: rgba(0, 10, 28, .8);
+}
+.contactLine:hover { border-color: var(--cyan); }
