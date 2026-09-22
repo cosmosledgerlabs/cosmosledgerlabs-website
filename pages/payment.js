@@ -210,6 +210,16 @@ function KeepEmail({ text, cls, phoneOnly }) {
 const withEmailKept = (text, cls, phoneOnly) =>
   text.indexOf('\n') === -1 ? linkMail(text) : <KeepEmail text={text} cls={cls} phoneOnly={phoneOnly} />
 
+/* "…forward it to info@cosmosledgerlabs.com." — the email is shown in cyan,
+   matching the other emails in this box (English, 2026-09-22). */
+const withCyanMail = (text) => {
+  const i = text.indexOf('info@cosmosledgerlabs.com')
+  if (i === -1) return text
+  const end = i + 'info@cosmosledgerlabs.com'.length
+  const dot = text.charAt(end) === '.' ? '.' : ''
+  return (<>{text.slice(0, i)}<span className={styles.emailLine}><MailLink />{dot}</span>{text.slice(end + dot.length)}</>)
+}
+
 export default function Payment() {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
@@ -303,9 +313,8 @@ export default function Payment() {
             </div>
             <div className={styles.card}>
               {VERIFY_LINES.map((line, i) => (
-                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{i === 0 ? withEmailKept(L(line), styles.emailLine) : withEmailLine(L(line))}</p>
+                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{i === 0 ? withEmailKept(L(line), styles.emailLine) : (i === 2 && !isZh) ? withCyanMail(L(line)) : withEmailLine(L(line))}</p>
               ))}
-              <div className={styles.email}><MailLink>✉ info@cosmosledgerlabs.com</MailLink></div>
             </div>
           </section>
 
