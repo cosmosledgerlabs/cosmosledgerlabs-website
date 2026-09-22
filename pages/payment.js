@@ -130,7 +130,10 @@ const FIT_LINES = [1, 2]   // "Cryptocurrency transfers…" and "A payment reque
 const withEmailLine = (text, cls) => {
   const i = text.indexOf('\n')
   if (i === -1) return linkMail(text)
-  return (<>{linkMail(text.slice(0, i))}{'\n'}<span className={cls}>{linkMail(text.slice(i + 1))}</span></>)
+  /* The email moves to its own line on phones only; on wider screens it stays
+     on the same line as the words before it (2026-09-21). */
+  const rest = linkMail(text.slice(i + 1))
+  return (<>{linkMail(text.slice(0, i))} <br className={styles.phoneBr} />{cls ? <span className={cls}>{rest}</span> : rest}</>)
 }
 
 export default function Payment() {
@@ -226,7 +229,7 @@ export default function Payment() {
             </div>
             <div className={styles.card}>
               {VERIFY_LINES.map((line, i) => (
-                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{linkMail(L(line))}</p>
+                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{withEmailLine(L(line))}</p>
               ))}
               <div className={styles.email}><MailLink>✉ info@cosmosledgerlabs.com</MailLink></div>
             </div>
