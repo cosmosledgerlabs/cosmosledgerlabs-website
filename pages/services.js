@@ -37,7 +37,7 @@ const SERVICES = [
       { en: 'Documentation and whitepaper pages', zh: '技術文件與白皮書頁面' },
       { en: 'Deployment and full source code handover', zh: '部署與完整原始碼移交' },
     ],
-    price: 'US$3,000',
+    price: 'US$3,800',
     time: { en: '4–6 WEEKS', zh: '4–6 週' },
   },
   {
@@ -54,7 +54,7 @@ const SERVICES = [
       { en: 'Written parameter documentation', zh: '參數設定書面文件' },
       { en: 'Testnet rehearsal, then mainnet execution', zh: '測試網演練後再執行主網' },
     ],
-    price: 'US$2,500',
+    price: 'US$3,800',
     time: { en: '4–6 WEEKS', zh: '4–6 週' },
   },
   {
