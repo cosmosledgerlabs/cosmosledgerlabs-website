@@ -2,6 +2,7 @@ import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
+import { linkMail } from '../lib/mail'
 import styles from '../styles/Legal.module.css'
 
 /* A long email address cannot be split, so in a justified paragraph the
@@ -18,12 +19,12 @@ function withMail(text, inline) {
       if (inline && i + 1 < parts.length && MAIL_RE.test(parts[i + 1])) {
         const trimmed = part.replace(/\s+$/, '')
         const cut = Math.max(trimmed.lastIndexOf(' '), trimmed.lastIndexOf('，'))
-        return <span key={i}>{trimmed.slice(0, cut + 1)}<span className={styles.mailKeep}>{trimmed.slice(cut + 1)} <span className={styles.mailSmall}>{parts[i + 1]}</span></span></span>
+        return <span key={i}>{trimmed.slice(0, cut + 1)}<span className={styles.mailKeep}>{trimmed.slice(cut + 1)} <span className={styles.mailSmall}>{linkMail(parts[i + 1])}</span></span></span>
       }
       return part
     }
     if (inline) return null
-    return <span key={i} className={styles.mailLine}>{part}</span>
+    return <span key={i} className={styles.mailLine}>{linkMail(part)}</span>
   })
 }
 
@@ -34,11 +35,11 @@ const SECTIONS = [
     h: { en: 'WHO WE ARE', zh: '我們是誰' },
     body: [
       {
-        en: 'This website is operated by COSMOS Ledger Labs Inc., a digital asset technology company based in Toronto, Ontario, Canada. For anything in this policy, contact info@cosmosledgerlabs.com.',
-        zh: '本網站由 COSMOS Ledger Labs Inc. 營運，是一家位於加拿大安大略省多倫多的數位資產技術公司。與本政策相關的任何事項，請聯絡 info@cosmosledgerlabs.com。',
-        mailInline: ['en', 'zh'],
+        en: 'This website is operated by COSMOS Ledger Labs Inc., a digital asset technology company based in Toronto, Ontario, Canada. For anything in this policy, contact us at:',
+        zh: '本網站由 COSMOS Ledger Labs Inc. 營運，是一家位於加拿大安大略省多倫多的數位資產技術公司。與本政策相關的任何事項，請聯絡：',
       },
     ],
+    contact: true,
   },
   {
     h: { en: 'WHAT THIS SITE COLLECTS', zh: '本網站收集什麼' },
@@ -157,6 +158,9 @@ export default function Privacy() {
               {s.body.map((p) => (
                 <p key={p.en} className={styles.body}>{withMail(L(p), (p.mailInline || []).includes(isZh ? 'zh' : 'en'))}</p>
               ))}
+              {s.contact && (
+                <a className={styles.contactLine} href="mailto:info@cosmosledgerlabs.com">✉ info@cosmosledgerlabs.com</a>
+              )}
             </section>
           ))}
 
