@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
@@ -59,6 +60,68 @@ const VERIFY_LINES = [
   },
 ]
 
+/* Marked lines in the verify card (2026-09-21): on phones, justified text left
+   big gaps between words. Instead of one fixed size (which only suits one screen
+   width), each marked line tries its normal size and, only if needed, steps down
+   a little until every line fills the width with close word spacing. Whole words
+   only; nothing changes on screens 768px and wider, or in Chinese. */
+const FIT_DROP = 2       // shrink at most 2px below the normal size
+const FIT_STEP = 0.25
+const FIT_OK = 2         // widest allowed gap = 2 normal spaces
+
+function worstGap(el) {
+  const tn = el.firstChild
+  if (!tn || tn.nodeType !== 3) return 0
+  const probe = document.createElement('span')
+  probe.textContent = ' '
+  probe.style.whiteSpace = 'pre'
+  el.appendChild(probe)
+  const space = probe.getBoundingClientRect().width || 1
+  el.removeChild(probe)
+  const rects = []
+  let pos = 0
+  tn.textContent.split(' ').forEach((w) => {
+    if (w.length) {
+      const r = document.createRange()
+      r.setStart(tn, pos)
+      r.setEnd(tn, pos + w.length)
+      const rs = r.getClientRects()
+      if (rs.length) rects.push(rs[0])
+    }
+    pos += w.length + 1
+  })
+  if (rects.length < 2) return 0
+  const lastTop = rects[rects.length - 1].top
+  let worst = 0
+  for (let i = 1; i < rects.length; i++) {
+    const sameLine = Math.abs(rects[i].top - rects[i - 1].top) < 2
+    const onLastLine = Math.abs(rects[i].top - lastTop) < 2
+    if (sameLine && !onLastLine) {
+      worst = Math.max(worst, (rects[i].left - rects[i - 1].right) / space)
+    }
+  }
+  return worst
+}
+
+function fitLine(el, active) {
+  if (!el) return
+  el.style.fontSize = ''
+  if (!active || window.innerWidth >= 768) return
+  const base = parseFloat(window.getComputedStyle(el).fontSize)
+  if (!base) return
+  let best = base
+  let bestGap = Infinity
+  for (let size = base; size >= base - FIT_DROP - 0.001; size -= FIT_STEP) {
+    el.style.fontSize = size + 'px'
+    const g = worstGap(el)
+    if (g <= FIT_OK) return
+    if (g < bestGap) { bestGap = g; best = size }
+  }
+  el.style.fontSize = best + 'px'
+}
+
+const FIT_LINES = [1, 2]   // "Cryptocurrency transfers…" and "A payment request…"
+
 const withEmailLine = (text, cls) => {
   const i = text.indexOf('\n')
   if (i === -1) return text
@@ -68,6 +131,22 @@ const withEmailLine = (text, cls) => {
 export default function Payment() {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+  const fitRefs = useRef([])
+
+  useEffect(() => {
+    const run = () => fitRefs.current.forEach((el) => fitLine(el, !isZh))
+    run()
+    let t
+    const onResize = () => { clearTimeout(t); t = setTimeout(run, 100) }
+    window.addEventListener('resize', onResize)
+    try { if (document.fonts && document.fonts.ready) document.fonts.ready.then(run) } catch (e) {}
+    const late = setTimeout(run, 600)
+    return () => {
+      clearTimeout(t)
+      clearTimeout(late)
+      window.removeEventListener('resize', onResize)
+    }
+  }, [isZh])
 
   return (
     <>
@@ -142,7 +221,7 @@ export default function Payment() {
             </div>
             <div className={styles.card}>
               {VERIFY_LINES.map((line, i) => (
-                <p className={styles.body} key={i}>{L(line)}</p>
+                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{L(line)}</p>
               ))}
               <div className={styles.email}>✉ info@cosmosledgerlabs.com</div>
             </div>
