@@ -281,12 +281,6 @@ export default function Services() {
             <div className={styles.subline}>{t('services', 'subline', lang)}</div>
             <div className={styles.gl}></div>
             <p className={styles.lede}>{t('services', 'lede', lang)}</p>
-            <div className={styles.btns}>
-              <a href={isZh ? 'mailto:info@cosmosledgerlabs.com?subject=%E6%9C%8D%E5%8B%99%E6%B4%BD%E8%A9%A2' : 'mailto:info@cosmosledgerlabs.com?subject=Service%20Enquiry'} className={styles.bp}>
-                {t('services', 'btnQuote', lang)}
-              </a>
-              <a href="#services" className={styles.bs}>{t('services', 'btnSee', lang)}</a>
-            </div>
           </header>
 
           <hr className="divider" />
