@@ -136,6 +136,50 @@ const withEmailLine = (text, cls) => {
   return (<>{linkMail(text.slice(0, i))} <br className={styles.phoneBr} />{cls ? <span className={cls}>{rest}</span> : rest}</>)
 }
 
+/* The two marked lines ("…official invoice from" and "…official invoices sent
+   from"): on phones the email is shrunk just enough to stay on the same line
+   as the words before it, so no empty gap is left at the end of the line
+   (2026-09-22). */
+function KeepEmail({ text, cls }) {
+  const prevRef = useRef(null)
+  const unitRef = useRef(null)
+  const mailRef = useRef(null)
+  useEffect(() => {
+    const fit = () => {
+      const prev = prevRef.current, unit = unitRef.current, mail = mailRef.current
+      if (!prev || !unit || !mail) return
+      mail.style.fontSize = ''
+      if (window.innerWidth >= 768) return
+      for (let f = 1; f >= 0.7; f -= 0.02) {
+        mail.style.fontSize = f + 'em'
+        if (Math.abs(unit.getBoundingClientRect().top - prev.getBoundingClientRect().top) < 2) return
+      }
+      mail.style.fontSize = ''
+    }
+    fit()
+    window.addEventListener('resize', fit)
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [text])
+  const i = text.indexOf('\n')
+  const before = text.slice(0, i)
+  const w1 = before.lastIndexOf(' ')             // space before "from"
+  const w2 = before.lastIndexOf(' ', w1 - 1)     // space before the word before "from"
+  return (
+    <>
+      {linkMail(before.slice(0, w2 + 1))}
+      <span ref={prevRef}>{before.slice(w2 + 1, w1)}</span>{' '}
+      <span ref={unitRef} className={styles.mailKeep}>
+        {before.slice(w1 + 1)}{' '}
+        <span ref={mailRef} className={cls}>{linkMail(text.slice(i + 1))}</span>
+      </span>
+    </>
+  )
+}
+
+const withEmailKept = (text, cls) =>
+  text.indexOf('\n') === -1 ? linkMail(text) : <KeepEmail text={text} cls={cls} />
+
 export default function Payment() {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
@@ -223,13 +267,13 @@ export default function Payment() {
           <section className={styles.section}>
             <h2 className={styles.h2}>{isZh ? '防詐騙警示' : 'FRAUD WARNING'}</h2>
             <div className={styles.warnList}>
-              {NEVER.map((p) => (
-                <p key={p.en} className={styles.strong}>× {withEmailLine(L(p), styles.emailLine)}</p>
+              {NEVER.map((p, n) => (
+                <p key={p.en} className={styles.strong}>× {n === 1 ? withEmailKept(L(p), styles.emailLine) : withEmailLine(L(p), styles.emailLine)}</p>
               ))}
             </div>
             <div className={styles.card}>
               {VERIFY_LINES.map((line, i) => (
-                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{withEmailLine(L(line))}</p>
+                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{i === 0 ? withEmailKept(L(line), styles.emailLine) : withEmailLine(L(line))}</p>
               ))}
               <div className={styles.email}><MailLink>✉ info@cosmosledgerlabs.com</MailLink></div>
             </div>
