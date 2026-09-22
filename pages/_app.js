@@ -69,12 +69,42 @@ function lockWeChatFontSize() {
   }
 }
 
+// WeChat clean page loads (2026-09-21).
+// Inside WeChat's built-in browser, switching pages without a reload sometimes
+// leaves parts of the previous page on screen (e.g. the Demo page's WALLET /
+// CONNECT panel showing at the bottom of the Payment page). Inside WeChat only,
+// every link to another page of this site does a full, clean page load instead.
+// Other browsers are unchanged. Same-page links (#contact etc.), new-tab links,
+// email links and downloads are left alone.
+function wechatFullPageLinks() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return () => {}
+  if (!/MicroMessenger/i.test(window.navigator.userAgent || '')) return () => {}
+  const onClick = (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    let a = e.target
+    while (a && a.nodeName !== 'A') a = a.parentNode
+    if (!a || !a.href) return
+    if (a.target && a.target !== '_self') return
+    if (a.hasAttribute('download')) return
+    let url
+    try { url = new URL(a.href, window.location.href) } catch (err) { return }
+    if (url.origin !== window.location.origin) return
+    if (url.pathname === window.location.pathname && url.search === window.location.search) return
+    e.preventDefault()
+    e.stopPropagation()
+    window.location.href = url.href
+  }
+  document.addEventListener('click', onClick, true)
+  return () => document.removeEventListener('click', onClick, true)
+}
+
 export default function App({ Component, pageProps }) {
   const router = useRouter()
 
   useEffect(() => {
     lockWeChatFontSize()
     loadCrisp()
+    return wechatFullPageLinks()
   }, [])
 
   useEffect(() => {
