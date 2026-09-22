@@ -54,25 +54,24 @@ export function HowWeWork() {
   const L = L2(lang)
   const steps = [
     { t: { en: 'SCOPE', zh: '需求界定' }, d: { en: 'A call to define exactly what will be built, and what won\u2019t.', zh: '一通會議，明確定義要建什麼、不建什麼。' } },
-    { t: { en: 'QUOTE', zh: '報價' }, d: { en: 'Fixed scope, written quote, milestone schedule.', zh: '固定範圍、書面報價、里程碑時程。' } },
-    { t: { en: 'BUILD', zh: '建置' }, d: { en: 'Version-controlled development against the agreed specification.', zh: '依約定規格進行版本控管的開發。' }, tight: true },
-    { t: { en: 'VERIFY', zh: '驗證' }, d: { en: 'Everything tested on Solana devnet before any mainnet action.', zh: '任何主網操作前，一律先在 Solana devnet 完整測試。' }, tight: true },
+    { t: { en: 'QUOTE', zh: '報價' }, d: { en: 'Fixed scope, written quote, milestone schedule.', zh: '固定範圍、書面報價、里程碑時程。' }, oneLine: true },
+    { t: { en: 'BUILD', zh: '建置' }, d: { en: 'Version-controlled development against the agreed specification.', zh: '依約定規格進行版本控管的開發。' } },
+    { t: { en: 'VERIFY', zh: '驗證' }, d: { en: 'Everything tested on Solana devnet before any mainnet action.', zh: '任何主網操作前，一律先在 Solana devnet 完整測試。' } },
     { t: { en: 'HANDOVER', zh: '交付' }, d: { en: 'Code, credentials, and a run-book your team can operate without us.', zh: '程式碼、憑證與操作手冊，您的團隊無需我們也能營運。' } },
   ]
   return (
     <section className={styles.section} id="how-we-work">
       <div className="sec-tag">{L({ en: '// SECTION 05 — HOW WE WORK', zh: '// 第 05 節 — 合作方式' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'HOW WE WORK', zh: '我們如何合作' })}</h2>
-      <div className={styles.wfList}>
+      <div className={styles.wfGrid}>
         {steps.map((s, i) => (
-          <span key={i} style={{ display: 'contents' }}>
-            <div className={styles.wfStep}>
-              <div className={styles.wfDot}/>
-              <span className={styles.wfNum}>{String(i + 1).padStart(2, '0')} //</span>
-              <span className={s.tight && lang === 'en' ? `${styles.wfLabel} ${styles.wfLabelTight}` : styles.wfLabel}>{L(s.t)} — {L(s.d)}</span>
+          <div key={i} className={styles.wfBox}>
+            <div className={styles.wfHead}>
+              <span className={styles.wfNum}>{String(i + 1).padStart(2, '0')}</span>
+              <span className={styles.wfTitle}>{L(s.t)}</span>
             </div>
-            {i < steps.length - 1 && <div className={styles.wfLine}/>}
-          </span>
+            <p className={s.oneLine ? `${styles.wfDesc} ${styles.wfDescOne}` : styles.wfDesc}>{L(s.d)}</p>
+          </div>
         ))}
       </div>
     </section>
