@@ -140,7 +140,7 @@ const withEmailLine = (text, cls) => {
    from"): on phones the email is shrunk just enough to stay on the same line
    as the words before it, so no empty gap is left at the end of the line
    (2026-09-22). */
-function KeepEmail({ text, cls }) {
+function KeepEmail({ text, cls, phoneOnly }) {
   const prevRef = useRef(null)
   const unitRef = useRef(null)
   const mailRef = useRef(null)
@@ -149,7 +149,34 @@ function KeepEmail({ text, cls }) {
       const prev = prevRef.current, unit = unitRef.current, mail = mailRef.current
       if (!prev || !unit || !mail) return
       mail.style.fontSize = ''
+      if (phoneOnly) {
+        unit.style.whiteSpace = ''
+        const para = unit.closest('p')
+        if (para) para.style.fontSize = ''
+      }
       if (window.innerWidth >= 768) return
+      if (phoneOnly) {
+        /* "from" + email stay together; this one paragraph and the email step
+           down a little until no line is left with big gaps (phones only). */
+        unit.style.whiteSpace = 'nowrap'
+        const para = unit.closest('p')
+        if (!para) return
+        para.style.fontSize = ''
+        const base = parseFloat(window.getComputedStyle(para).fontSize)
+        let best = null
+        for (let size = base; size >= base - FIT_DROP - 0.001; size -= FIT_STEP) {
+          para.style.fontSize = size + 'px'
+          for (let f = 1; f >= 0.8 - 0.001; f -= 0.02) {
+            mail.style.fontSize = f + 'em'
+            const g = worstGap(para)
+            if (g <= FIT_OK) return
+            if (!best || g < best.g) best = { g, size, f }
+          }
+        }
+        para.style.fontSize = best.size + 'px'
+        mail.style.fontSize = best.f + 'em'
+        return
+      }
       for (let f = 1; f >= 0.7; f -= 0.02) {
         mail.style.fontSize = f + 'em'
         if (Math.abs(unit.getBoundingClientRect().top - prev.getBoundingClientRect().top) < 2) return
@@ -169,7 +196,7 @@ function KeepEmail({ text, cls }) {
     <>
       {linkMail(before.slice(0, w2 + 1))}
       <span ref={prevRef}>{before.slice(w2 + 1, w1)}</span>{' '}
-      <span ref={unitRef} className={styles.mailKeep}>
+      <span ref={unitRef} className={phoneOnly ? undefined : styles.mailKeep}>
         {before.slice(w1 + 1)}{' '}
         <span ref={mailRef} className={cls}>{linkMail(text.slice(i + 1))}</span>
       </span>
@@ -177,8 +204,11 @@ function KeepEmail({ text, cls }) {
   )
 }
 
-const withEmailKept = (text, cls) =>
-  text.indexOf('\n') === -1 ? linkMail(text) : <KeepEmail text={text} cls={cls} />
+/* phoneOnly: used for the ACCEPTED PAYMENT METHODS line ("…invoice you receive
+   from"); the email is kept on the same line on phones only (WeChat, iPhone,
+   Android) — on wider screens that line is left exactly as before (2026-09-22). */
+const withEmailKept = (text, cls, phoneOnly) =>
+  text.indexOf('\n') === -1 ? linkMail(text) : <KeepEmail text={text} cls={cls} phoneOnly={phoneOnly} />
 
 export default function Payment() {
   const { lang, isZh } = useLang()
@@ -238,7 +268,7 @@ export default function Payment() {
               {s.boxed ? (
                 <div className={styles.card}>
                   {s.body.map((p) => (
-                    <p key={p.en} className={styles.body}>{withEmailLine(L(p), styles.emailLine)}</p>
+                    <p key={p.en} className={styles.body}>{withEmailKept(L(p), styles.emailLine, true)}</p>
                   ))}
                 </div>
               ) : (
