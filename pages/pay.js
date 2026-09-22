@@ -3,6 +3,7 @@ import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang } from '../lib/i18n'
+import { MailLink, linkMail } from '../lib/mail'
 import styles from '../styles/Pay.module.css'
 
 /* ------------------------------------------------------------------ */
@@ -525,7 +526,7 @@ export default function Pay() {
                     <div className={styles.kvRow}>
                       <span className={styles.kvKey}>{L(T2.emtTo)}</span>
                       <span className={styles.kvVal}>
-                        info@cosmosledgerlabs.com
+                        <MailLink />
                         <CopyBtn id="emtTo" text="info@cosmosledgerlabs.com" />
                       </span>
                     </div>
@@ -576,7 +577,7 @@ export default function Pay() {
             {L(T2.help)}{' '}
             <a href="mailto:info@cosmosledgerlabs.com">info@cosmosledgerlabs.com</a>
           </p>
-          <p className={styles.legal}>{L(T2.legal)}</p>
+          <p className={styles.legal}>{linkMail(L(T2.legal))}</p>
 
         </div>
       </main>
