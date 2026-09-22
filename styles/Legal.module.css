@@ -208,3 +208,9 @@
   background: rgba(0, 10, 28, .8);
 }
 .contactLine:hover { border-color: var(--cyan); }
+
+/* Payment page: the line break before the email address applies on phones
+   only; on wider screens the address stays on the same line (2026-09-21) */
+@media (min-width: 768px) {
+  .phoneBr { display: none; }
+}
