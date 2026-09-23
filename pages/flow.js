@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
@@ -68,6 +68,12 @@ const T3 = {
   videoOpens: { en: 'Opens on YouTube in a new tab', zh: '將在新分頁開啟 YouTube' },
   videoSoon: { en: 'DEMO VIDEO — COMING SOON', zh: '演示影片——即將推出' },
   videoSoonNote: { en: 'A guided walkthrough of this page will be posted here.', zh: '本頁的導覽影片將發佈於此。' },
+  btnFull: { en: 'FULL SCREEN', zh: '全螢幕' },
+  btnFullExit: { en: 'EXIT FULL SCREEN', zh: '退出全螢幕' },
+  fullIphone: {
+    en: 'iPhone Safari cannot hide its bars for web pages. For full screen: tap Share, choose Add to Home Screen, then open this page from the new icon.',
+    zh: 'iPhone Safari 無法為網頁隱藏網址列。如需全螢幕：點「分享」，選「加入主畫面」，再從新圖示開啟本頁。',
+  },
   howTitle: { en: 'HOW TO USE THIS DEMO', zh: '本演示使用說明' },
   howT1: { en: 'INSTALL PHANTOM', zh: '安裝 PHANTOM' },
   how1: {
@@ -530,6 +536,52 @@ export default function FlowPage() {
     }
   }
 
+  // ---------- full screen (the whole website page, nav included) ----------
+  const [isFull, setIsFull] = useState(false)
+  const [fullOk, setFullOk] = useState(true)
+  const fsElement = () =>
+    typeof document !== 'undefined' && (document.fullscreenElement || document.webkitFullscreenElement)
+
+  useEffect(() => {
+    const standalone = window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches ||
+      window.matchMedia('(display-mode: fullscreen)').matches
+    // Already running full screen from a home-screen icon: no button needed.
+    if (standalone) setFullOk(false)
+    const sync = () => setIsFull(!!fsElement())
+    document.addEventListener('fullscreenchange', sync)
+    document.addEventListener('webkitfullscreenchange', sync)
+    return () => {
+      document.removeEventListener('fullscreenchange', sync)
+      document.removeEventListener('webkitfullscreenchange', sync)
+    }
+  }, [])
+
+  // Keep the screen awake while in full screen (booths, recordings).
+  useEffect(() => {
+    if (!isFull || !('wakeLock' in navigator)) return
+    let lock = null
+    navigator.wakeLock.request('screen').then((l) => { lock = l }).catch(() => {})
+    return () => { try { if (lock) lock.release() } catch (e) {} }
+  }, [isFull])
+
+  const toggleFull = () => {
+    if (fsElement()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen
+      if (exit) exit.call(document)
+      return
+    }
+    const el = document.documentElement
+    const req = el.requestFullscreen || el.webkitRequestFullscreen
+    if (!req) { say(L(T3.fullIphone), false); return }
+    try {
+      const p = req.call(el, { navigationUI: 'hide' })
+      if (p && p.catch) p.catch(() => say(L(T3.fullIphone), false))
+    } catch (e) {
+      say(L(T3.fullIphone), false)
+    }
+  }
+
   const short = wallet ? wallet.slice(0, 4) + '...' + wallet.slice(-4) : ''
   const txUrl = (sig) => EXPLORER + '/tx/' + sig + '?cluster=' + CLUSTER
 
@@ -558,6 +610,13 @@ export default function FlowPage() {
             <p className={styles.subtitle}>{L(T3.sub1)}</p>
             <p className={styles.subtitle}>{L(T3.sub2)}</p>
             <p className={styles.subtitle}>{L(T3.sub3)}</p>
+            {fullOk && (
+              <div style={{ marginTop: 'var(--sp3)' }}>
+                <button className={styles.btnGhost} onClick={toggleFull}>
+                  {isFull ? L(T3.btnFullExit) : L(T3.btnFull)}
+                </button>
+              </div>
+            )}
           </header>
 
           {/* ---------- demo video ---------- */}
