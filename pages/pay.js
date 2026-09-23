@@ -17,6 +17,8 @@ const SERVICES = [
   { id: 'claim', name: { en: 'Claim Portals', zh: '領取頁面' }, amount: 3000 },
   { id: 'data', name: { en: 'Data Integration & APIs', zh: '資料整合與 API' }, amount: 8000 },
   { id: 'frontends', name: { en: 'Contract Front-ends', zh: '合約前端介面' }, amount: 6000 },
+  { id: 'advisory', name: { en: 'Technical Advisory — 2 hours', zh: '技術顧問諮詢——2 小時' }, amount: 1000 },
+  { id: 'advisory-unlimited', name: { en: 'Unlimited Advisory Package — per project', zh: '無限諮詢套餐——每個專案' }, amount: 2000 },
   { id: 'custom', name: { en: 'Other / As quoted', zh: '其他／依報價' }, amount: 0 },
 ]
 
