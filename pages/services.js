@@ -104,6 +104,39 @@ const SERVICES = [
     price: 'US$6,000',
     time: { en: '4–6 WEEKS', zh: '4–6 週' },
   },
+  {
+    n: '07',
+    name: { en: 'TECHNICAL ADVISORY', zh: '技術顧問諮詢' },
+    lead: {
+      en: 'Direct technical consultation on your digital asset project, including website and development questions. Booked in 2-hour blocks.',
+      zh: '針對您的數位資產專案提供直接技術諮詢，包括網站與開發相關問題。以 2 小時為單位預約。',
+    },
+    items: [
+      { en: 'Architecture and technology choices', zh: '架構與技術選型' },
+      { en: 'Website and development planning', zh: '網站與開發規劃' },
+      { en: 'Review of existing builds and vendor work', zh: '既有成果與外包工作審閱' },
+      { en: '2-hour minimum', zh: '最少 2 小時' },
+    ],
+    price: 'US$1,000',
+    fixed: true,
+    time: { en: 'PER 2 HOURS', zh: '每 2 小時' },
+  },
+  {
+    n: '08',
+    name: { en: 'UNLIMITED ADVISORY PACKAGE', zh: '無限諮詢套餐' },
+    lead: {
+      en: 'Unlimited technical consultation for one project, from kickoff to delivery, at a single fixed price.',
+      zh: '單一專案不限次數技術諮詢，從啟動到交付，一次固定價格。',
+    },
+    items: [
+      { en: 'No hourly limit for the covered project', zh: '所涵蓋專案不限時數' },
+      { en: 'Website and development questions included', zh: '包含網站與開發相關問題' },
+      { en: 'One project per package', zh: '每個套餐限一個專案' },
+    ],
+    price: 'US$2,000',
+    fixed: true,
+    time: { en: 'PER PROJECT', zh: '每個專案' },
+  },
 ]
 
 const PROCESS = [
@@ -119,8 +152,8 @@ const PROCESS = [
     n: '02',
     title: { en: 'FIXED QUOTE', zh: '固定報價' },
     d: {
-      en: 'Written scope, fixed price, fixed timeline. No hourly billing, no scope creep.',
-      zh: '書面範圍、固定價格、固定時程。不按小時計費，不擴張範圍。',
+      en: 'Written scope, fixed price, fixed timeline. Build work is never billed hourly, and scope does not creep.',
+      zh: '書面範圍、固定價格、固定時程。建置工作不按小時計費，不擴張範圍。',
     },
   },
   {
@@ -301,7 +334,7 @@ export default function Services() {
                   </div>
                   <div className={styles.rowMeta}>
                     <span className={styles.price}>
-                      {t('services', 'priceFrom', lang)} {s.price}
+                      {s.fixed ? '' : t('services', 'priceFrom', lang) + ' '}{s.price}
                     </span>
                     <span className={styles.time}>{L(s.time)}</span>
                   </div>
