@@ -1,0 +1,14 @@
+{
+  "name": "COSMOS Demo",
+  "short_name": "COSMOS Demo",
+  "description": "Full-screen COSMOS workflow demo.",
+  "start_url": "/demo",
+  "scope": "/demo",
+  "display": "fullscreen",
+  "background_color": "#00010a",
+  "theme_color": "#00010a",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
