@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
+import Router from 'next/router'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang } from '../lib/i18n'
@@ -573,6 +574,34 @@ export default function FlowPage() {
     return () => clearTimeout(t)
   }, [isFull])
 
+  // Full screen belongs to the demo page only: when the visitor leaves /flow
+  // (menu link, logo, back button), full screen is switched off so the other
+  // pages open normally.
+  useEffect(() => {
+    const leave = () => {
+      const el = document.fullscreenElement || document.webkitFullscreenElement
+      const exit = document.exitFullscreen || document.webkitExitFullscreen
+      if (el && exit) { try { exit.call(document) } catch (e) { /* ignore */ } }
+    }
+    /* If a full-screen request is still finishing while the visitor leaves,
+       switch it off as soon as it lands. */
+    let leaving = false
+    const start = () => { leaving = true; leave() }
+    const late = () => { if (leaving) leave() }
+    Router.events.on('routeChangeStart', start)
+    document.addEventListener('fullscreenchange', late)
+    document.addEventListener('webkitfullscreenchange', late)
+    return () => {
+      Router.events.off('routeChangeStart', start)
+      leave()
+      setTimeout(() => {
+        leave()
+        document.removeEventListener('fullscreenchange', late)
+        document.removeEventListener('webkitfullscreenchange', late)
+      }, 1500)
+    }
+  }, [])
+
   // First click / tap / key press anywhere on the page -> full screen.
   useEffect(() => {
     if (!fullOk) return
@@ -580,6 +609,9 @@ export default function FlowPage() {
     const events = ['pointerup', 'touchend', 'keydown', 'click']
     const first = (e) => {
       if (done) return
+      /* Clicking a link (menu, logo, footer) leaves the page — no full screen. */
+      const t = e && e.target
+      if (t && t.closest && t.closest('a, nav, header, footer')) return
       done = true
       events.forEach((ev) => window.removeEventListener(ev, first, true))
       if (e && e.type === 'keydown' && e.key === 'Escape') return
