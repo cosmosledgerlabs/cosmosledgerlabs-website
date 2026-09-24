@@ -107,6 +107,26 @@ const T2 = {
   btnNotify: { en: '✉ EMAIL US THIS ORDER', zh: '✉ 以電子郵件通知我們此訂單' },
   btnUsdt: { en: '✉ REQUEST USDT ADDRESS', zh: '✉ 索取 USDT 收款地址' },
   btnCopy: { en: 'COPY', zh: '複製' },
+  emtSwitched: {
+    en: 'Interac e-Transfer works in Canadian dollars only, so the currency has been switched to CAD. Please enter the amount in CAD.',
+    zh: 'Interac e-Transfer 僅支援加幣，幣別已自動切換為 CAD。請以加幣輸入金額。',
+  },
+  sendTo: { en: 'No email app? Send the order details to', zh: '沒有郵件程式？請將訂單資料寄至' },
+  bankHead: { en: 'PAY NOW IN YOUR BANK', zh: '立即在您的銀行付款' },
+  bankStep1: { en: '1. Your order number has been copied.', zh: '1. 您的訂單編號已複製。' },
+  bankStep2: { en: '2. Open your bank below and sign in.', zh: '2. 在下方開啟您的銀行並登入。' },
+  bankStep3: {
+    en: '3. Choose Interac e-Transfer → Send money. Recipient: info@cosmosledgerlabs.com. Amount: the order amount. Message: paste the order number.',
+    zh: '3. 選擇 Interac e-Transfer →「傳送款項」。收款人：info@cosmosledgerlabs.com；金額：訂單金額；留言：貼上訂單編號。',
+  },
+  bankCopyAgain: { en: 'COPY ORDER NUMBER AGAIN', zh: '再次複製訂單編號' },
+  bankOther: { en: 'Other bank or credit union: open your own online banking or banking app.', zh: '其他銀行或信用合作社：請開啟您自己的網路銀行或銀行 App。' },
+  waiting: {
+    en: 'Waiting for your e-Transfer. This page updates on its own once the payment is received — you can also close it; your order is saved.',
+    zh: '正在等候您的 e-Transfer。收到款項後本頁會自動更新——您也可以直接關閉，訂單已保存。',
+  },
+  received: { en: 'PAYMENT RECEIVED ✓ — thank you. A receipt will follow by email.', zh: '已收到款項 ✓——謝謝。收據將以電子郵件寄出。' },
+  btnCopyDetails: { en: 'COPY ORDER DETAILS', zh: '複製訂單資料' },
   copied: { en: 'COPIED ✓', zh: '已複製 ✓' },
   btnCopyOrder: { en: 'COPY ORDER NUMBER', zh: '複製訂單編號' },
   btnReset: { en: 'START A NEW ORDER', zh: '建立新訂單' },
@@ -179,6 +199,24 @@ async function copyText(text) {
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
+/* Canadian banks for the "pay now in your bank" step. Each opens the bank's
+   own website (on phones, the bank's app opens if it is installed and linked).
+   No bank lets a website pre-fill an e-Transfer, so the order number is
+   copied for the client to paste. 2026-09-24 */
+const BANKS = [
+  { name: 'RBC', url: 'https://www.rbcroyalbank.com' },
+  { name: 'TD', url: 'https://www.td.com/ca/en/personal-banking' },
+  { name: 'BMO', url: 'https://www.bmo.com' },
+  { name: 'Scotiabank', url: 'https://www.scotiabank.com' },
+  { name: 'CIBC', url: 'https://www.cibc.com' },
+  { name: 'National Bank', url: 'https://www.nbc.ca' },
+  { name: 'Desjardins', url: 'https://www.desjardins.com' },
+  { name: 'Tangerine', url: 'https://www.tangerine.ca' },
+  { name: 'Simplii', url: 'https://www.simplii.com' },
+  { name: 'EQ Bank', url: 'https://www.eqbank.ca' },
+  { name: 'ATB', url: 'https://www.atb.com' },
+]
+
 export default function Pay() {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
@@ -191,6 +229,25 @@ export default function Pay() {
   const [rep, setRep] = useState('')
   const [order, setOrder] = useState(null)
   const [copiedKey, setCopiedKey] = useState('')
+  const [emtNote, setEmtNote] = useState(false)
+  const [paid, setPaid] = useState(false)
+
+  /* After an order is generated, check its status every 30 s; when the
+     e-Transfer is matched in the back office the page shows "received". */
+  useEffect(() => {
+    if (!order || paid) return
+    let stop = false
+    const check = async () => {
+      try {
+        const r = await fetch('/api/orders?status=' + encodeURIComponent(order.id), { cache: 'no-store' })
+        if (!r.ok) return
+        const j = await r.json()
+        if (!stop && j.status === 'PAID') setPaid(true)
+      } catch (e) { /* ignore */ }
+    }
+    const t = setInterval(check, 30000)
+    return () => { stop = true; clearInterval(t) }
+  }, [order, paid])
 
   /* Pre-fill the customer-service name from a personal link like /pay?rep=Lily */
   useEffect(() => {
@@ -216,7 +273,23 @@ export default function Pay() {
 
   const pickCurrency = (c) => {
     setCurrency(c)
+    setEmtNote(false)
     if (c === 'USD' && method === 'emt') setMethod('')
+  }
+
+  /* Interac e-Transfer is CAD only. Instead of a greyed-out button that
+     ignores taps, tapping it while USD is selected switches to CAD, selects
+     e-Transfer and asks for the amount in CAD (a US$ preset price is cleared
+     so a US$ figure is never sent as C$). 2026-09-24 */
+  const pickMethod = (id) => {
+    if (id === 'emt' && currency === 'USD') {
+      setCurrency('CAD')
+      if (serviceId !== 'custom') setAmount('')
+      setEmtNote(true)
+    } else if (id !== 'emt') {
+      setEmtNote(false)
+    }
+    setMethod(id)
   }
 
   const canGenerate = payNow > 0 && !!method
@@ -255,6 +328,12 @@ export default function Pay() {
         }),
       }).catch(() => {})
     } catch (e) { /* ignore */ }
+    /* e-Transfer: copy the order number right away, ready to paste into the
+       transfer message (the GENERATE click allows clipboard access). */
+    if (method === 'emt') {
+      copyText(id).then((ok) => { if (ok) setCopiedKey('autoEmt') })
+    }
+    setPaid(false)
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -262,6 +341,8 @@ export default function Pay() {
     setOrder(null)
     setCopiedKey('')
     setMethod('')
+    setEmtNote(false)
+    setPaid(false)
   }
 
   const copy = async (key, text) => {
@@ -274,6 +355,31 @@ export default function Pay() {
     <button type="button" className={styles.btnCopyMini} onClick={() => copy(id, text)}>
       {copiedKey === id ? L(T2.copied) : L(T2.btnCopy)}
     </button>
+  )
+
+  const orderText = (subjectPrefix) => {
+    if (!order) return ''
+    const methodName = (METHODS.find((m) => m.id === order.method) || {}).name
+    return [
+      subjectPrefix + ' ' + order.id,
+      'Order number: ' + order.id,
+      'Service: ' + (order.serviceName ? order.serviceName.en : ''),
+      'Amount payable: ' + fmtAmount(order.amount, order.currency),
+      'Payment method: ' + (methodName ? methodName.en : order.method),
+      order.rep ? 'Customer service: ' + order.rep : '',
+      'Sent from cosmosledgerlabs.com/pay',
+    ].filter(Boolean).join('\n')
+  }
+
+  /* Shown under every "email us" button: works on phones and computers with
+     no email app (webmail users), where a mailto link does nothing. */
+  const NoMailApp = ({ id, subjectPrefix }) => (
+    <div className={styles.hint} style={{ marginTop: 10 }}>
+      {L(T2.sendTo)} <MailLink />{' '}
+      <button type="button" className={styles.btnCopyMini} onClick={() => copy(id, orderText(subjectPrefix))}>
+        {copiedKey === id ? L(T2.copied) : L(T2.btnCopyDetails)}
+      </button>
+    </div>
   )
 
   const mailto = (subjectPrefix) => {
@@ -425,22 +531,19 @@ export default function Pay() {
               <section className={styles.section}>
                 <div className={styles.stepTag}>{L(T2.s2)}</div>
                 <div className={styles.methodGrid}>
-                  {METHODS.map((m) => {
-                    const disabled = m.id === 'emt' && currency === 'USD'
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        className={method === m.id ? styles.methodOn : styles.method}
-                        disabled={disabled}
-                        onClick={() => setMethod(m.id)}
-                      >
-                        {L(m.name)}
-                      </button>
-                    )
-                  })}
+                  {METHODS.map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      className={method === m.id ? styles.methodOn : styles.method}
+                      onClick={() => pickMethod(m.id)}
+                    >
+                      {L(m.name)}
+                    </button>
+                  ))}
                 </div>
-                {currency === 'USD' ? <div className={styles.hint}>{L(T2.emtCadOnly)}</div> : null}
+                {emtNote ? <div className={styles.hint} style={{ color: 'var(--cyan)' }}>{L(T2.emtSwitched)}</div>
+                  : currency === 'USD' ? <div className={styles.hint}>{L(T2.emtCadOnly)}</div> : null}
               </section>
 
               {/* ---------- step 3: generate ---------- */}
@@ -517,6 +620,7 @@ export default function Pay() {
                     </div>
                   </div>
                   <a className={styles.btnBig} href={mailto('Wire payment order')}>{L(T2.btnNotify)}</a>
+                  <NoMailApp id="copyWire" subjectPrefix="Wire payment order" />
                 </section>
               ) : null}
 
@@ -544,7 +648,42 @@ export default function Pay() {
                       </span>
                     </div>
                   </div>
+                  {paid ? (
+                    <div className={styles.detailCard} style={{ borderColor: 'rgba(61,255,168,.7)', marginTop: 14 }}>
+                      <p className={styles.body} style={{ color: '#3dffa8', margin: 0 }}>{L(T2.received)}</p>
+                    </div>
+                  ) : (
+                    <div className={styles.detailCard} style={{ marginTop: 14 }}>
+                      <div className={styles.orderHead}>{L(T2.bankHead)}</div>
+                      <p className={styles.body}>
+                        {L(T2.bankStep1)}{' '}
+                        <button type="button" className={styles.btnCopyMini} onClick={() => copy('bankCopy', order.id)}>
+                          {copiedKey === 'bankCopy' || copiedKey === 'autoEmt' ? L(T2.copied) : L(T2.bankCopyAgain)}
+                        </button>
+                      </p>
+                      <p className={styles.body}>{L(T2.bankStep2)}</p>
+                      <div className={styles.methodGrid} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 8 }}>
+                        {BANKS.map((bk) => (
+                          <button
+                            key={bk.name}
+                            type="button"
+                            className={styles.method}
+                            onClick={() => {
+                              copyText(order.id)
+                              window.open(bk.url, '_blank', 'noopener,noreferrer')
+                            }}
+                          >
+                            {bk.name} ↗
+                          </button>
+                        ))}
+                      </div>
+                      <p className={styles.body} style={{ marginTop: 12 }}>{L(T2.bankStep3)}</p>
+                      <div className={styles.hint}>{L(T2.bankOther)}</div>
+                      <div className={styles.hint} style={{ color: 'var(--cyan)' }}>{L(T2.waiting)}</div>
+                    </div>
+                  )}
                   <a className={styles.btnBig} href={mailto('e-Transfer payment order')}>{L(T2.btnNotify)}</a>
+                  <NoMailApp id="copyEmt" subjectPrefix="e-Transfer payment order" />
                 </section>
               ) : null}
 
@@ -566,6 +705,7 @@ export default function Pay() {
                     </div>
                   </div>
                   <a className={styles.btnBig} href={mailto('USDT address request — order')}>{L(T2.btnUsdt)}</a>
+                  <NoMailApp id="copyUsdt" subjectPrefix="USDT address request — order" />
                 </section>
               ) : null}
 
