@@ -406,7 +406,6 @@ export default function FlowPage() {
   }
 
   async function doSetup() {
-    goFull()
     const provider = getProvider()
     if (!provider || !wallet) { say(L(T3.msgConnectFirst), true); return }
 
@@ -452,7 +451,6 @@ export default function FlowPage() {
   }
 
   async function start() {
-    goFull()
     const provider = getProvider()
     if (!provider || !wallet) { say(L(T3.msgConnectFirst), true); return }
     if (!accounts) { say(L(T3.msgSetupFirst), true); return }
@@ -559,6 +557,19 @@ export default function FlowPage() {
     }
   }, [])
 
+  // On entering full screen, bring the wallet / test panel to the top of the
+  // screen (the page is also enlarged, which would otherwise shift it).
+  useEffect(() => {
+    if (!isFull) return
+    const t = setTimeout(() => {
+      const el = runRef.current
+      if (!el) return
+      const top = el.getBoundingClientRect().top + window.scrollY - 90
+      window.scrollTo({ top: Math.max(0, top), behavior: 'instant' })
+    }, 250)
+    return () => clearTimeout(t)
+  }, [isFull])
+
   // Keep the screen awake while in full screen (booths, recordings).
   useEffect(() => {
     if (!isFull || !('wakeLock' in navigator)) return
@@ -567,14 +578,14 @@ export default function FlowPage() {
     return () => { try { if (lock) lock.release() } catch (e) {} }
   }, [isFull])
 
-  // Full screen targets the demo section only (wallet -> steps -> result),
-  // not the whole page. It switches on automatically when CONNECT, RUN SETUP
-  // or EXECUTE FLOW is clicked; EXIT FULL SCREEN (or Esc) leaves it.
+  // Full screen covers the WHOLE page (menu included, 2026-09-24).
+  // It switches on automatically when CONNECT is clicked; EXIT FULL SCREEN
+  // (or Esc) leaves it. While in full screen the page is shown larger and
+  // bolder (see the full-screen style block at the end of the page).
   const runRef = useRef(null)
 
   const requestFull = (showHint) => {
-    const el = runRef.current
-    if (!el) return
+    const el = document.documentElement
     const req = el.requestFullscreen || el.webkitRequestFullscreen
     if (!req) { if (showHint) say(L(T3.fullIphone), false); return }
     try {
@@ -615,7 +626,7 @@ export default function FlowPage() {
 
       <Nav />
 
-      <main className={styles.page}>
+      <main className={styles.page} data-full={isFull ? '1' : undefined}>
         <div className={styles.container}>
 
           <header className={styles.header}>
@@ -681,23 +692,27 @@ export default function FlowPage() {
             <div className={styles.howNote}>{L(T3.howNote)}</div>
           </section>
 
-          {/* ---------- full-screen area: controls -> steps -> result ---------- */}
+          {/* ---------- demo area: controls -> steps -> result ---------- */}
           <div
             ref={runRef}
-            style={isFull ? {
-              background: 'var(--bg-deep, #00010a)',
-              overflowY: 'auto',
-              WebkitOverflowScrolling: 'touch',
-              width: '100%',
-              height: '100%',
-              padding: 'max(16px, env(safe-area-inset-top, 0px)) var(--side, 16px) max(24px, env(safe-area-inset-bottom, 0px))',
-            } : undefined}
           >
-          <div style={isFull ? { maxWidth: '980px', margin: '0 auto' } : undefined}>
+          <div>
           {isFull && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
-              <button className={styles.btnGhost} onClick={exitFull}>{L(T3.btnFullExit)}</button>
-            </div>
+            <button
+              className={styles.btnGhost}
+              onClick={exitFull}
+              style={{
+                position: 'fixed',
+                left: '16px',
+                bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
+                zIndex: 1000,
+                width: 'auto',
+                maxWidth: 'calc(100vw - 32px)',
+                background: 'var(--bg-deep, #00010a)',
+              }}
+            >
+              {L(T3.btnFullExit)}
+            </button>
           )}
 
           {/* ---------- controls ---------- */}
@@ -909,6 +924,33 @@ export default function FlowPage() {
 
         </div>
       </main>
+
+      {/* Full-screen display: larger and bolder, /flow page only (2026-09-24).
+          Larger screens are scaled up more; phones get bolder text only. */}
+      <style jsx global>{`
+        main[data-full] p,
+        main[data-full] li,
+        main[data-full] span,
+        main[data-full] div,
+        main[data-full] a {
+          font-weight: 700;
+        }
+        main[data-full] h1,
+        main[data-full] h2,
+        main[data-full] h3,
+        main[data-full] button {
+          font-weight: 800;
+        }
+        @media (min-width: 768px) {
+          main[data-full] { zoom: 1.15; }
+        }
+        @media (min-width: 1280px) {
+          main[data-full] { zoom: 1.3; }
+        }
+        @media (min-width: 1920px) {
+          main[data-full] { zoom: 1.45; }
+        }
+      `}</style>
 
       <Footer />
     </>
