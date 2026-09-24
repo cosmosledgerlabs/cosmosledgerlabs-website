@@ -241,6 +241,31 @@ function fitLines(el) {
   })
 }
 
+/* 2026-09-24: multi-chain note — English, phones only. Normal word spacing,
+   left-aligned. If the note would run onto a 4th line, the spacing is
+   tightened very slightly (never more than about half a pixel per letter)
+   until it fits on 3 lines, so "scope call." stays on the third line. */
+function fitThreeLines(el) {
+  if (!el) return
+  el.style.letterSpacing = 'normal'
+  el.style.wordSpacing = 'normal'
+  if (window.innerWidth > 480) return
+  const lh = parseFloat(getComputedStyle(el).lineHeight)
+  if (!lh) return
+  const lines = () => Math.round(el.getBoundingClientRect().height / lh)
+  let ls = 0
+  let ws = 0
+  let guard = 0
+  while (lines() > 3 && guard < 12) {
+    ls -= 0.05
+    ws -= 0.4
+    el.style.letterSpacing = ls.toFixed(2) + 'px'
+    el.style.wordSpacing = ws.toFixed(1) + 'px'
+    guard++
+  }
+  if (lines() > 3) { el.style.letterSpacing = 'normal'; el.style.wordSpacing = 'normal' }
+}
+
 export default function Services() {
   const { lang, isZh } = useLang()
   const noteRef = useRef(null)
@@ -248,7 +273,11 @@ export default function Services() {
 
   useEffect(() => {
     const fit = () => {
-      ;[noteRef.current, feeRef.current].forEach((el) => {
+      /* 2026-09-24: the multi-chain note (noteRef) is no longer stretched to
+         the right edge on phones — it keeps normal word spacing. Only the
+         fee note is still fitted. */
+      if (!isZh) { try { fitThreeLines(noteRef.current) } catch (e) {} }
+      ;[feeRef.current].forEach((el) => {
         if (!el) return
         if (isZh) {
           if (el.dataset.fitText !== undefined && el.querySelector('span')) el.textContent = el.dataset.fitText
@@ -342,7 +371,7 @@ export default function Services() {
               ))}
             </div>
 
-            <p ref={noteRef} className={styles.note}>{t('services', 'note', lang)}</p>
+            <p ref={noteRef} className={styles.note} style={isZh ? undefined : { textAlign: 'left', textAlignLast: 'left' }}>{t('services', 'note', lang)}</p>
           </section>
 
           <hr className="divider" />
