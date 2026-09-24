@@ -241,29 +241,55 @@ function fitLines(el) {
   })
 }
 
-/* 2026-09-24: multi-chain note — English, phones only. Normal word spacing,
-   left-aligned. If the note would run onto a 4th line, the spacing is
-   tightened very slightly (never more than about half a pixel per letter)
-   until it fits on 3 lines, so "scope call." stays on the third line. */
-function fitThreeLines(el) {
+/* 2026-09-24: multi-chain note — English, phones only.
+   Shown on exactly TWO lines with both edges straight: the note is split at
+   the word boundary that gives the two most even lines, the text size is set
+   so the longer line exactly fills the width, and the shorter line is spread
+   to the same width (a little between the letters, the rest between the
+   words). Words are never split. If the text would have to go below 9px,
+   the note is simply shown as normal left-aligned text instead. */
+function fitTwoLines(el) {
   if (!el) return
-  el.style.letterSpacing = 'normal'
-  el.style.wordSpacing = 'normal'
+  if (el.dataset.fitText === undefined) el.dataset.fitText = el.textContent
+  const original = el.dataset.fitText
+  el.textContent = original
+  el.style.fontSize = ''
+  el.style.letterSpacing = ''
+  el.style.wordSpacing = ''
   if (window.innerWidth > 480) return
-  const lh = parseFloat(getComputedStyle(el).lineHeight)
-  if (!lh) return
-  const lines = () => Math.round(el.getBoundingClientRect().height / lh)
-  let ls = 0
-  let ws = 0
-  let guard = 0
-  while (lines() > 3 && guard < 12) {
-    ls -= 0.05
-    ws -= 0.4
-    el.style.letterSpacing = ls.toFixed(2) + 'px'
-    el.style.wordSpacing = ws.toFixed(1) + 'px'
-    guard++
+  const words = original.replace(/\s+/g, ' ').trim().split(' ')
+  if (words.length < 4) return
+  const avail = el.clientWidth
+  const probe = document.createElement('span')
+  probe.style.whiteSpace = 'nowrap'
+  el.textContent = ''
+  el.appendChild(probe)
+  const width = (str) => { probe.textContent = str; return probe.getBoundingClientRect().width }
+  let best = null
+  for (let k = 1; k < words.length; k++) {
+    const a = words.slice(0, k).join(' ')
+    const b = words.slice(k).join(' ')
+    const m = Math.max(width(a), width(b))
+    if (!best || m < best.m) best = { a, b, m }
   }
-  if (lines() > 3) { el.style.letterSpacing = 'normal'; el.style.wordSpacing = 'normal' }
+  const fs0 = parseFloat(getComputedStyle(el).fontSize)
+  const fs = Math.floor(fs0 * Math.min(1, (avail / best.m) * 0.985) * 10) / 10
+  if (fs < 9) { el.textContent = original; return }
+  el.style.fontSize = fs + 'px'
+  el.textContent = ''
+  ;[best.a, best.b].forEach((txt) => {
+    const line = document.createElement('span')
+    line.textContent = txt
+    line.style.display = 'inline-block'
+    line.style.whiteSpace = 'nowrap'
+    el.appendChild(line)
+    const natural = line.getBoundingClientRect().width
+    const ls = Math.max(0, ((avail - natural) * 0.6) / txt.length)
+    line.style.display = 'block'
+    line.style.letterSpacing = ls.toFixed(3) + 'px'
+    line.style.textAlign = 'justify'
+    line.style.textAlignLast = 'justify'
+  })
 }
 
 export default function Services() {
@@ -276,7 +302,7 @@ export default function Services() {
       /* 2026-09-24: the multi-chain note (noteRef) is no longer stretched to
          the right edge on phones — it keeps normal word spacing. Only the
          fee note is still fitted. */
-      if (!isZh) { try { fitThreeLines(noteRef.current) } catch (e) {} }
+      if (!isZh) { try { fitTwoLines(noteRef.current) } catch (e) {} }
       ;[feeRef.current].forEach((el) => {
         if (!el) return
         if (isZh) {
@@ -371,7 +397,7 @@ export default function Services() {
               ))}
             </div>
 
-            <p ref={noteRef} className={styles.note} style={isZh ? undefined : { textAlign: 'left', textAlignLast: 'left' }}>{t('services', 'note', lang)}</p>
+            <p key={lang} ref={noteRef} className={styles.note} style={isZh ? undefined : { textAlign: 'left', textAlignLast: 'left' }}>{t('services', 'note', lang)}</p>
           </section>
 
           <hr className="divider" />
