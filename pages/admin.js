@@ -1,6 +1,7 @@
 /* pages/admin.js
    Owner-only page: order ledger (mark PAID / delete), hours entries
-   (delete), and the automatic monthly settlement.
+   (delete), the automatic monthly settlement, and (2026-09-24) the
+   automatic Interac e-Transfer matching panel.
    Requires the ADMIN passcode. Not publicly linked. */
 
 import { useState } from 'react'
@@ -25,6 +26,7 @@ export default function Admin() {
   const [settle, setSettle] = useState(null)
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
+  const [emt, setEmt] = useState(null)
 
   const H = { 'Content-Type': 'application/json', 'x-passcode': code }
 
@@ -63,6 +65,20 @@ export default function Admin() {
     try {
       const r = await fetch('/api/orders', { method: 'DELETE', headers: H, body: JSON.stringify({ id }) })
       if (r.ok) await loadAll()
+    } finally { setBusy(false) }
+  }
+
+  /* Reads the Interac notification emails now and marks matching e-Transfer
+     orders PAID (the scheduler also runs this every 10 minutes). */
+  const checkEmt = async () => {
+    setBusy(true)
+    try {
+      const r = await fetch('/api/emt-sync', { headers: H })
+      const j = await r.json().catch(() => ({}))
+      setEmt(r.ok ? j : { error: j.error || 'Check failed.' })
+      if (r.ok) await loadAll()
+    } catch (e) {
+      setEmt({ error: 'Network error — try again.' })
     } finally { setBusy(false) }
   }
 
@@ -146,6 +162,29 @@ export default function Admin() {
                 ) : null}
               </section>
 
+              {/* ---------- e-Transfer auto-match ---------- */}
+              <section className={styles.section}>
+                <div className={styles.stepTag}>E-TRANSFER AUTO-MATCH — reads Interac emails, marks matching orders PAID</div>
+                <button type="button" className={styles.btnBig} disabled={busy} onClick={checkEmt}>
+                  {busy ? 'CHECKING…' : 'CHECK E-TRANSFERS NOW →'}
+                </button>
+                {emt && emt.error ? <div className={styles.hint}>{emt.error}</div> : null}
+                {emt && !emt.error ? (
+                  <>
+                    <div className={styles.hint}>
+                      New emails checked: {emt.checked} · Marked PAID: {emt.paid.length ? emt.paid.join(', ') : 'none'} · Need review: {emt.review.length}
+                    </div>
+                    {(emt.log || []).map((l, i) => (
+                      <div key={i} className={styles.detailCard} style={{ marginTop: 8 }}>
+                        <p className={styles.itemStrong}>{l.result}</p>
+                        <p className={styles.item}>{l.received} · {l.order_id || 'no order #'} · {l.amount !== null ? fmt(l.amount) : 'no amount'} · {l.sender}</p>
+                      </div>
+                    ))}
+                    {(emt.log || []).length === 0 ? <div className={styles.hint}>No Interac emails found in the last 14 days.</div> : null}
+                  </>
+                ) : null}
+              </section>
+
               {/* ---------- hours entries ---------- */}
               <section className={styles.section}>
                 <div className={styles.stepTag}>HOURS ENTRIES ({month}) — delete test or wrong entries here</div>
@@ -169,6 +208,7 @@ export default function Admin() {
                   <div key={o.id} className={styles.detailCard} style={{ marginBottom: 10 }}>
                     <p className={styles.itemStrong}>{o.id} — {o.currency} {fmt(o.amount)} — {o.status}</p>
                     <p className={styles.item}>{o.created} · {o.method.toUpperCase()} · rep: {o.rep || '—'} · {o.service || 'custom'}</p>
+                    {o.status === 'PAID' && o.paid_via ? <p className={styles.item}>Paid: {o.paid_via}{o.paid ? ' · ' + o.paid : ''}</p> : null}
                     <div className={styles.row}>
                       {o.status === 'UNPAID' ? (
                         <button type="button" className={styles.btnBig} disabled={busy}
