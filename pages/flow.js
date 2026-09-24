@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
@@ -68,7 +68,6 @@ const T3 = {
   videoOpens: { en: 'Opens on YouTube in a new tab', zh: '將在新分頁開啟 YouTube' },
   videoSoon: { en: 'DEMO VIDEO — COMING SOON', zh: '演示影片——即將推出' },
   videoSoonNote: { en: 'A guided walkthrough of this page will be posted here.', zh: '本頁的導覽影片將發佈於此。' },
-  btnFull: { en: 'FULL SCREEN', zh: '全螢幕' },
   btnFullExit: { en: 'EXIT FULL SCREEN', zh: '退出全螢幕' },
   fullIphone: {
     en: 'iPhone Safari cannot hide its bars for web pages. For full screen: tap Share, choose Add to Home Screen, then open this page from the new icon.',
@@ -274,6 +273,7 @@ export default function FlowPage() {
   }
 
   async function connect() {
+    goFull()
     const provider = getProvider()
     if (!provider) {
       say(L(T3.msgNoPhantom), true)
@@ -406,6 +406,7 @@ export default function FlowPage() {
   }
 
   async function doSetup() {
+    goFull()
     const provider = getProvider()
     if (!provider || !wallet) { say(L(T3.msgConnectFirst), true); return }
 
@@ -451,6 +452,7 @@ export default function FlowPage() {
   }
 
   async function start() {
+    goFull()
     const provider = getProvider()
     if (!provider || !wallet) { say(L(T3.msgConnectFirst), true); return }
     if (!accounts) { say(L(T3.msgSetupFirst), true); return }
@@ -565,21 +567,33 @@ export default function FlowPage() {
     return () => { try { if (lock) lock.release() } catch (e) {} }
   }, [isFull])
 
-  const toggleFull = () => {
-    if (fsElement()) {
-      const exit = document.exitFullscreen || document.webkitExitFullscreen
-      if (exit) exit.call(document)
-      return
-    }
-    const el = document.documentElement
+  // Full screen targets the demo section only (wallet -> steps -> result),
+  // not the whole page. It switches on automatically when CONNECT, RUN SETUP
+  // or EXECUTE FLOW is clicked; EXIT FULL SCREEN (or Esc) leaves it.
+  const runRef = useRef(null)
+
+  const requestFull = (showHint) => {
+    const el = runRef.current
+    if (!el) return
     const req = el.requestFullscreen || el.webkitRequestFullscreen
-    if (!req) { say(L(T3.fullIphone), false); return }
+    if (!req) { if (showHint) say(L(T3.fullIphone), false); return }
     try {
       const p = req.call(el, { navigationUI: 'hide' })
-      if (p && p.catch) p.catch(() => say(L(T3.fullIphone), false))
+      if (p && p.catch) p.catch(() => { if (showHint) say(L(T3.fullIphone), false) })
     } catch (e) {
-      say(L(T3.fullIphone), false)
+      if (showHint) say(L(T3.fullIphone), false)
     }
+  }
+
+  // Called at the very start of CONNECT / RUN SETUP / EXECUTE FLOW clicks.
+  const goFull = () => {
+    if (!fullOk || fsElement()) return
+    requestFull(false)
+  }
+
+  const exitFull = () => {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen
+    if (exit && fsElement()) exit.call(document)
   }
 
   const short = wallet ? wallet.slice(0, 4) + '...' + wallet.slice(-4) : ''
@@ -610,13 +624,6 @@ export default function FlowPage() {
             <p className={styles.subtitle}>{L(T3.sub1)}</p>
             <p className={styles.subtitle}>{L(T3.sub2)}</p>
             <p className={styles.subtitle}>{L(T3.sub3)}</p>
-            {fullOk && (
-              <div style={{ marginTop: 'var(--sp3)' }}>
-                <button className={styles.btnGhost} onClick={toggleFull}>
-                  {isFull ? L(T3.btnFullExit) : L(T3.btnFull)}
-                </button>
-              </div>
-            )}
           </header>
 
           {/* ---------- demo video ---------- */}
@@ -673,6 +680,25 @@ export default function FlowPage() {
             </div>
             <div className={styles.howNote}>{L(T3.howNote)}</div>
           </section>
+
+          {/* ---------- full-screen area: controls -> steps -> result ---------- */}
+          <div
+            ref={runRef}
+            style={isFull ? {
+              background: 'var(--bg-deep, #00010a)',
+              overflowY: 'auto',
+              WebkitOverflowScrolling: 'touch',
+              width: '100%',
+              height: '100%',
+              padding: 'max(16px, env(safe-area-inset-top, 0px)) var(--side, 16px) max(24px, env(safe-area-inset-bottom, 0px))',
+            } : undefined}
+          >
+          <div style={isFull ? { maxWidth: '980px', margin: '0 auto' } : undefined}>
+          {isFull && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+              <button className={styles.btnGhost} onClick={exitFull}>{L(T3.btnFullExit)}</button>
+            </div>
+          )}
 
           {/* ---------- controls ---------- */}
           <section className={styles.panel}>
@@ -876,6 +902,10 @@ export default function FlowPage() {
           ) : null}
 
           <p className={styles.disclaimer}>{L(T3.disclaimer)}</p>
+
+          </div>
+          </div>
+          {/* ---------- end full-screen area ---------- */}
 
         </div>
       </main>
