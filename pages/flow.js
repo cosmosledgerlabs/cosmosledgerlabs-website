@@ -633,7 +633,7 @@ export default function FlowPage() {
   // Automatic: browsers only allow full screen after the visitor's first
   // action, so the page goes full screen on the first click, tap or key
   // press anywhere on it (no button needed). CONNECT also switches it on.
-  // If the visitor leaves full screen (EXIT button or Esc), it is not
+  // If the visitor leaves full screen (Esc, or the phone's back gesture), it is not
   // forced back on until they click CONNECT. The page is always shown
   // larger and bolder (style block at the end of the page).
   const runRef = useRef(null)
@@ -753,23 +753,6 @@ export default function FlowPage() {
             ref={runRef}
           >
           <div>
-          {isFull && (
-            <button
-              className={styles.btnGhost}
-              onClick={exitFull}
-              style={{
-                position: 'fixed',
-                left: '16px',
-                bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
-                zIndex: 1000,
-                width: 'auto',
-                maxWidth: 'calc(100vw - 32px)',
-                background: 'var(--bg-deep, #00010a)',
-              }}
-            >
-              {L(T3.btnFullExit)}
-            </button>
-          )}
 
           {/* ---------- controls ---------- */}
           <section className={styles.panel}>
