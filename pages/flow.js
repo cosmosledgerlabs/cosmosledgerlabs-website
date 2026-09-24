@@ -557,10 +557,13 @@ export default function FlowPage() {
     }
   }, [])
 
-  // On entering full screen, bring the wallet / test panel to the top of the
-  // screen (the page is also enlarged, which would otherwise shift it).
+  // When CONNECT starts full screen, bring the wallet / test panel to the top
+  // of the screen. Automatic full screen (first tap anywhere) keeps the
+  // visitor where they are.
+  const scrollToPanel = useRef(false)
   useEffect(() => {
-    if (!isFull) return
+    if (!isFull || !scrollToPanel.current) return
+    scrollToPanel.current = false
     const t = setTimeout(() => {
       const el = runRef.current
       if (!el) return
@@ -569,6 +572,22 @@ export default function FlowPage() {
     }, 250)
     return () => clearTimeout(t)
   }, [isFull])
+
+  // First click / tap / key press anywhere on the page -> full screen.
+  useEffect(() => {
+    if (!fullOk) return
+    let done = false
+    const events = ['pointerup', 'touchend', 'keydown', 'click']
+    const first = (e) => {
+      if (done) return
+      done = true
+      events.forEach((ev) => window.removeEventListener(ev, first, true))
+      if (e && e.type === 'keydown' && e.key === 'Escape') return
+      if (!fsElement()) requestFull(false)
+    }
+    events.forEach((ev) => window.addEventListener(ev, first, true))
+    return () => events.forEach((ev) => window.removeEventListener(ev, first, true))
+  }, [fullOk])
 
   // Keep the screen awake while in full screen (booths, recordings).
   useEffect(() => {
@@ -579,9 +598,12 @@ export default function FlowPage() {
   }, [isFull])
 
   // Full screen covers the WHOLE page (menu included, 2026-09-24).
-  // It switches on automatically when CONNECT is clicked; EXIT FULL SCREEN
-  // (or Esc) leaves it. While in full screen the page is shown larger and
-  // bolder (see the full-screen style block at the end of the page).
+  // Automatic: browsers only allow full screen after the visitor's first
+  // action, so the page goes full screen on the first click, tap or key
+  // press anywhere on it (no button needed). CONNECT also switches it on.
+  // If the visitor leaves full screen (EXIT button or Esc), it is not
+  // forced back on until they click CONNECT. The page is always shown
+  // larger and bolder (style block at the end of the page).
   const runRef = useRef(null)
 
   const requestFull = (showHint) => {
@@ -598,7 +620,9 @@ export default function FlowPage() {
 
   // Called at the very start of CONNECT / RUN SETUP / EXECUTE FLOW clicks.
   const goFull = () => {
-    if (!fullOk || fsElement()) return
+    if (!fullOk) return
+    if (fsElement()) return
+    scrollToPanel.current = true
     requestFull(false)
   }
 
@@ -626,7 +650,7 @@ export default function FlowPage() {
 
       <Nav />
 
-      <main className={styles.page} data-full={isFull ? '1' : undefined}>
+      <main className={styles.page} data-full="1">
         <div className={styles.container}>
 
           <header className={styles.header}>
@@ -925,7 +949,7 @@ export default function FlowPage() {
         </div>
       </main>
 
-      {/* Full-screen display: larger and bolder, /flow page only (2026-09-24).
+      {/* Larger and bolder display, /flow page only, always on (2026-09-24).
           Larger screens are scaled up more; phones get bolder text only. */}
       <style jsx global>{`
         main[data-full] p,
