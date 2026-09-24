@@ -13,8 +13,8 @@ export default function Home() {
     <>
       <Head>
         <title>{isZh
-          ? 'COSMOS Ledger Labs — 數位資產專案技術交付'
-          : 'COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects'}</title>
+          ? 'COSMOS Ledger Labs — 數位資產專案基礎設施與技術交付'
+          : 'COSMOS Ledger Labs — Infrastructure & Technical Delivery for Digital Asset Projects'}</title>
         <meta name="description" content={isZh
           ? 'COSMOS Ledger Labs 是一家位於多倫多的數位資產技術公司。企業網站、儀表板、代幣部署與設定、領取頁面、資料整合，以及智能合約前端介面。'
           : 'COSMOS Ledger Labs is a Toronto-based digital asset technology company. Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends.'} />
@@ -28,8 +28,8 @@ export default function Home() {
 
         {/* Open Graph */}
         <meta property="og:title" content={isZh
-          ? 'COSMOS Ledger Labs — 數位資產專案技術交付'
-          : 'COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects'} />
+          ? 'COSMOS Ledger Labs — 數位資產專案基礎設施與技術交付'
+          : 'COSMOS Ledger Labs — Infrastructure & Technical Delivery for Digital Asset Projects'} />
         <meta property="og:description" content={isZh
           ? '為數位資產團隊打造網站、儀表板、代幣部署與設定、領取頁面、資料整合與智能合約前端。加拿大多倫多。'
           : 'Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends for digital asset teams. Toronto, Canada.'} />
@@ -41,14 +41,14 @@ export default function Home() {
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content={isZh
-          ? 'COSMOS Ledger Labs — 數位資產專案技術交付'
-          : 'COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects'} />
+          ? 'COSMOS Ledger Labs — 數位資產專案基礎設施與技術交付'
+          : 'COSMOS Ledger Labs — Infrastructure & Technical Delivery for Digital Asset Projects'} />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={isZh
-          ? 'COSMOS Ledger Labs — 數位資產專案技術交付'
-          : 'COSMOS Ledger Labs — Technical Delivery for Digital Asset Projects'} />
+          ? 'COSMOS Ledger Labs — 數位資產專案基礎設施與技術交付'
+          : 'COSMOS Ledger Labs — Infrastructure & Technical Delivery for Digital Asset Projects'} />
         <meta name="twitter:description" content={isZh
           ? '為數位資產團隊打造網站、儀表板、代幣部署與設定、領取頁面、資料整合與智能合約前端。加拿大多倫多。'
           : 'Websites, dashboards, token deployment and configuration, claim portals, data integrations, and smart contract front-ends for digital asset teams. Toronto, Canada.'} />
