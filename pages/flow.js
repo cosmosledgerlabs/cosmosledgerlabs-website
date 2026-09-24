@@ -225,6 +225,52 @@ const T3 = {
   },
 }
 
+/* 2026-09-24: message box under the controls (e.g. "No Phantom wallet
+   detected…"). Both edges straight with small gaps: the text size is nudged
+   down a little (13px → no smaller than 11.5px) to the size at which every
+   full line comes closest to the right edge, and the browser's own
+   justification closes the last few pixels. Words are never split and the
+   last line stays left. Only this box is affected. */
+function fitMessage(el) {
+  if (!el) return
+  el.style.fontSize = ''
+  el.style.textAlign = ''
+  el.style.textAlignLast = ''
+  const text = (el.textContent || '').replace(/\s+/g, ' ').trim()
+  const words = text ? text.split(' ') : []
+  if (words.length < 3) return
+  const cs = getComputedStyle(el)
+  const avail = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+  if (!(avail > 0)) return
+  const canvas = fitMessage.c || (fitMessage.c = document.createElement('canvas'))
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+  const family = cs.fontFamily
+  const weight = cs.fontWeight
+  const base = parseFloat(cs.fontSize)
+  let best = null
+  for (let fs = base; fs >= 11.5 - 0.001; fs -= 0.1) {
+    ctx.font = weight + ' ' + fs.toFixed(1) + 'px ' + family
+    const space = ctx.measureText(' ').width
+    const lines = []
+    let cur = 0
+    words.forEach((w) => {
+      const ww = ctx.measureText(w).width
+      if (cur === 0) cur = ww
+      else if (cur + space + ww <= avail) cur += space + ww
+      else { lines.push(cur); cur = ww }
+    })
+    if (lines.length === 0) { best = { fs, slack: 0 }; break }
+    const slack = Math.max(...lines.map((l) => avail - l))
+    if (!best || slack < best.slack - 0.5) best = { fs, slack }
+    if (slack <= avail * 0.03) break
+  }
+  if (!best) return
+  el.style.fontSize = best.fs.toFixed(1) + 'px'
+  el.style.textAlign = 'justify'
+  el.style.textAlignLast = 'left'
+}
+
 export default function FlowPage() {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
@@ -638,6 +684,26 @@ export default function FlowPage() {
   // larger and bolder (style block at the end of the page).
   const runRef = useRef(null)
 
+  const msgRef = useRef(null)
+  useEffect(() => {
+    const run = () => { try { fitMessage(msgRef.current) } catch (e) {} }
+    run()
+    let timer
+    const onResize = () => { clearTimeout(timer); timer = setTimeout(run, 150) }
+    window.addEventListener('resize', onResize)
+    const fonts = document.fonts
+    if (fonts) {
+      if (fonts.ready) fonts.ready.then(run)
+      if (fonts.load) fonts.load("400 13px 'Share Tech Mono'").then(run).catch(() => {})
+      if (fonts.addEventListener) fonts.addEventListener('loadingdone', onResize)
+    }
+    return () => {
+      window.removeEventListener('resize', onResize)
+      clearTimeout(timer)
+      if (fonts && fonts.removeEventListener) fonts.removeEventListener('loadingdone', onResize)
+    }
+  }, [message])
+
   const requestFull = (showHint) => {
     const el = document.documentElement
     const req = el.requestFullscreen || el.webkitRequestFullscreen
@@ -842,7 +908,7 @@ export default function FlowPage() {
             ) : null}
 
             {message ? (
-              <div className={isError ? styles.msgError : styles.msgOk}>{message}</div>
+              <div ref={msgRef} className={isError ? styles.msgError : styles.msgOk}>{message}</div>
             ) : null}
           </section>
 
