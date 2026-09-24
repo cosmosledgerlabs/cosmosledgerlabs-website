@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useLang } from '../lib/i18n'
 import styles from './Sections.module.css'
 
@@ -150,16 +151,95 @@ export function WhereWeAre() {
   )
 }
 
+/* 2026-09-24: Aladdin paragraph (English, phones only).
+   Both edges straight, without big gaps: each line keeps whole words (a
+   hyphenated word such as "smart-contract" may still break after its own
+   hyphen, as before); the leftover space at the end of each line is shared
+   as a tiny amount between the letters and the rest between the words, so no
+   gap gets large. The last line stays left. On wider screens nothing changes. */
+function fitAladdin(el) {
+  if (!el) return
+  if (el.dataset.fitText === undefined) el.dataset.fitText = el.textContent
+  const original = el.dataset.fitText
+  el.textContent = original
+  if (window.innerWidth > 480) return
+  el.style.textAlign = 'left'
+  const cs = getComputedStyle(el)
+  const fs = parseFloat(cs.fontSize)
+  const pieces = []
+  original.replace(/\s+/g, ' ').trim().split(' ').forEach((word, wi) => {
+    const parts = word.split('-')
+    parts.forEach((part, pi) => {
+      const text = pi < parts.length - 1 ? part + '-' : part
+      if (text) pieces.push({ text, gap: wi > 0 && pi === 0 })
+    })
+  })
+  el.textContent = ''
+  const spans = pieces.map((pc) => {
+    if (pc.gap) el.appendChild(document.createTextNode(' '))
+    else if (spansCount(el)) el.appendChild(document.createElement('wbr'))
+    const s = document.createElement('span')
+    s.textContent = pc.text
+    s.style.whiteSpace = 'nowrap'
+    el.appendChild(s)
+    return s
+  })
+  const lines = []
+  let cur = []
+  let top = null
+  spans.forEach((s, i) => {
+    const t = s.offsetTop
+    if (top !== null && Math.abs(t - top) >= 3) { lines.push(cur); cur = [] }
+    cur.push(pieces[i])
+    top = t
+  })
+  lines.push(cur)
+  const avail = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
+  el.textContent = ''
+  el.style.textAlign = ''
+  lines.forEach((ln, i) => {
+    const line = document.createElement('span')
+    line.textContent = ln.map((pc, j) => (j > 0 && pc.gap ? ' ' : '') + pc.text).join('')
+    line.style.display = 'block'
+    el.appendChild(line)
+    if (i === lines.length - 1) { line.style.textAlign = 'left'; return }
+    line.style.display = 'inline-block'
+    line.style.whiteSpace = 'nowrap'
+    const natural = line.getBoundingClientRect().width
+    const chars = line.textContent.length
+    const ls = Math.max(0, Math.min(((avail - natural) * 0.5) / chars, 0.04 * fs))
+    line.style.display = 'block'
+    line.style.letterSpacing = ls.toFixed(3) + 'px'
+    line.style.textAlign = 'justify'
+    line.style.textAlignLast = 'justify'
+  })
+}
+function spansCount(el) { return el.querySelector('span') ? 1 : 0 }
+
 /* 2.10 — Aladdin strategic cooperation: retained */
 export function Partners() {
   const { lang } = useLang()
   const L = L2(lang)
+  const aladdinRef = useRef(null)
+  useEffect(() => {
+    if (lang === 'zh') return undefined
+    const el = aladdinRef.current
+    const run = () => { try { fitAladdin(el) } catch (e) {} }
+    run()
+    let timer
+    const onResize = () => { clearTimeout(timer); timer = setTimeout(run, 150) }
+    window.addEventListener('resize', onResize)
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(run)
+    return () => { window.removeEventListener('resize', onResize); clearTimeout(timer) }
+  }, [lang])
   return (
     <section className={styles.section} id="partners">
       <div className="sec-tag">{L({ en: '// SECTION 09 — STRATEGIC COOPERATION', zh: '// 第 09 節 — 策略合作' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'STRATEGIC COOPERATION', zh: '策略合作' })}</h2>
       <div className={`${styles.steelCard} ${styles.tightCard}`}>
-        <p className={styles.ecoText}>{L({
+        {/* 2026-09-24: straight left AND right edges with small gaps
+            (English, phones) — see fitAladdin above. 繁體 unchanged. */}
+        <p key={lang} ref={aladdinRef} className={styles.ecoText}>{L({
           en: 'COSMOS Ledger Labs has signed a strategic-cooperation agreement with Aladdin Cyber Security (Dubai, UAE) — a leading UAE cybersecurity and cloud provider with proprietary technology, founded in 2023 and based in Dubai Internet City. Aladdin brings front-line experience on major security incidents for enterprises and government agencies, spanning smart-contract auditing, full-stack penetration testing, and 24/7 multi-chain incident response.',
           zh: 'COSMOS Ledger Labs 已與 Aladdin Cyber Security（阿聯杜拜）簽署策略合作協議——該公司為阿聯領先的資安與雲端服務商，擁有自主技術，成立於 2023 年，總部位於杜拜網際網路城。Aladdin 具備處理企業與政府機構重大資安事件的一線經驗，涵蓋智能合約稽核、全端滲透測試與 7×24 多鏈事件應變。',
         })}</p>
