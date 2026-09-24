@@ -1,5 +1,7 @@
 /* pages/api/orders.js
    POST   (public)  — auto-record an order generated on /pay
+   GET ?status=ID (public) — status only of one order ('PAID' / 'UNPAID'),
+                      so the client's /pay page can show "payment received"
    GET    (admin)   — list recent orders
    PATCH  (admin)   — set an order's status: { id, status: 'PAID' | 'UNPAID' }
    DELETE (admin)   — remove an order: { id }                                */
@@ -30,11 +32,21 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true })
     }
 
+    /* Public status check for one order — returns nothing else. */
+    if (req.method === 'GET' && req.query && req.query.status) {
+      const id = String(req.query.status)
+      if (!ID_RE.test(id)) return res.status(400).json({ error: 'invalid' })
+      const { rows } = await sql`SELECT status FROM orders WHERE id = ${id}`
+      res.setHeader('Cache-Control', 'no-store')
+      return res.status(200).json({ status: rows.length ? rows[0].status : 'UNKNOWN' })
+    }
+
     if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })
 
     if (req.method === 'GET') {
-      const { rows } = await sql`SELECT id, service, amount, currency, method, rep, status,
-                to_char(created_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS created
+      const { rows } = await sql`SELECT id, service, amount, currency, method, rep, status, paid_via,
+                to_char(created_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS created,
+                to_char(paid_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS paid
                 FROM orders ORDER BY created_at DESC LIMIT 200`
       return res.status(200).json({ orders: rows })
     }
@@ -43,7 +55,11 @@ export default async function handler(req, res) {
       const { id, status } = req.body || {}
       if (!ID_RE.test(String(id)) || !['PAID', 'UNPAID'].includes(status))
         return res.status(400).json({ error: 'invalid' })
-      await sql`UPDATE orders SET status = ${status} WHERE id = ${id}`
+      if (status === 'PAID') {
+        await sql`UPDATE orders SET status = 'PAID', paid_via = 'manual', paid_at = NOW() WHERE id = ${id}`
+      } else {
+        await sql`UPDATE orders SET status = 'UNPAID', paid_via = '', paid_at = NULL WHERE id = ${id}`
+      }
       return res.status(200).json({ ok: true })
     }
 
