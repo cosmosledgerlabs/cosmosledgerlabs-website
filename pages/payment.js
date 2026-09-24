@@ -220,6 +220,79 @@ const withCyanMail = (text) => {
   return (<>{text.slice(0, i)}<span className={styles.emailLine}><MailLink />{dot}</span>{text.slice(end + dot.length)}</>)
 }
 
+/* "Valid payment details come from only two places…" (English, 2026-09-24):
+   phones only. The email on the last line is made smaller, step by step,
+   until "from info@cosmosledgerlabs.com." fits on the same line as
+   "…invoices sent". On narrower phones (e.g. iPhones, 390px) the paragraph
+   text also steps down by up to 2px so the lines wrap the same way as on
+   wider phones — same look on every phone, no big gaps. If a very small
+   phone still cannot fit it, "from info@…" moves to its own line at normal
+   size instead. Screens 768px and wider are unchanged. */
+const MAIL_MIN = 0.7   // smallest email size allowed: 70% of the normal text
+const PARA_DROP = 2    // paragraph shrinks at most 2px below its normal size
+const LINE_OK = 3      // widest accepted gap in this paragraph = 3 normal spaces
+
+function ShrinkEmailLine({ text }) {
+  const prevRef = useRef(null)
+  const unitRef = useRef(null)
+  const mailRef = useRef(null)
+  useEffect(() => {
+    const fit = () => {
+      const prev = prevRef.current, unit = unitRef.current, mail = mailRef.current
+      if (!prev || !unit || !mail) return
+      const para = unit.closest('p')
+      mail.style.fontSize = ''
+      unit.style.display = ''
+      if (para) para.style.fontSize = ''
+      if (window.innerWidth >= 768 || !para) return
+      const sameLine = () => Math.abs(unit.getBoundingClientRect().top - prev.getBoundingClientRect().top) < 2
+      const base = parseFloat(window.getComputedStyle(para).fontSize)
+      /* Largest sizes first. Accept the first combination where the email fits
+         and no line has big gaps; otherwise use the fitting combination with
+         the smallest gaps. */
+      let best = null
+      for (let size = base; size >= base - PARA_DROP - 0.001; size -= 0.25) {
+        para.style.fontSize = size + 'px'
+        for (let f = 1; f >= MAIL_MIN - 0.001; f -= 0.02) {
+          mail.style.fontSize = f + 'em'
+          if (!sameLine()) continue
+          const g = worstGap(para)
+          if (g <= LINE_OK) return
+          if (!best || g < best.g) best = { g, size, f }
+          break
+        }
+      }
+      if (best) {
+        para.style.fontSize = best.size + 'px'
+        mail.style.fontSize = best.f + 'em'
+        return
+      }
+      para.style.fontSize = ''
+      mail.style.fontSize = ''
+      unit.style.display = 'block'
+    }
+    fit()
+    window.addEventListener('resize', fit)
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [text])
+  const t = text.replace('\n', ' ')
+  const k = t.lastIndexOf(' from ')
+  if (k === -1) return withCyanMail(t)
+  const before = t.slice(0, k)
+  const w = before.lastIndexOf(' ')
+  const email = t.slice(k + 6)
+  return (
+    <>
+      {before.slice(0, w + 1)}
+      <span ref={prevRef}>{before.slice(w + 1)}</span>{' '}
+      <span ref={unitRef} style={{ whiteSpace: 'nowrap' }}>
+        from <span ref={mailRef}>{withCyanMail(email)}</span>
+      </span>
+    </>
+  )
+}
+
 export default function Payment() {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
@@ -313,7 +386,7 @@ export default function Payment() {
             </div>
             <div className={styles.card}>
               {VERIFY_LINES.map((line, i) => (
-                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{i === 0 ? withEmailKept(L(line), styles.emailLine) : (i === 2 && !isZh) ? withCyanMail(L(line)) : withEmailLine(L(line))}</p>
+                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{i === 0 ? (isZh ? withEmailKept(L(line), styles.emailLine) : <ShrinkEmailLine text={L(line)} />) : (i === 2 && !isZh) ? withCyanMail(L(line)) : withEmailLine(L(line))}</p>
               ))}
             </div>
           </section>
