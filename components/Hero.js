@@ -5,7 +5,7 @@ import styles from './Hero.module.css'
 /* 2.1 — Hero: technical delivery narrative; no funding language, no deck links */
 
 const T = {
-  badge: { en: '// BUILT ON SOLANA', zh: '// 建構於 SOLANA' },
+  badge: { en: '// TRY THE LIVE DEMO', zh: '// 體驗線上演示' },
   title1: { en: 'TECHNICAL DELIVERY FOR', zh: '為數位資產專案' },
   title2a: { en: 'DIGITAL ASSET', zh: '提供' },
   title2b: { en: ' PROJECTS', zh: '技術交付' },
@@ -28,10 +28,15 @@ export default function Hero() {
   return (
     <section className={styles.hero} id="top">
       <div className={styles.content}>
-        <div className={styles.badge}>
+        {/* Hero badge = link to the live demo page (/flow) */}
+        <Link
+          href="/flow"
+          className={styles.badge}
+          style={{ textDecoration: 'none', cursor: 'pointer' }}
+        >
           <span className={styles.dot}></span>
           {L(T.badge)}
-        </div>
+        </Link>
         <h1 className={styles.title}>
           {isZh ? (
             <>
