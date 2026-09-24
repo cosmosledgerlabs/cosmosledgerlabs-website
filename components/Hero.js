@@ -2,13 +2,17 @@ import Link from 'next/link'
 import { useLang } from '../lib/i18n'
 import styles from './Hero.module.css'
 
-/* 2.1 — Hero: technical delivery narrative; no funding language, no deck links */
+/* 2.1 — Hero: technical delivery narrative; no funding language, no deck links.
+   2026-09-24: headline now reads "Infrastructure & technical delivery for
+   digital asset projects" (EN) / 為數位資產專案提供基礎設施與技術交付 (繁體),
+   matching the page title. */
 
 const T = {
   badge: { en: '// TRY THE LIVE DEMO', zh: '// 體驗線上演示' },
-  title1: { en: 'TECHNICAL DELIVERY FOR', zh: '為數位資產專案' },
-  title2a: { en: 'DIGITAL ASSET', zh: '提供' },
-  title2b: { en: ' PROJECTS', zh: '技術交付' },
+  title0: { en: 'INFRASTRUCTURE &', zh: '為數位資產專案提供' },
+  title1: { en: 'TECHNICAL DELIVERY FOR', zh: '基礎設施與技術交付' },
+  title2a: { en: 'DIGITAL ASSET', zh: '' },
+  title2b: { en: ' PROJECTS', zh: '' },
   subline: {
     en: 'COSMOS LEDGER LABS \u00A0|\u00A0 DIGITAL ASSET TECHNOLOGY SERVICES \u00A0|\u00A0 TORONTO',
     zh: 'COSMOS LEDGER LABS \u00A0|\u00A0 數位資產技術服務 \u00A0|\u00A0 多倫多',
@@ -40,11 +44,12 @@ export default function Hero() {
         <h1 className={styles.title}>
           {isZh ? (
             <>
-              <span className={styles.tw}>為<span className={styles.tc}>數位資產</span>專案</span>
-              <span className={styles.tw}>提供技術交付</span>
+              <span className={styles.tw}>為<span className={styles.tc}>數位資產</span>專案提供</span>
+              <span className={styles.tw}>基礎設施與技術交付</span>
             </>
           ) : (
             <>
+              <span className={styles.tw}>{T.title0.en}</span>
               <span className={styles.tw}>{T.title1.en}</span>
               <span className={styles.tw}><span className={styles.tc}>{T.title2a.en}</span>{T.title2b.en}</span>
             </>
