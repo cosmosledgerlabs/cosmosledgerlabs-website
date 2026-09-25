@@ -25,8 +25,8 @@ export default function Nav() {
         <div className={`${styles.links} ${open ? styles.linksOpen : ''}`}>
           <Link href="/services" onClick={close}>{t('nav', 'services', lang)}</Link>
           <Link href="/flow" onClick={close}>{t('nav', 'demo', lang)}</Link>
-          <Link href="/payment" onClick={close}>{t('nav', 'payment', lang)}</Link>
           <Link href="/#problem" onClick={close}>{t('nav', 'problem', lang)}</Link>
+          <Link href="/payment" onClick={close}>{t('nav', 'payment', lang)}</Link>
           <Link href="/#contact" onClick={close}>{t('nav', 'contact', lang)}</Link>
           <LangToggle lang={lang} setLang={setLang} />
         </div>
