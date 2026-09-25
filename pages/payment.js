@@ -4,10 +4,14 @@ import Link from 'next/link'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
+import { lastUpdated } from '../lib/lastUpdated'
 import { MailLink, linkMail } from '../lib/mail'
 import styles from '../styles/Legal.module.css'
 
-const UPDATED = '2026-09-09'
+/* Backup date only. The date shown on the page is filled in automatically
+   from GitHub (see lib/lastUpdated.js); this one is used only if GitHub
+   cannot be reached when the site is built. */
+const UPDATED = '2026-09-25'
 
 const SECTIONS = [
   {
@@ -41,8 +45,8 @@ const NEVER = [
     zh: '我們絕不會要求您將 USDT 或任何加密貨幣轉入以聊天訊息或社群貼文提供的錢包地址。USDT 收款地址僅在 info@cosmosledgerlabs.com 寄出的正式發票上載明方為有效。',
   },
   {
-    en: 'We never receive or hold client or investor funds, and we never charge success fees or take a percentage of funds raised.',
-    zh: '我們絕不收取或保管客戶及投資人資金，絕不收取成功費，也不抽取募集資金的任何比例。',
+    en: 'Other than fees for our own services, we never receive or hold funds for clients or investors, and we never charge success fees or take a percentage of funds raised.',
+    zh: '除收取我們自身服務的費用外，我們絕不代客戶或投資人收取或保管資金，絕不收取成功費，也不抽取募集資金的任何比例。',
   },
 ]
 
@@ -293,7 +297,11 @@ function ShrinkEmailLine({ text }) {
   )
 }
 
-export default function Payment() {
+export async function getStaticProps() {
+  return { props: { updated: await lastUpdated('pages/payment.js', UPDATED) } }
+}
+
+export default function Payment({ updated }) {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
   const fitRefs = useRef([])
@@ -341,7 +349,7 @@ export default function Payment() {
         <div className={styles.main}>
 
           <h1 className={styles.title}>{isZh ? '付款' : 'PAYMENT'}</h1>
-          <div className={styles.updated}>{t('legal', 'updated', lang)} {UPDATED}</div>
+          <div className={styles.updated}>{t('legal', 'updated', lang)} {updated || UPDATED}</div>
 
           {isZh && <p className={styles.prevail}>{t('legal', 'prevail', lang)}</p>}
 
