@@ -18,8 +18,8 @@ const SECTIONS = [
     h: { en: 'HOW PAYMENT WORKS', zh: '付款方式說明' },
     body: [
       {
-        en: 'All work is performed under a written agreement and billed by official invoice issued by COSMOS Ledger Labs Inc. Fees are fixed per project and stated in writing before work begins. Payment schedules (deposit and milestones, if any) are set out in the agreement and on the invoice.',
-        zh: '所有工作均依據書面協議執行，並由 COSMOS Ledger Labs Inc. 開立正式發票收款。費用依專案固定計算，並於開工前以書面確認。付款時程（如有訂金與里程碑付款）以協議及發票所載為準。',
+        en: 'Project work is performed under a written agreement, with fees fixed in writing before work begins. Technical consulting is charged at the rates published on our Services page. Payment schedules (deposit and milestones, if any) are set out in the agreement, on the invoice, or in the payment order you generate.',
+        zh: '專案工作依書面協議執行，費用於開工前以書面固定。技術諮詢依服務頁面公布的價格收費。付款時程（訂金與里程碑，如有）列於協議、發票或您產生的付款訂單中。',
       },
     ],
   },
@@ -41,8 +41,8 @@ const NEVER = [
     zh: '我們絕不會透過聊天軟體、社群媒體或未經預期的電子郵件傳送付款資料。',
   },
   {
-    en: 'We never ask you to send USDT or any cryptocurrency to a wallet address received in a chat message or social media post. A USDT address is valid only when it appears on an official invoice from\ninfo@cosmosledgerlabs.com.',
-    zh: '我們絕不會要求您將 USDT 或任何加密貨幣轉入以聊天訊息或社群貼文提供的錢包地址。USDT 收款地址僅在 info@cosmosledgerlabs.com 寄出的正式發票上載明方為有效。',
+    en: 'We never ask you to send USDT or any cryptocurrency to a wallet address received in a chat message or social media post. A USDT address is valid only when it is sent from\ninfo@cosmosledgerlabs.com — either in reply to your payment order, or on an official invoice.',
+    zh: '我們絕不會要求您將 USDT 或任何加密貨幣轉至聊天訊息或社群貼文中取得的錢包地址。USDT 地址僅在由 info@cosmosledgerlabs.com 發出時有效——無論是回覆您的付款訂單，或列於正式發票上。',
   },
   {
     en: 'Other than fees for our own services, we never receive or hold funds for clients or investors, and we never charge success fees or take a percentage of funds raised.',
