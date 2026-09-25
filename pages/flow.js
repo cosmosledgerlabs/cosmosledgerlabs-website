@@ -92,8 +92,8 @@ const T3 = {
   },
   howT4: { en: 'CONNECT WALLET', zh: '連接錢包' },
   how4: {
-    en: 'Click CONNECT above and approve in Phantom.',
-    zh: '點擊上方「連接錢包」，並在 Phantom 中核准連接。',
+    en: 'Click CONNECT in the wallet panel below and approve in Phantom.',
+    zh: '點擊下方錢包面板中的「連接錢包」，並在 Phantom 中核准連接。',
   },
   howT5: { en: 'RUN SETUP', zh: '執行初始設定' },
   how5: {
@@ -102,8 +102,8 @@ const T3 = {
   },
   howT6: { en: 'CHOOSE FAILURE MODE', zh: '選擇故障注入' },
   how6: {
-    en: 'Choose NONE to run all three steps, or FAIL AT 1 / 2 / 3 to force a failure and watch the on-chain compensation. Then click EXECUTE FLOW.',
-    zh: '選「無」完整執行三步，或選「第 1／2／3 步失敗」強制失敗並觀察鏈上補償，然後點擊「執行流程」。',
+    en: 'Choose NONE to run all three steps, or FAIL AT 2 / 3 to force a failure and watch the completed steps get compensated on-chain. FAIL AT 1 fails before any transaction is sent, so there is nothing to compensate. Then click EXECUTE FLOW.',
+    zh: '選「無」完整執行三步，或選「第 2／3 步失敗」強制失敗並觀察已完成步驟的鏈上補償。「第 1 步失敗」在任何交易送出前即失敗，因此沒有需要補償的內容。然後點擊「執行流程」。',
   },
   howT7: { en: 'WATCH & VERIFY', zh: '觀察與驗證' },
   how7: {
