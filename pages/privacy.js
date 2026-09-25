@@ -2,6 +2,7 @@ import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
+import { lastUpdated } from '../lib/lastUpdated'
 import { linkMail } from '../lib/mail'
 import styles from '../styles/Legal.module.css'
 
@@ -28,7 +29,10 @@ function withMail(text, inline) {
   })
 }
 
-const UPDATED = '2026-09-11'
+/* Backup date only. The date shown on the page is filled in automatically
+   from GitHub (see lib/lastUpdated.js); this one is used only if GitHub
+   cannot be reached when the site is built. */
+const UPDATED = '2026-09-25'
 
 const SECTIONS = [
   {
@@ -69,11 +73,20 @@ const SECTIONS = [
     ],
   },
   {
-    h: { en: 'EMAIL', zh: '電子郵件' },
+    h: { en: 'PAYMENT ORDERS', zh: '付款訂單' },
     body: [
       {
-        en: 'If you email us, we receive your email address and whatever you choose to send. We use it only to respond to you and to manage any resulting engagement. We do not add you to marketing lists and we do not share your correspondence for marketing purposes.',
-        zh: '若您傳送電子郵件給我們，我們會收到您的電子郵件地址及您選擇傳送的內容。我們僅將其用於回覆您以及處理後續的委託事宜。我們不會將您加入行銷名單，亦不會為行銷目的分享您的通信內容。',
+        en: 'When you generate an order on /pay, the order details (such as order number, selected service, amount, currency, payment method and any customer-service name you enter) are sent to and stored in our order database, used only to match payments and handle the engagement. The database is provided by Neon through Vercel, on servers in the United States. We do not collect your bank account or wallet keys through this site.',
+        zh: '當您在 /pay 頁面產生訂單時，訂單資料（如訂單編號、所選服務、金額、幣別、付款方式及您選填的客服姓名）會傳送並儲存於我們的訂單資料庫，僅用於核對款項與處理委託事宜。該資料庫由 Neon 經 Vercel 提供，伺服器位於美國。我們不會透過本網站收集您的銀行帳戶或錢包金鑰。',
+      },
+    ],
+  },
+  {
+    h: { en: 'EMAIL, PHONE AND WHATSAPP', zh: '電子郵件、電話與 WhatsApp' },
+    body: [
+      {
+        en: 'If you contact us by email, phone or WhatsApp, we receive your contact details and whatever you choose to send. We use it only to respond to you and to manage any resulting engagement. We do not add you to marketing lists and we do not share your correspondence for marketing purposes.',
+        zh: '若您透過電子郵件、電話或 WhatsApp 與我們聯絡，我們會收到您的聯絡資料及您選擇傳送的內容。我們僅將其用於回覆您以及處理後續的委託事宜。我們不會將您加入行銷名單，亦不會為行銷目的分享您的通信內容。',
       },
     ],
   },
@@ -81,8 +94,8 @@ const SECTIONS = [
     h: { en: 'LIVE CHAT', zh: '在線聊天' },
     body: [
       {
-        en: 'The chat widget on this website is provided by Crisp IM SARL, a company based in France. When the chat is available and you use it, Crisp sets cookies to keep your conversation session and processes the information you provide (such as your email address and messages) on its servers in the European Union, under its own privacy policy. We use this information only to respond to you and to manage any resulting engagement. If you prefer not to use the chat, you can contact us by email instead.',
-        zh: '本網站的聊天視窗由位於法國的 Crisp IM SARL 提供。當聊天功能開啟且您使用時，Crisp 會設置 Cookie 以維持您的對話階段，並依其自身隱私政策，在其位於歐盟的伺服器上處理您提供的資訊（例如電子郵件地址與訊息內容）。我們僅將該資訊用於回覆您及處理後續的委託事宜。若您不希望使用聊天功能，歡迎改以電子郵件與我們聯絡。',
+        en: 'The chat widget on this website is provided by Crisp IM SARL, a company based in France. When the chat window loads, Crisp sets cookies to maintain your session and may process standard technical information (such as IP address and browser type); when you send a message, Crisp processes the information you provide (such as email address and message content) on its EU servers under its own privacy policy. We use this information only to respond to you and to manage any resulting engagement. If you prefer not to use the chat, you can contact us by email instead.',
+        zh: '本網站的聊天視窗由位於法國的 Crisp IM SARL 提供。聊天視窗載入時，Crisp 即會設置 Cookie 以維持對話階段，並可能處理標準技術資訊（如 IP 位址與瀏覽器類型）；當您傳送訊息時，Crisp 會依其自身隱私政策，在其位於歐盟的伺服器上處理您提供的資訊（例如電子郵件地址與訊息內容）。我們僅將該資訊用於回覆您及處理後續的委託事宜。若您不希望使用聊天功能，歡迎改以電子郵件與我們聯絡。',
       },
     ],
   },
@@ -116,7 +129,11 @@ const SECTIONS = [
   },
 ]
 
-export default function Privacy() {
+export async function getStaticProps() {
+  return { props: { updated: await lastUpdated('pages/privacy.js', UPDATED) } }
+}
+
+export default function Privacy({ updated }) {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
 
@@ -125,8 +142,8 @@ export default function Privacy() {
       <Head>
         <title>{isZh ? '隱私政策 — COSMOS Ledger Labs' : 'Privacy — COSMOS Ledger Labs'}</title>
         <meta name="description" content={isZh
-          ? 'COSMOS Ledger Labs Inc. 網站隱私政策：無帳號、無分析工具、無 Cookie。說明少量處理的資料及其處理方。'
-          : 'Privacy policy for the COSMOS Ledger Labs Inc. website: no accounts, no analytics, no cookies. What little is processed, and by whom.'} />
+          ? 'COSMOS Ledger Labs Inc. 網站隱私政策：無帳號、無分析工具、無廣告追蹤器。說明我們處理哪些資料及其處理方。'
+          : 'Privacy policy for the COSMOS Ledger Labs Inc. website: no accounts, no analytics, no advertising trackers. What is processed, and by whom.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -148,7 +165,7 @@ export default function Privacy() {
         <div className={styles.main}>
 
           <h1 className={styles.title}>{isZh ? '隱私政策' : 'PRIVACY'}</h1>
-          <div className={styles.updated}>{t('legal', 'updated', lang)} {UPDATED}</div>
+          <div className={styles.updated}>{t('legal', 'updated', lang)} {updated || UPDATED}</div>
 
           {isZh && <p className={styles.prevail}>{t('legal', 'prevail', lang)}</p>}
 
