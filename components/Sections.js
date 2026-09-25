@@ -57,7 +57,7 @@ export function HowWeWork() {
     { t: { en: 'SCOPE', zh: '需求界定' }, d: { en: 'A call to define exactly what will be built, and what won\u2019t.', zh: '一通會議，明確定義要建什麼、不建什麼。' } },
     { t: { en: 'QUOTE', zh: '報價' }, d: { en: 'Fixed scope, written quote, milestone schedule.', zh: '固定範圍、書面報價、里程碑時程。' }, oneLine: true },
     { t: { en: 'BUILD', zh: '建置' }, d: { en: 'Version-controlled development against the agreed specification.', zh: '依約定規格進行版本控管的開發。' } },
-    { t: { en: 'VERIFY', zh: '驗證' }, d: { en: 'Everything tested on Solana devnet before any mainnet action.', zh: '任何主網操作前，一律先在 Solana devnet 完整測試。' } },
+    { t: { en: 'VERIFY', zh: '驗證' }, d: { en: 'Everything is tested on a testnet (Solana devnet or an EVM testnet) before any mainnet action.', zh: '所有內容在任何主網操作前，先於測試網（Solana devnet 或 EVM 測試網）完成測試。' } },
     { t: { en: 'HANDOVER', zh: '交付' }, d: { en: 'Code, credentials, and a run-book your team can operate without us.', zh: '程式碼、憑證與操作手冊，您的團隊無需我們也能營運。' } },
   ]
   return (
@@ -85,7 +85,7 @@ export function Security() {
   const L = L2(lang)
   const items = [
     { t: { en: 'LEAST-PRIVILEGE ACCESS', zh: '最小權限存取' }, d: { en: 'Least-privilege access on every engagement; no custody of client keys or funds.', zh: '每個專案皆採最小權限存取；絕不保管客戶金鑰或資金。' } },
-    { t: { en: 'DEVNET VERIFICATION', zh: 'DEVNET 驗證' }, d: { en: 'Everything is verified on Solana devnet before any mainnet action.', zh: '任何主網操作前，一律先在 Solana devnet 驗證。' } },
+    { t: { en: 'TESTNET VERIFICATION', zh: '測試網驗證' }, d: { en: 'Everything is verified on a testnet before any mainnet action.', zh: '所有內容在任何主網操作前，先於測試網完成驗證。' } },
     { t: { en: 'AUTHORITIES TO SPEC', zh: '權限依規格設定' }, d: { en: 'Token authorities configured only to the client\u2019s written specification.', zh: '代幣權限僅依客戶書面規格設定。' } },
     { t: { en: 'VERSION-CONTROLLED HANDOVER', zh: '版本控管交付' }, d: { en: 'Version-controlled code with a documented handover.', zh: '版本控管的程式碼，附完整交付文件。' } },
     { t: { en: 'INDEPENDENT AUDIT REFERRAL', zh: '獨立稽核轉介' }, d: { en: 'Where an audit is required, we refer clients to qualified independent audit firms — COSMOS does not perform audits.', zh: '需要稽核時，轉介合格的獨立稽核機構——COSMOS 不自行執行稽核。' } },
@@ -95,8 +95,8 @@ export function Security() {
       <div className="sec-tag">{L({ en: '// SECTION 06 — SECURITY', zh: '// 第 06 節 — 資安' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'SECURITY AS A DELIVERY PRACTICE', zh: '資安是交付的日常實踐' })}</h2>
       <p className={styles.secBody}>{L({
-        en: "Security on every engagement is procedural, not promotional: least-privilege access and no custody of client keys or funds; devnet verification before any mainnet action; token authorities configured only to the client's written specification; version-controlled code with a documented handover; and referral to qualified independent audit firms where an audit is required — COSMOS does not perform audits.",
-        zh: '每個專案的資安都是程序性的，而非宣傳性的：最小權限存取，絕不保管客戶金鑰或資金；任何主網操作前先於 devnet 驗證；代幣權限僅依客戶書面規格設定；版本控管的程式碼與書面交付紀錄；需要稽核時，轉介合格的獨立稽核機構——COSMOS 不自行執行稽核。',
+        en: "Security on every engagement is procedural, not promotional: least-privilege access and no custody of client keys or funds; testnet verification before any mainnet action; token authorities configured only to the client's written specification; version-controlled code with a documented handover; and referral to qualified independent audit firms where an audit is required — COSMOS does not perform audits.",
+        zh: '每個專案的資安都是程序性的，而非宣傳性的：最小權限存取，絕不保管客戶金鑰或資金；任何主網操作前先於測試網驗證；代幣權限僅依客戶書面規格設定；版本控管的程式碼與書面交付紀錄；需要稽核時，轉介合格的獨立稽核機構——COSMOS 不自行執行稽核。',
       })}</p>
       <div className={styles.secGrid}>
         {items.map((item, i) => (
@@ -119,8 +119,8 @@ export function Technology() {
       <div className="sec-tag">{L({ en: '// SECTION 07 — TECHNOLOGY', zh: '// 第 07 節 — 技術' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'TECHNOLOGY WE BUILD WITH', zh: '我們使用的技術' })}</h2>
       <p className={`${styles.ecoText} ${styles.techCenter}`}>{L({
-        en: 'Solana · React / Next.js · SPL token standards · established ecosystem tooling including Streamflow, Squads, Magna, and Helius. We build against the tools our clients already use.',
-        zh: 'Solana · React / Next.js · SPL 代幣標準 · 成熟的生態系工具，包括 Streamflow、Squads、Magna 與 Helius。我們以客戶已在使用的工具為基礎進行建置。',
+        en: 'Solana and EVM-compatible networks · React / Next.js · SPL and ERC-20 token standards · established ecosystem tooling including Streamflow, Squads, Magna, and Helius. We build against the tools our clients already use.',
+        zh: 'Solana 與 EVM 相容網路 · React / Next.js · SPL 與 ERC-20 代幣標準 · 成熟的生態系工具，包括 Streamflow、Squads、Magna 與 Helius。我們依客戶既有的工具進行建置。',
       })}</p>
     </section>
   )
@@ -131,7 +131,7 @@ export function WhereWeAre() {
   const { lang } = useLang()
   const L = L2(lang)
   const items = [
-    { t: { en: 'NOW', zh: '現在' }, d: { en: 'Delivering client engagements across our six service lines, with a live on-chain engineering demo on Solana devnet.', zh: '正在六大服務線上交付客戶專案，並於 Solana devnet 提供可實際操作的鏈上工程演示。' } },
+    { t: { en: 'NOW', zh: '現在' }, d: { en: 'Accepting client engagements across our services (build services and technical consulting), with a live on-chain engineering demo on Solana devnet.', zh: '透過我們的各項服務（建置服務與技術諮詢）接受客戶委託，並在 Solana devnet 上提供可實際操作的鏈上工程演示。' } },
     { t: { en: 'NEXT', zh: '接下來' }, d: { en: 'Expanding our vetted engineering partner network and publishing delivery case studies.', zh: '擴大經審核的工程夥伴網絡，並發佈交付案例。' } },
     { t: { en: 'LATER', zh: '之後' }, d: { en: 'Productizing the internal workflow-orchestration tooling behind our demo.', zh: '將演示背後的內部工作流編排工具產品化。' } },
   ]
