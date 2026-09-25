@@ -61,8 +61,8 @@ const SERVICES = [
     n: '04',
     name: { en: 'CLAIM PORTALS', zh: '領取頁面' },
     lead: {
-      en: 'Branded distribution interfaces where recipients connect a wallet and claim their allocation.',
-      zh: '品牌化的分發介面，領取者連接錢包即可領取其配額。',
+      en: 'A branded claim interface that you operate; recipients connect a wallet to claim their allocation.',
+      zh: '品牌化的領取介面，由您自行營運；領取者連接錢包即可領取其配額。',
     },
     items: [
       { en: 'White-label UI under your own domain', zh: '白牌介面，架設於您自己的網域' },
@@ -161,7 +161,7 @@ const PROCESS = [
     title: { en: 'BUILD', zh: '建置' },
     d: {
       en: 'Weekly written updates. You see progress, not promises.',
-      zh: '每週書面進度更新。您看到的是進度，不是承諾。',
+      zh: '每週書面進度更新。您看到的是實際進度，而不只是口頭承諾。',
     },
   },
   {
@@ -176,7 +176,7 @@ const PROCESS = [
 
 const EXCLUSIONS = [
   { en: 'Sell, distribute or market digital assets on behalf of clients', zh: '代客戶銷售、分發或行銷數位資產' },
-  { en: 'Receive or hold client or investor funds', zh: '收取或保管客戶及投資人資金' },
+  { en: 'Receive, hold or custody funds or digital assets for clients or investors (other than fees for our own services)', zh: '代客戶或投資人收取、持有或保管資金或數位資產（我們自身服務的費用除外）' },
   { en: 'Raise capital for clients or introduce investors', zh: '為客戶募集資金或引介投資人' },
   { en: 'Provide market making or liquidity services', zh: '提供造市或流動性服務' },
   { en: 'Arrange, promise or facilitate exchange listings', zh: '安排、承諾或促成交易所上架' },
@@ -317,8 +317,21 @@ export default function Services() {
     let timer
     const onResize = () => { clearTimeout(timer); timer = setTimeout(fit, 150) }
     window.addEventListener('resize', onResize)
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit)
-    return () => { window.removeEventListener('resize', onResize); clearTimeout(timer) }
+    /* Phones and in-app browsers (WeChat, Huawei) often draw the page first
+       with a stand-in font and swap in the real one a moment later. Re-fit
+       once the note's own font has actually loaded, and again whenever any
+       font finishes loading, so the lines always match the font on screen. */
+    const fonts = document.fonts
+    if (fonts) {
+      if (fonts.ready) fonts.ready.then(fit)
+      if (fonts.load) fonts.load("400 12.5px 'Share Tech Mono'").then(fit).catch(() => {})
+      if (fonts.addEventListener) fonts.addEventListener('loadingdone', onResize)
+    }
+    return () => {
+      window.removeEventListener('resize', onResize)
+      clearTimeout(timer)
+      if (fonts && fonts.removeEventListener) fonts.removeEventListener('loadingdone', onResize)
+    }
   }, [lang, isZh])
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
 
