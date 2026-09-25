@@ -372,12 +372,22 @@ export default function Services() {
               {t('services', 'badge', lang)}
             </div>
             <h1 className={styles.title}>
-              <span className={styles.tw}>{t('services', 'title1', lang)}</span>
-              <span className={styles.tw}>
-                <span className={styles.tc}>{t('services', 'title2a', lang)}</span>
-                {isZh ? '' : ' '}
-                {t('services', 'title2b', lang)}
-              </span>
+              {isZh ? (
+                <>
+                  <span className={styles.tw}>為<span className={styles.tc}>數位資產</span>專案提供</span>
+                  <span className={styles.tw}>基礎設施與技術交付</span>
+                </>
+              ) : (
+                <>
+                  <span className={styles.tw}>{t('services', 'title0', lang)}</span>
+                  <span className={styles.tw}>{t('services', 'title1', lang)}</span>
+                  <span className={styles.tw}>
+                    <span className={styles.tc}>{t('services', 'title2a', lang)}</span>
+                    {' '}
+                    {t('services', 'title2b', lang)}
+                  </span>
+                </>
+              )}
             </h1>
             <div className={styles.subline}>{t('services', 'subline', lang)}</div>
             <div className={styles.gl}></div>
