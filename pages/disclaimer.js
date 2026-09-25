@@ -2,9 +2,13 @@ import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
+import { lastUpdated } from '../lib/lastUpdated'
 import styles from '../styles/Legal.module.css'
 
-const UPDATED = '2026-09-09'
+/* Backup date only. The date shown on the page is filled in automatically
+   from GitHub (see lib/lastUpdated.js); this one is used only if GitHub
+   cannot be reached when the site is built. */
+const UPDATED = '2026-09-25'
 
 const SECTIONS = [
   {
@@ -29,8 +33,8 @@ const SECTIONS = [
     h: { en: 'SCOPE OF SERVICES', zh: '服務範圍' },
     body: [
       {
-        en: 'COSMOS Ledger Labs Inc. is a software company providing technical delivery services. We do not sell, distribute or market digital assets on behalf of clients; we do not receive or hold client or investor funds; we do not raise capital for clients or introduce investors; we do not provide market making or liquidity services; and we do not arrange, promise or facilitate exchange listings.',
-        zh: 'COSMOS Ledger Labs Inc. 是一家提供技術交付服務的軟體公司。我們不代客戶銷售、分發或行銷數位資產；不收取或保管客戶及投資人資金；不為客戶募集資金或引介投資人；不提供造市或流動性服務；亦不安排、承諾或促成交易所上架。',
+        en: 'COSMOS Ledger Labs Inc. is a software company providing technical delivery services. Other than fees for our own services, we do not receive, hold or custody funds or digital assets for clients or investors. Tools we deliver, including claim pages and token deployment, are operated by the client; we do not sell, distribute or market digital assets on a client\'s behalf, raise capital or introduce investors, provide market-making or liquidity services, or arrange, promise or facilitate exchange listings.',
+        zh: 'COSMOS Ledger Labs Inc. 是一家提供技術交付服務的軟體公司。除收取我們自身服務的費用外，我們不代客戶或投資人收取、持有或保管任何資金或數位資產。我們交付的工具（包括領取頁面與代幣部署）由客戶自行操作；我們不代客戶銷售、分發或行銷數位資產，不為客戶募集資金或引介投資人，不提供造市或流動性服務，亦不安排、承諾或促成交易所上架。',
       },
     ],
   },
@@ -47,8 +51,8 @@ const SECTIONS = [
     h: { en: 'THIRD PARTIES', zh: '第三方聲明' },
     body: [
       {
-        en: 'Third-party tools and networks named on this website are technologies we build with; their mention does not imply partnership or endorsement in either direction. External links are provided for convenience only, and we are not responsible for the content of external sites.',
-        zh: '本網站提及的第三方工具與網路為我們使用的技術，提及不代表任何一方的合作或背書關係。外部連結僅為方便而提供，我們對外部網站的內容不承擔任何責任。',
+        en: 'Except where expressly identified as a partner, third-party tools and networks mentioned on this site are technologies we use; mention does not imply any partnership or endorsement. External links are provided for convenience only, and we are not responsible for the content of external sites.',
+        zh: '除本網站明確標示為合作夥伴者外，本網站提及的第三方工具與網路為我們使用的技術，提及不代表任何合作或背書關係。外部連結僅為方便而提供，我們對外部網站的內容不承擔任何責任。',
       },
     ],
   },
@@ -65,14 +69,18 @@ const SECTIONS = [
     h: { en: 'GOVERNING JURISDICTION', zh: '管轄聲明' },
     body: [
       {
-        en: 'COSMOS Ledger Labs Inc. is incorporated in Ontario, Canada. This website is operated from Ontario, Canada.',
-        zh: 'COSMOS Ledger Labs Inc. 於加拿大安大略省註冊成立。本網站自加拿大安大略省營運。',
+        en: 'COSMOS Ledger Labs Inc. is incorporated in Ontario, Canada. This website is operated from Ontario, Canada. This site and this disclaimer are governed by the laws of the Province of Ontario and the federal laws of Canada applicable therein.',
+        zh: 'COSMOS Ledger Labs Inc. 於加拿大安大略省註冊成立。本網站自加拿大安大略省營運。本網站及本聲明受安大略省法律及其適用之加拿大聯邦法律管轄。',
       },
     ],
   },
 ]
 
-export default function Disclaimer() {
+export async function getStaticProps() {
+  return { props: { updated: await lastUpdated('pages/disclaimer.js', UPDATED) } }
+}
+
+export default function Disclaimer({ updated }) {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
 
@@ -104,7 +112,7 @@ export default function Disclaimer() {
         <div className={styles.main}>
 
           <h1 className={styles.title}>{isZh ? '免責聲明' : 'DISCLAIMER'}</h1>
-          <div className={styles.updated}>{t('legal', 'updated', lang)} {UPDATED}</div>
+          <div className={styles.updated}>{t('legal', 'updated', lang)} {updated || UPDATED}</div>
 
           {isZh && <p className={styles.prevail}>{t('legal', 'prevail', lang)}</p>}
 
