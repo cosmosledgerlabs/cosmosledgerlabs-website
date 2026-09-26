@@ -122,41 +122,97 @@
 /* QUOTE line on phones: no letter spacing so the whole sentence fits on one line */
 @media (max-width: 767px) { .wfDescOne { letter-spacing:0; } }
 
-/* ===== SECURITY — 3+3 grid ===== */
-.secGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 14px;
-}
-
-/* desktop: five practices in two aligned columns (2026-09-15) */
-@media (min-width: 768px) {
-  .secGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 18px 40px;
-    align-items: start;
-  }
-}
-.secCard {
-  background: none;
-  border: none;
-  padding: 0;
-}
-.secCardTitle { font-family:'Rajdhani',sans-serif; font-size: 13px; font-weight:700; color:var(--cyan); letter-spacing:.07em; line-height: 1.15; margin: 0; }
-.secCardText {
-  font-size: 15px;
+/* ===== SECURITY (redesign 2026-09-26) ===== */
+.secLead {
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-weight: 600;
-  line-height: 1.4;
+  font-size: clamp(15px, 1.6vw, 17px);
+  line-height: 1.5;
+  color: var(--text-muted);
+  max-width: 70ch;
+  margin: 0 0 24px;
+  text-align: left;
+}
+.secCards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.secBox {
+  position: relative;
+  background: rgba(0,10,28,.88);
+  border: 1px solid rgba(0,190,230,.3);
+  border-radius: 6px;
+  padding: 22px 20px 24px;
+  transition: border-color .2s, transform .2s;
+}
+.secBox::before { content:''; position:absolute; top:0; left:0; width:12px; height:12px; border-top:2px solid rgba(0,220,255,.65); border-left:2px solid rgba(0,220,255,.65); }
+.secBox:hover { border-color: rgba(0,220,255,.6); transform: translateY(-2px); }
+.secNum {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .16em;
+  color: var(--cyan);
+  opacity: .75;
+  margin-bottom: 12px;
+}
+.secBoxTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.2;
+  color: var(--cyan);
+  margin-bottom: 10px;
+}
+.secBoxText {
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.5;
   color: var(--text);
-  text-align: var(--para-align, justify);
-  text-justify: var(--para-justify, inter-word);
-  -webkit-hyphens: none;
+  text-align: left;
   hyphens: none;
   overflow-wrap: break-word;
-  text-wrap: pretty;
+  text-wrap: pretty; /* no single character left alone on the last line */
+}
+.secAudit {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 16px;
+  padding: 18px 22px;
+  background: rgba(0,150,255,.08);
+  border: 1px solid rgba(0,220,255,.45);
+  border-left: 3px solid var(--cyan);
+  border-radius: 6px;
+}
+.secAuditTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--cyan);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.secAuditText {
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 15.5px;
+  line-height: 1.5;
+  color: var(--text);
+  text-align: left;
+}
+@media (max-width: 1100px) {
+  .secCards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .secAudit { flex-direction: column; align-items: flex-start; gap: 6px; padding: 16px 18px; }
+  .secAuditTitle { white-space: normal; }
+}
+@media (max-width: 560px) {
+  .secCards { grid-template-columns: 1fr; }
 }
 
 /* ===== ECOSYSTEM ===== */
@@ -263,7 +319,6 @@
 @media(max-width:767px) {
   
   .cardGrid { grid-template-columns: 1fr 1fr; }
-  .secGrid { grid-template-columns: 1fr 1fr; } /* 手机2+2+2 */
   .archSub {
   font-family: 'Saira Condensed', 'Share Tech', sans-serif;
   font-weight: 600;
@@ -287,7 +342,6 @@
 }
 @media(max-width:480px) {
   .cardGrid { grid-template-columns: 1fr; }
-  .secGrid { grid-template-columns: 1fr; }
 }
 
 /* --- added: inline email link + investor legal note + team block spacing --- */
@@ -433,4 +487,18 @@
 /* four marked boxes only: text fills the frame (2026-09-13) */
 .tightCard {
   padding: 14px 16px;
+}
+
+/* 2026-09-26: Strategic Cooperation box only — corner marks sit exactly on the
+   frame's rounded corners, and the space under the last line equals the space
+   above the first line. Text unchanged. */
+.partnerCard::before { top: -1px; left: -1px; border-top-left-radius: 6px; }
+.partnerCard::after { bottom: -1px; right: -1px; border-bottom-right-radius: 6px; }
+.partnerCard > p:first-child { margin-top: 0; }
+.partnerCard > p:last-child { margin-bottom: 0; }
+
+/* 2026-09-26: Delivery Gap cards on phones only — no stretched word gaps
+   (e.g. "A dashboard that reflects on-chain state accurately"). Desktop unchanged. */
+@media (max-width: 767px) {
+  .probText { text-align: left; }
 }
