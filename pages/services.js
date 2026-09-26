@@ -108,8 +108,8 @@ const SERVICES = [
     n: '07',
     name: { en: 'TECHNICAL ADVISORY', zh: '技術顧問諮詢' },
     lead: {
-      en: 'Direct technical consultation on your digital asset project, including website and development questions. Booked in 2-hour blocks.',
-      zh: '針對您的數位資產專案提供直接技術諮詢，包括網站與開發相關問題。以 2 小時為單位預約。',
+      en: 'Direct technical consultation on your digital asset project, including website and development questions. Billed hourly.',
+      zh: '針對您的數位資產專案提供直接技術諮詢，包括網站與開發相關問題。按小時計費。',
     },
     items: [
       { en: 'Architecture and technology choices', zh: '架構與技術選型' },
@@ -117,9 +117,9 @@ const SERVICES = [
       { en: 'Review of existing builds and vendor work', zh: '既有成果與外包工作審閱' },
       { en: '2-hour minimum', zh: '最少 2 小時' },
     ],
-    price: 'US$1,000',
+    price: 'US$380',
     fixed: true,
-    time: { en: 'PER 2 HOURS', zh: '每 2 小時' },
+    time: { en: 'PER HOUR', zh: '每小時' },
   },
   {
     n: '08',
