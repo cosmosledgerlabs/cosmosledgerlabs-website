@@ -125,13 +125,14 @@ const SERVICES = [
     n: '08',
     name: { en: 'UNLIMITED ADVISORY PACKAGE', zh: '無限諮詢套餐' },
     lead: {
-      en: 'Unlimited technical consultation for one project, from kickoff to delivery, at a single fixed price.',
-      zh: '單一專案不限次數技術諮詢，從啟動到交付，一次固定價格。',
+      en: 'Unlimited technical consultation for one project, for 6 months from purchase, at a single fixed price.',
+      zh: '單一專案不限次數技術諮詢，自購買日起 6 個月內有效，一次固定價格。',
     },
     items: [
       { en: 'No hourly limit for the covered project', zh: '所涵蓋專案不限時數' },
       { en: 'Website and development questions included', zh: '包含網站與開發相關問題' },
       { en: 'One project per package', zh: '每個套餐限一個專案' },
+      { en: 'Valid for 6 months from purchase', zh: '自購買日起 6 個月內有效' },
     ],
     price: 'US$2,000',
     fixed: true,
