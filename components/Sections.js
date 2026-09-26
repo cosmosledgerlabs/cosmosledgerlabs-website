@@ -41,8 +41,8 @@ export function Solution() {
       <h2 className={styles.secTitle}>{L({ en: 'COSMOS CLOSES THE DELIVERY GAP', zh: 'COSMOS 補上交付缺口' })}</h2>
       <div className={styles.steelCard}>
         <p className={styles.ecoText}>{L({
-          en: 'COSMOS is a specialized technical delivery firm for digital asset projects. We scope, build, test, and hand over the operational infrastructure around your protocol or token — on a fixed scope, with devnet verification before anything touches mainnet, and without ever taking custody of your funds or keys. You keep control; we do the engineering.',
-          zh: 'COSMOS 是專為數位資產專案而設的技術交付公司。我們為您的協議或代幣界定範圍、建置、測試並移交周邊營運基礎設施——固定範圍、上主網前一律先在 devnet 驗證、且絕不保管您的資金或金鑰。控制權在您手上；工程由我們負責。',
+          en: 'COSMOS is a specialized technical delivery firm for digital asset projects. We scope, build, test, and hand over the operational infrastructure around your protocol or token — on a fixed scope, with testnet verification before anything touches mainnet, and without ever taking custody of your funds or keys. You keep control; we do the engineering.',
+          zh: 'COSMOS 是專為數位資產專案而設的技術交付公司。我們為您的協議或代幣界定範圍、建置、測試並移交周邊營運基礎設施——固定範圍、上主網前一律先在測試網驗證、且絕不保管您的資金或金鑰。控制權在您手上；工程由我們負責。',
         })}</p>
       </div>
     </section>
