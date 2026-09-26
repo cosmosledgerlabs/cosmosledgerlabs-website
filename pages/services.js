@@ -132,7 +132,6 @@ const SERVICES = [
       { en: 'No hourly limit for the covered project', zh: '所涵蓋專案不限時數' },
       { en: 'Website and development questions included', zh: '包含網站與開發相關問題' },
       { en: 'One project per package', zh: '每個套餐限一個專案' },
-      { en: 'Valid for 6 months from purchase', zh: '自購買日起 6 個月內有效' },
     ],
     price: 'US$2,000',
     fixed: true,
