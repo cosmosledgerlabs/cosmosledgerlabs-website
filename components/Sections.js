@@ -24,7 +24,7 @@ export function Problem() {
       })}</p>
       <div className={styles.cardGrid}>
         {cards.map((c) => (
-          <div key={c.t.en} className={`${styles.card} ${styles.gapTight}`}><div className={styles.cardName}>{L(c.t)}</div><div className={`${styles.cardText} ${styles.gapProse}`}>{L(c.d)}</div></div>
+          <div key={c.t.en} className={`${styles.card} ${styles.gapTight}`}><div className={styles.cardName}>{L(c.t)}</div><div className={`${styles.cardText} ${styles.gapProse} ${styles.probText}`}>{L(c.d)}</div></div>
         ))}
       </div>
     </section>
@@ -83,28 +83,37 @@ export function HowWeWork() {
 export function Security() {
   const { lang } = useLang()
   const L = L2(lang)
+  /* 2026-09-26 redesign: short lead + four framed cards + full-width audit strip.
+     Card text no longer repeats its title; the lead no longer repeats the cards. */
   const items = [
-    { t: { en: 'LEAST-PRIVILEGE ACCESS', zh: '最小權限存取' }, d: { en: 'Least-privilege access on every engagement; no custody of client keys or funds.', zh: '每個專案皆採最小權限存取；絕不保管客戶金鑰或資金。' } },
-    { t: { en: 'TESTNET VERIFICATION', zh: '測試網驗證' }, d: { en: 'Everything is verified on a testnet before any mainnet action.', zh: '所有內容在任何主網操作前，先於測試網完成驗證。' } },
-    { t: { en: 'AUTHORITIES TO SPEC', zh: '權限依規格設定' }, d: { en: 'Token authorities configured only to the client\u2019s written specification.', zh: '代幣權限僅依客戶書面規格設定。' } },
-    { t: { en: 'VERSION-CONTROLLED HANDOVER', zh: '版本控管交付' }, d: { en: 'Version-controlled code with a documented handover.', zh: '版本控管的程式碼，附完整交付文件。' } },
-    { t: { en: 'INDEPENDENT AUDIT REFERRAL', zh: '獨立稽核轉介' }, d: { en: 'Where an audit is required, we refer clients to qualified independent audit firms — COSMOS does not perform audits.', zh: '需要稽核時，轉介合格的獨立稽核機構——COSMOS 不自行執行稽核。' } },
+    { t: { en: 'LEAST-PRIVILEGE ACCESS', zh: '最小權限存取' }, d: { en: 'We work with only the access each task needs, and never take custody of client keys or funds.', zh: '每項工作只取得所需的最低權限，絕不保管客戶金鑰或資金。' } },
+    { t: { en: 'TESTNET VERIFICATION', zh: '測試網驗證' }, d: { en: 'Every deployment is proven on a testnet before anything touches mainnet.', zh: '所有部署先於測試網驗證，才進行任何主網操作。' } },
+    { t: { en: 'AUTHORITIES TO SPEC', zh: '權限依規格設定' }, d: { en: 'Token authorities are set only as the client specifies in writing — nothing more.', zh: '代幣權限只依客戶的書面規格設定，不多也不少。' } },
+    { t: { en: 'VERSION-CONTROLLED HANDOVER', zh: '版本控管交付' }, d: { en: 'All code lives in version control and is handed over with written documentation.', zh: '所有程式碼皆納入版本控管，並附書面文件完整移交。' } },
   ]
   return (
     <section className={styles.section} id="security">
       <div className="sec-tag">{L({ en: '// SECTION 06 — SECURITY', zh: '// 第 06 節 — 資安' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'SECURITY AS A DELIVERY PRACTICE', zh: '資安是交付的日常實踐' })}</h2>
-      <p className={styles.secBody}>{L({
-        en: "Security on every engagement is procedural, not promotional: least-privilege access and no custody of client keys or funds; testnet verification before any mainnet action; token authorities configured only to the client's written specification; version-controlled code with a documented handover; and referral to qualified independent audit firms where an audit is required — COSMOS does not perform audits.",
-        zh: '每個專案的資安都是程序性的，而非宣傳性的：最小權限存取，絕不保管客戶金鑰或資金；任何主網操作前先於測試網驗證；代幣權限僅依客戶書面規格設定；版本控管的程式碼與書面交付紀錄；需要稽核時，轉介合格的獨立稽核機構——COSMOS 不自行執行稽核。',
+      <p className={styles.secLead}>{L({
+        en: 'Security on every engagement is procedural, not promotional.',
+        zh: '每個專案的資安都是程序性的，而非宣傳性的。',
       })}</p>
-      <div className={styles.secGrid}>
+      <div className={styles.secCards}>
         {items.map((item, i) => (
-          <div key={i} className={styles.secCard}>
-            <div className={styles.secCardTitle}>{L(item.t)}</div>
-            <div className={styles.secCardText}>{L(item.d)}</div>
+          <div key={i} className={styles.secBox}>
+            <div className={styles.secNum}>{String(i + 1).padStart(2, '0')}</div>
+            <div className={styles.secBoxTitle}>{L(item.t)}</div>
+            <div className={styles.secBoxText}>{L(item.d)}</div>
           </div>
         ))}
+      </div>
+      <div className={styles.secAudit}>
+        <div className={styles.secAuditTitle}>{L({ en: 'INDEPENDENT AUDIT REFERRAL', zh: '獨立稽核轉介' })}</div>
+        <div className={styles.secAuditText}>{L({
+          en: 'Where an audit is required, we refer clients to qualified independent audit firms. COSMOS does not perform audits.',
+          zh: '需要稽核時，我們轉介合格的獨立稽核機構。COSMOS 不自行執行稽核。',
+        })}</div>
       </div>
     </section>
   )
@@ -236,7 +245,7 @@ export function Partners() {
     <section className={styles.section} id="partners">
       <div className="sec-tag">{L({ en: '// SECTION 09 — STRATEGIC COOPERATION', zh: '// 第 09 節 — 策略合作' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'STRATEGIC COOPERATION', zh: '策略合作' })}</h2>
-      <div className={`${styles.steelCard} ${styles.tightCard}`}>
+      <div className={`${styles.steelCard} ${styles.tightCard} ${styles.partnerCard}`}>
         {/* 2026-09-24: straight left AND right edges with small gaps
             (English, phones) — see fitAladdin above. 繁體 unchanged. */}
         <p key={lang} ref={aladdinRef} className={styles.ecoText}>{L({
