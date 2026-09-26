@@ -221,7 +221,7 @@ const T3 = {
   },
   disclaimer: {
     en: 'Devnet is a public test network. Tokens on Devnet have no monetary value. The escrow account in this demonstration is held by a keypair generated in the browser — sufficient to show funds genuinely leaving and returning, but not a trustless escrow. A production version would use a program-derived address. This demonstration does not constitute an offer to sell or a solicitation to buy any security or digital asset.',
-    zh: 'Devnet 為公開測試網路，其上代幣不具任何金錢價值。本演示中的託管帳戶由瀏覽器內產生的金鑰對持有——足以展示資金真實地離開與返回，但並非去信任託管。正式版本將使用程式衍生地址（PDA）。本演示不構成出售任何證券或數位資產的要約，亦不構成購買的要約邀請。',
+    zh: 'Devnet 為公開測試網路，其上代幣不具任何金錢價值。本演示中的託管帳戶由瀏覽器內產生的金鑰對持有——足以展示資金真實地離開與返回，但並非無需信任（trustless）的託管。正式版本將使用程式衍生地址（PDA）。本演示不構成出售任何證券或數位資產的要約，亦不構成購買的要約邀請。',
   },
 }
 
