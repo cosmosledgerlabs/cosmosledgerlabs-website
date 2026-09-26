@@ -112,8 +112,8 @@ const SECTIONS = [
     h: { en: 'YOUR CHOICES', zh: '您的選擇' },
     body: [
       {
-        en: 'If you have emailed us and would like to know what correspondence we hold, or would like it deleted where we have no legal or contractual reason to keep it, contact info@cosmosledgerlabs.com.',
-        zh: '若您曾與我們通信，並希望了解我們保存了哪些通信內容，或在我們無法律或合約上保存理由的情況下希望刪除該內容，請聯絡 info@cosmosledgerlabs.com。',
+        en: 'If you have contacted us or generated a payment order and would like to know what information we hold, or would like it deleted where we have no legal or contractual reason to keep it, contact info@cosmosledgerlabs.com.',
+        zh: '若您曾與我們聯絡或產生付款訂單，並希望了解我們保存了哪些資料，或在我們無法律或合約上保存理由的情況下希望刪除該資料，請聯絡 info@cosmosledgerlabs.com。',
         mailInline: ['zh'],
       },
     ],
