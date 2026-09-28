@@ -140,6 +140,59 @@ const withEmailLine = (text, cls) => {
   return (<>{linkMail(text.slice(0, i))} <br className={styles.phoneBr} />{cls ? <span className={cls}>{rest}</span> : rest}</>)
 }
 
+/* Fraud warning, 2nd line ("…A USDT address is valid only when it is sent
+   from info@cosmosledgerlabs.com — either in reply…"), 2026-09-28: the email
+   and its dash stay together; the rest of the sentence wraps normally, so the
+   lines above are no longer stretched with big gaps. On phones only, if a line
+   still has big gaps, this one paragraph and its email step down a little
+   (at most 2px / 85%) until the spacing is close. Colours unchanged. */
+function EmailTogether({ text, cls }) {
+  const mailRef = useRef(null)
+  useEffect(() => {
+    const fit = () => {
+      const mail = mailRef.current
+      if (!mail) return
+      const para = mail.closest('p')
+      if (!para) return
+      para.style.fontSize = ''
+      mail.style.fontSize = ''
+      if (window.innerWidth >= 768) return
+      const base = parseFloat(window.getComputedStyle(para).fontSize)
+      if (!base) return
+      let best = null
+      for (let size = base; size >= base - FIT_DROP - 0.001; size -= FIT_STEP) {
+        para.style.fontSize = size + 'px'
+        for (let f = 1; f >= 0.85 - 0.001; f -= 0.03) {
+          mail.style.fontSize = f + 'em'
+          const g = worstGap(para)
+          if (g <= FIT_OK) return
+          if (!best || g < best.g) best = { g, size, f }
+        }
+      }
+      para.style.fontSize = best.size + 'px'
+      mail.style.fontSize = best.f + 'em'
+    }
+    fit()
+    window.addEventListener('resize', fit)
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit)
+    return () => window.removeEventListener('resize', fit)
+  }, [text])
+  const i = text.indexOf('\n')
+  const MAILTXT = 'info@cosmosledgerlabs.com'
+  const after = i === -1 ? '' : text.slice(i + 1)
+  if (i === -1 || after.indexOf(MAILTXT) !== 0) return withEmailLine(text, cls)
+  let tail = after.slice(MAILTXT.length)
+  let dash = ''
+  if (tail.startsWith(' — ')) { dash = '\u00a0—'; tail = tail.slice(2) }
+  return (
+    <>
+      {linkMail(text.slice(0, i))}{' '}
+      <span ref={mailRef} className={`${styles.mailKeep} ${cls || ''}`}><MailLink />{dash}</span>
+      <span className={cls}>{tail}</span>
+    </>
+  )
+}
+
 /* The two marked lines ("…official invoice from" and "…official invoices sent
    from"): on phones the email is shrunk just enough to stay on the same line
    as the words before it, so no empty gap is left at the end of the line
@@ -389,7 +442,7 @@ export default function Payment({ updated }) {
             <h2 className={styles.h2}>{isZh ? '防詐騙警示' : 'FRAUD WARNING'}</h2>
             <div className={styles.warnList}>
               {NEVER.map((p, n) => (
-                <p key={p.en} className={styles.strong}>× {n === 1 ? withEmailKept(L(p), styles.emailLine) : withEmailLine(L(p), styles.emailLine)}</p>
+                <p key={p.en} className={styles.strong}>× {n === 1 ? (isZh ? withEmailKept(L(p), styles.emailLine) : <EmailTogether text={L(p)} cls={styles.emailLine} />) : withEmailLine(L(p), styles.emailLine)}</p>
               ))}
             </div>
             <div className={styles.card}>
