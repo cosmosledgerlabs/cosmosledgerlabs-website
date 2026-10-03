@@ -273,14 +273,14 @@ export function Team() {
         })}</p>
       </div>
       <div className={`${styles.steelCard} ${styles.teamBlock}`}>
-        <div className={styles.teamHead}>{L({ en: "We're Hiring", zh: '我們正在招募' })}</div>
+        <div className={styles.teamHead}>{L({ en: 'Engineering Partners', zh: '工程合作夥伴' })}</div>
         <p className={styles.ecoText}>{L({
-          en: 'A technical co-founder / senior full-stack engineer (React/Next.js + Solana) to lead client delivery.',
-          zh: '徵求技術共同創辦人／資深全端工程師（React/Next.js + Solana），主導客戶交付。',
+          en: 'We work with independent engineers and studios (React/Next.js, Solana, EVM) on a per-project basis. If you deliver this kind of work, send us your portfolio.',
+          zh: '我們以專案制與獨立工程師及工作室合作（React/Next.js、Solana、EVM）。如您從事此類交付工作，歡迎寄送作品集。',
         })}</p>
         <p className={styles.ecoText}>{L({ en: 'Write to ', zh: '來信：' })}<a href={lang === 'zh'
-          ? 'mailto:info@cosmosledgerlabs.com?subject=%E6%8A%80%E8%A1%93%E5%85%B1%E5%90%8C%E5%89%B5%E8%BE%A6%E4%BA%BA%E6%B4%BD%E8%A9%A2'
-          : 'mailto:info@cosmosledgerlabs.com?subject=Technical%20Co-founder%20Inquiry'} className={styles.inlineLink}>info@cosmosledgerlabs.com</a></p>
+          ? 'mailto:info@cosmosledgerlabs.com?subject=%E5%B7%A5%E7%A8%8B%E5%90%88%E4%BD%9C%E5%A4%A5%E4%BC%B4%E6%B4%BD%E8%A9%A2'
+          : 'mailto:info@cosmosledgerlabs.com?subject=Engineering%20Partner%20Inquiry'} className={styles.inlineLink}>info@cosmosledgerlabs.com</a></p>
       </div>
     </section>
   )
