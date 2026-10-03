@@ -5,10 +5,6 @@ Cross-transaction consistency for multi-step token operations on Solana.
 Live demo: https://cosmosledgerlabs.com/flow
 Live demo source (current, runnable app): https://github.com/cosmosledgerlabs/cosmosledgerlabs-website — `pages/flow.js` and `lib/`
 
-Submitted to Colosseum Crypto World's Fair (14 September – 12 October 2026).
-Parts of this project existed before the hackathon — see
-[Development history](#development-history) for exactly what was built when.
-
 ## The problem
 
 A token operation is not one transaction. Approval, vesting setup and
