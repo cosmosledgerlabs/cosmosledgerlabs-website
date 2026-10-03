@@ -19,6 +19,16 @@ const VIDEO_URL = ''
    Set to '' to hide the player again. */
 const VIDEO_FILE = '/cosmos-demo.mp4'
 
+/* Date shown under the demo ("Demo updated: ..."). Change it whenever the
+   demo's behaviour changes, to the date of that commit. */
+const DEMO_UPDATED = { en: '3 October 2026', zh: '2026 年 10 月 3 日' }
+
+/* Runs are saved in this browser (localStorage) under this key, so the run
+   history survives a page refresh. Nothing is sent anywhere. Changing the
+   key starts every visitor with an empty history. */
+const STORAGE_KEY = 'cosmos-flow-runs-v1'
+const MAX_SAVED_RUNS = 200
+
 const CLUSTER = 'devnet'
 const RPC = process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://api.devnet.solana.com'
 const EXPLORER = 'https://solscan.io'
@@ -112,8 +122,8 @@ const T3 = {
   },
   howT8: { en: 'DOWNLOAD THE LOG', zh: '下載執行紀錄' },
   how8: {
-    en: 'Click DOWNLOAD LOG before leaving — the run history lives only on this page and resets on refresh.',
-    zh: '離開或重新整理前點擊「下載紀錄」——執行歷史僅存於本頁，重新整理即重置。',
+    en: 'Every run is saved in this browser and survives a refresh. Click DOWNLOAD LOG for a text record or DOWNLOAD CSV for a spreadsheet; CLEAR removes the saved runs.',
+    zh: '每次執行都會保存在本瀏覽器中，重新整理也不會消失。點擊「下載紀錄」取得文字紀錄，或「下載 CSV」取得試算表；「清除」會刪除已保存的執行紀錄。',
   },
   howNote: {
     en: 'If a step shows a retry or waiting message, do not click or refresh — the engine checks transaction status and recovers on its own. Keep the Phantom panel open during a run; Phantom locks itself after about 15 minutes of inactivity.',
@@ -130,6 +140,28 @@ const T3 = {
   btnExecute: { en: 'EXECUTE FLOW', zh: '執行流程' },
   btnRunning: { en: 'RUNNING…', zh: '執行中…' },
   btnLog: { en: 'DOWNLOAD LOG', zh: '下載紀錄' },
+  btnCsv: { en: 'DOWNLOAD CSV', zh: '下載 CSV' },
+  btnClear: { en: 'CLEAR', zh: '清除' },
+  confirmClear: {
+    en: 'Remove all saved runs from this browser? Download them first if you need a copy.',
+    zh: '要從本瀏覽器刪除所有已保存的執行紀錄嗎？如需保留，請先下載。',
+  },
+  sumRun: { en: 'RUN', zh: '第' },
+  sumExec: { en: 'executed', zh: '已執行' },
+  sumComp: { en: 'compensated', zh: '已補償' },
+  sumTx: { en: 'tx', zh: '筆交易' },
+  sumPass: { en: 'BALANCE CHECK: PASS', zh: '餘額核對：通過' },
+  sumFail: { en: 'BALANCE CHECK: FAIL', zh: '餘額核對：未通過' },
+  sumNA: { en: 'BALANCE CHECK: N/A', zh: '餘額核對：無法核對' },
+  sumOlder: {
+    en: (n) => '+ ' + n + ' earlier run(s) in the downloads',
+    zh: (n) => '另有 ' + n + ' 次較早的執行，見下載檔',
+  },
+  updated: { en: 'Demo updated: ', zh: '演示更新日期：' },
+  updatedWhat: {
+    en: ' — run history saved in the browser, CSV export, and a per-run balance check.',
+    zh: '——執行紀錄保存在瀏覽器中、CSV 匯出，以及每次執行的餘額核對。',
+  },
   setupHint: {
     en: (supply) => 'Creates a test SPL token, mints ' + supply + ' to your account, and opens an escrow and a recipient account. Two wallet prompts. Needed once before running the flow.',
     zh: (supply) => '建立測試 SPL 代幣，鑄造 ' + supply + ' 枚到您的帳戶，並開立託管與接收帳戶。錢包會提示兩次。執行流程前需先完成一次。',
@@ -142,8 +174,8 @@ const T3 = {
   injHint: { en: 'Force a step to fail, to demonstrate compensation.', zh: '強制某一步驟失敗，以展示補償機制。' },
   flowIdLabel: { en: 'Flow ID: ', zh: '流程編號: ' },
   logHint: {
-    en: 'Every run in this session, with signatures, balances and a summary. Downloads as a text file (in English). Cleared if the page is refreshed.',
-    zh: '本次連線的每一次執行，含簽名、餘額與總結。以文字檔下載（內容為英文）。重新整理頁面後即清除。',
+    en: 'Every saved run, with signatures, balances and a balance check. Saved in this browser only and kept after a refresh. Downloads are in English: a text log or a CSV spreadsheet.',
+    zh: '所有已保存的執行，含簽名、餘額與餘額核對。僅保存在本瀏覽器中，重新整理後仍保留。下載檔為英文：文字紀錄或 CSV 試算表。',
   },
   msgNoPhantom: {
     en: 'No Phantom wallet detected. Install the Phantom extension and switch it to Devnet.',
@@ -271,6 +303,55 @@ function fitMessage(el) {
   el.style.textAlignLast = 'left'
 }
 
+/* Balance check for one run (2026-10-03). Compares the balances after the run
+   with what they SHOULD be:
+   - flow completed: owner down by the amount, escrow unchanged, recipient up
+     by the amount;
+   - failed and compensated: every balance back exactly where it started;
+   - compensation incomplete: always FAIL (manual intervention needed).
+   Returns true (pass), false (fail) or null (balances could not be read). */
+function checkBalances(outcome, before, after, amount) {
+  if (!before || !after) return null
+  const n = (v) => Number(v)
+  const same = (a, b) => Math.abs(n(a) - n(b)) < 1e-9
+  if (outcome === FLOW_STATE.COMPLETED) {
+    return same(n(after.owner), n(before.owner) - amount) &&
+      same(after.escrow, before.escrow) &&
+      same(n(after.recipient), n(before.recipient) + amount)
+  }
+  if (outcome === FLOW_STATE.FAILED_COMPENSATED) {
+    return same(after.owner, before.owner) &&
+      same(after.escrow, before.escrow) &&
+      same(after.recipient, before.recipient)
+  }
+  return false
+}
+
+/* Counts for one run: steps executed, steps compensated, on-chain transactions. */
+function runCounts(r) {
+  const executed = r.steps.filter((st) => st.executed).length
+  const compensated = r.steps.filter((st) => st.compensated).length
+  return { executed, compensated, tx: executed + compensated }
+}
+
+/* Older saved runs (before 2026-10-03) have no balanceCheck field: work it out. */
+function runCheck(r) {
+  if (r.balanceCheck === true || r.balanceCheck === false) return r.balanceCheck
+  return checkBalances(r.outcome, r.balancesBefore, r.balancesAfter, r.amount || FLOW_AMOUNT)
+}
+
+function saveFile(text, name, type) {
+  const blob = new Blob([text], { type })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = name
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
 export default function FlowPage() {
   const { lang, isZh } = useLang()
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
@@ -304,6 +385,31 @@ export default function FlowPage() {
   const [setupSigs, setSetupSigs] = useState([])
   const [balances, setBalances] = useState(null)
   const [runHistory, setRunHistory] = useState([])
+
+  // Saved runs: load once from this browser, then save after every change.
+  // (Loaded after the page appears, so the server-built page and the browser
+  // page always match.)
+  const historyLoaded = useRef(false)
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY)
+      const saved = raw ? JSON.parse(raw) : []
+      if (Array.isArray(saved) && saved.length) setRunHistory(saved)
+    } catch (e) { /* storage blocked or unreadable: start empty */ }
+    historyLoaded.current = true
+  }, [])
+  useEffect(() => {
+    if (!historyLoaded.current) return
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(runHistory.slice(-MAX_SAVED_RUNS)))
+    } catch (e) { /* storage full or blocked: the page keeps working */ }
+  }, [runHistory])
+
+  function clearRuns() {
+    if (typeof window !== 'undefined' && !window.confirm(L(T3.confirmClear))) return
+    setRunHistory([])
+    try { window.localStorage.removeItem(STORAGE_KEY) } catch (e) {}
+  }
 
   function getProvider() {
     if (typeof window === 'undefined') return null
@@ -371,7 +477,7 @@ export default function FlowPage() {
     const L2 = []
     L2.push('COSMOS Flow v2 — Run Log')
     L2.push('Network: Solana devnet')
-    L2.push('Wallet: ' + wallet)
+    L2.push('Wallet: ' + (wallet || (runHistory[runHistory.length - 1] || {}).wallet || 'not connected'))
     if (accounts) {
       L2.push('Mint: ' + accounts.mint)
       L2.push('Owner account: ' + accounts.ownerAta)
@@ -385,6 +491,8 @@ export default function FlowPage() {
       L2.push('---')
       L2.push('Run ' + String(r.run).padStart(2, '0') + ' | ' + r.time + ' | ' + r.injection)
       L2.push('Flow ID: ' + r.flowId)
+      if (r.wallet) L2.push('Wallet: ' + r.wallet)
+      if (r.mint) L2.push('Mint: ' + r.mint)
       L2.push('Result: ' + r.outcome)
       if (r.balancesBefore) {
         L2.push('Before: owner ' + r.balancesBefore.owner +
@@ -397,6 +505,11 @@ export default function FlowPage() {
                ' / recipient ' + r.balancesAfter.recipient +
                (r.balanceReturned ? '   <- returned to start' : ''))
       }
+      const c = runCounts(r)
+      const chk = runCheck(r)
+      L2.push('Check:  ' + c.executed + ' executed, ' + c.compensated + ' compensated, ' +
+              c.tx + ' transactions, balance check ' +
+              (chk === true ? 'PASS' : chk === false ? 'FAIL' : 'N/A'))
       r.steps.forEach((st, i) => {
         if (st.executed) L2.push('  Step ' + (i + 1) + ' executed:    ' + st.executed)
         if (st.compensated) L2.push('  Step ' + (i + 1) + ' compensated: ' + st.compensated)
@@ -412,8 +525,8 @@ export default function FlowPage() {
     const txs = runHistory.reduce((n, r) =>
       n + r.steps.filter((st) => st.executed).length +
           r.steps.filter((st) => st.compensated).length, 0)
-    const kept = runHistory.filter((r) => r.balanceReturned === true).length
-    const checked = runHistory.filter((r) => r.balanceReturned !== null).length
+    const kept = runHistory.filter((r) => runCheck(r) === true).length
+    const checked = runHistory.filter((r) => runCheck(r) !== null).length
 
     L2.push('========================================')
     L2.push('SUMMARY')
@@ -425,15 +538,46 @@ export default function FlowPage() {
     L2.push('Balance integrity:           ' + kept + '/' + checked + ' runs matched the expected state')
     L2.push('========================================')
 
-    const blob = new Blob([L2.join('\n')], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'cosmos-flow-run-log-' + new Date().toISOString().slice(0, 10) + '.txt'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    saveFile(L2.join('\n'), 'cosmos-flow-run-log-' + new Date().toISOString().slice(0, 10) + '.txt',
+      'text/plain;charset=utf-8')
+  }
+
+  // Every saved run as a CSV spreadsheet (2026-10-03): one row per run,
+  // opens in Excel, Google Sheets or Numbers.
+  function exportCsv() {
+    if (runHistory.length === 0) return
+    const q = (v) => {
+      const t = v === null || v === undefined ? '' : String(v)
+      return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t
+    }
+    const head = [
+      'run', 'time_utc', 'flow_id', 'wallet', 'mint', 'failure_injected', 'result',
+      'steps_executed', 'steps_compensated', 'onchain_transactions',
+      'owner_before', 'escrow_before', 'recipient_before',
+      'owner_after', 'escrow_after', 'recipient_after', 'balance_check',
+      'step1_executed_sig', 'step1_compensated_sig',
+      'step2_executed_sig', 'step2_compensated_sig',
+      'step3_executed_sig', 'step3_compensated_sig',
+    ]
+    const rows = runHistory.map((r) => {
+      const c = runCounts(r)
+      const chk = runCheck(r)
+      const b = r.balancesBefore || {}
+      const a = r.balancesAfter || {}
+      const sig = (i, k) => (r.steps[i] && r.steps[i][k]) || ''
+      return [
+        r.run, r.time, r.flowId, r.wallet || '', r.mint || '', r.injection, r.outcome,
+        c.executed, c.compensated, c.tx,
+        b.owner, b.escrow, b.recipient, a.owner, a.escrow, a.recipient,
+        chk === true ? 'PASS' : chk === false ? 'FAIL' : 'N/A',
+        sig(0, 'executed'), sig(0, 'compensated'),
+        sig(1, 'executed'), sig(1, 'compensated'),
+        sig(2, 'executed'), sig(2, 'compensated'),
+      ].map(q).join(',')
+    })
+    saveFile('\uFEFF' + [head.join(',')].concat(rows).join('\r\n'),
+      'cosmos-flow-runs-' + new Date().toISOString().slice(0, 10) + '.csv',
+      'text/csv;charset=utf-8')
   }
 
   async function refreshBalances(acc) {
@@ -547,7 +691,7 @@ export default function FlowPage() {
       setBalances(after)
 
       setRunHistory((h) => h.concat([{
-        run: h.length + 1,
+        run: h.length ? Number(h[h.length - 1].run || h.length) + 1 : 1,
         flowId: id,
         time: new Date().toISOString(),
         injection: failAt === 0 ? 'NONE' : 'FAIL AT ' + failAt,
@@ -559,6 +703,10 @@ export default function FlowPage() {
              before.escrow === after.escrow &&
              before.recipient === after.recipient)
           : null,
+        balanceCheck: checkBalances(result.flowState, before, after, FLOW_AMOUNT),
+        amount: FLOW_AMOUNT,
+        wallet: wallet,
+        mint: accounts ? accounts.mint : null,
         steps: result.steps.map((st) => ({
           id: st.id,
           label: st.label,
@@ -898,9 +1046,38 @@ export default function FlowPage() {
                 <div className={styles.controlRow}>
                   <div className={styles.controlLabel}>{L(T3.ctlLog)}</div>
                   <div className={styles.controlBody}>
-                    <button className={styles.btnGhost} onClick={exportLog} disabled={busy}>
-                      {L(T3.btnLog)} ({runHistory.length})
-                    </button>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      <button className={styles.btnGhost} onClick={exportLog} disabled={busy}>
+                        {L(T3.btnLog)} ({runHistory.length})
+                      </button>
+                      <button className={styles.btnGhost} onClick={exportCsv} disabled={busy}>
+                        {L(T3.btnCsv)}
+                      </button>
+                      <button className={styles.btnGhost} onClick={clearRuns} disabled={busy}>
+                        {L(T3.btnClear)}
+                      </button>
+                    </div>
+                    {runHistory.slice(-5).reverse().map((r) => {
+                      const c = runCounts(r)
+                      const chk = runCheck(r)
+                      return (
+                        <div key={r.flowId + '-' + r.run} className={styles.controlHint}>
+                          {isZh
+                            ? L(T3.sumRun) + ' ' + String(r.run).padStart(2, '0') + ' 次'
+                            : L(T3.sumRun) + ' ' + String(r.run).padStart(2, '0')}
+                          {' · '}{r.injection === 'NONE' ? L(T3.injNone) : (isZh ? LF(T3.injAt)(r.injection.replace('FAIL AT ', '')) : r.injection)}
+                          {' · '}{L(T3.sumExec)} {c.executed}
+                          {' · '}{L(T3.sumComp)} {c.compensated}
+                          {' · '}{c.tx} {L(T3.sumTx)}
+                          {' · '}<span style={{ color: chk === true ? '#3ddc84' : chk === false ? '#ff6b6b' : 'inherit' }}>
+                            {chk === true ? L(T3.sumPass) : chk === false ? L(T3.sumFail) : L(T3.sumNA)}
+                          </span>
+                        </div>
+                      )
+                    })}
+                    {runHistory.length > 5 ? (
+                      <div className={styles.controlHint}>{LF(T3.sumOlder)(runHistory.length - 5)}</div>
+                    ) : null}
                     <div className={styles.controlHint}>{L(T3.logHint)}</div>
                   </div>
                 </div>
@@ -1022,6 +1199,7 @@ export default function FlowPage() {
           ) : null}
 
           <p className={styles.disclaimer}>{L(T3.disclaimer)}</p>
+          <p className={styles.disclaimer}>{L(T3.updated)}{L(DEMO_UPDATED)}{L(T3.updatedWhat)}</p>
 
           </div>
           </div>
