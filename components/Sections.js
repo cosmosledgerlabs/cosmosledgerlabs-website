@@ -272,16 +272,6 @@ export function Team() {
           zh: 'COSMOS 由 V. Zheng 創立，她是常駐多倫多的連續創業者。她設計了公司的服務模式，親自完成網站與鏈上 devnet 演示的交付，並直接主導客戶專案。交付工作由 COSMOS 審核的特約工程團隊執行；稽核與其他專業工作則轉介合格的獨立機構。',
         })}</p>
       </div>
-      <div className={`${styles.steelCard} ${styles.teamBlock}`}>
-        <div className={styles.teamHead}>{L({ en: 'Engineering Partners', zh: '工程合作夥伴' })}</div>
-        <p className={styles.ecoText}>{L({
-          en: 'We work with independent engineers and studios (React/Next.js, Solana, EVM) on a per-project basis. If you deliver this kind of work, send us your portfolio.',
-          zh: '我們以專案制與獨立工程師及工作室合作（React/Next.js、Solana、EVM）。如您從事此類交付工作，歡迎寄送作品集。',
-        })}</p>
-        <p className={styles.ecoText}>{L({ en: 'Write to ', zh: '來信：' })}<a href={lang === 'zh'
-          ? 'mailto:info@cosmosledgerlabs.com?subject=%E5%B7%A5%E7%A8%8B%E5%90%88%E4%BD%9C%E5%A4%A5%E4%BC%B4%E6%B4%BD%E8%A9%A2'
-          : 'mailto:info@cosmosledgerlabs.com?subject=Engineering%20Partner%20Inquiry'} className={styles.inlineLink}>info@cosmosledgerlabs.com</a></p>
-      </div>
     </section>
   )
 }
