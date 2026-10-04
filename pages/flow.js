@@ -1199,7 +1199,6 @@ export default function FlowPage() {
           ) : null}
 
           <p className={styles.disclaimer}>{L(T3.disclaimer)}</p>
-          <p className={styles.disclaimer}>{L(T3.updated)}{L(DEMO_UPDATED)}{L(T3.updatedWhat)}</p>
 
           </div>
           </div>
