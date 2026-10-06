@@ -26,6 +26,7 @@ export default function Nav() {
           <Link href="/services" onClick={close}>{t('nav', 'services', lang)}</Link>
           <Link href="/flow" onClick={close}>{t('nav', 'demo', lang)}</Link>
           <Link href="/#problem" onClick={close}>{t('nav', 'problem', lang)}</Link>
+          <Link href="/about" onClick={close}>{t('nav', 'about', lang)}</Link>
           <Link href="/payment" onClick={close}>{t('nav', 'payment', lang)}</Link>
           <Link href="/#contact" onClick={close}>{t('nav', 'contact', lang)}</Link>
           <LangToggle lang={lang} setLang={setLang} />
