@@ -225,8 +225,44 @@ function fitAladdin(el) {
 }
 function spansCount(el) { return el.querySelector('span') ? 1 : 0 }
 
+/* 2026-10-06 — About Us page: short company overview (shown first on /about) */
+export function AboutIntro({ num = '01' }) {
+  const { lang } = useLang()
+  const L = L2(lang)
+  const facts = [
+    { t: { en: 'HEADQUARTERS', zh: '總部' }, d: { en: 'Toronto, Ontario, Canada', zh: '加拿大安大略省多倫多' } },
+    { t: { en: 'COMPANY', zh: '公司' }, d: { en: 'COSMOS Ledger Labs Inc., an Ontario corporation', zh: 'COSMOS Ledger Labs Inc.，安大略省註冊公司' } },
+    { t: { en: 'WHAT WE DO', zh: '業務' }, d: { en: 'Technical delivery for digital asset projects', zh: '數位資產專案的技術交付' } },
+    { t: { en: 'CLIENTS', zh: '客戶' }, d: { en: 'Digital asset teams and operators, worldwide', zh: '全球數位資產團隊與營運方' } },
+  ]
+  return (
+    <section className={styles.section} id="about">
+      <div className="sec-tag">{L({ en: `// SECTION ${num} — ABOUT US`, zh: `// 第 ${num} 節 — 關於我們` })} <div className="sec-tag-line"/></div>
+      <h2 className={styles.secTitle}>{L({ en: 'ABOUT COSMOS LEDGER LABS', zh: '關於 COSMOS Ledger Labs' })}</h2>
+      <div className={`${styles.steelCard} ${styles.tightCard}`}>
+        <p className={styles.ecoText}>{L({
+          en: 'COSMOS Ledger Labs Inc. is a digital asset technology company based in Toronto, Canada. We design, build, and hand over the technical infrastructure that digital asset projects need to launch and operate: corporate websites, operations dashboards, token deployment and configuration, claim portals, data integrations and APIs, and smart contract front-ends.',
+          zh: 'COSMOS Ledger Labs Inc. 是一家位於加拿大多倫多的數位資產技術公司。我們設計、建置並交付數位資產專案啟動與營運所需的技術基礎：企業網站、營運儀表板、代幣部署與設定、領取頁面、資料整合與 API，以及智能合約前端介面。',
+        })}</p>
+        <p className={styles.ecoText}>{L({
+          en: 'Every engagement runs on a fixed scope, is tested on a testnet before any mainnet action, and ends with a full handover of code and documentation. We never take custody of client funds or keys.',
+          zh: '每個專案皆以固定範圍執行，任何主網操作前先於測試網完成測試，並以完整移交程式碼與文件作結。我們絕不保管客戶的資金或金鑰。',
+        })}</p>
+      </div>
+      <div className={styles.cardGrid} style={{ marginTop: '18px' }}>
+        {facts.map((f, i) => (
+          <div key={i} className={styles.card}>
+            <div className={styles.cardName}>{L(f.t)}</div>
+            <div className={styles.cardText}>{L(f.d)}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 /* 2.10 — Aladdin strategic cooperation: retained */
-export function Partners() {
+export function Partners({ num = '09' }) {
   const { lang } = useLang()
   const L = L2(lang)
   const aladdinRef = useRef(null)
@@ -243,7 +279,7 @@ export function Partners() {
   }, [lang])
   return (
     <section className={styles.section} id="partners">
-      <div className="sec-tag">{L({ en: '// SECTION 09 — STRATEGIC COOPERATION', zh: '// 第 09 節 — 策略合作' })} <div className="sec-tag-line"/></div>
+      <div className="sec-tag">{L({ en: `// SECTION ${num} — STRATEGIC COOPERATION`, zh: `// 第 ${num} 節 — 策略合作` })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'STRATEGIC COOPERATION', zh: '策略合作' })}</h2>
       <div className={`${styles.steelCard} ${styles.tightCard} ${styles.partnerCard}`}>
         {/* 2026-09-24: straight left AND right edges with small gaps
@@ -259,12 +295,12 @@ export function Partners() {
 }
 
 /* 2.11 — Team: founder + contracted engineering network; no equity numbers */
-export function Team() {
+export function Team({ num = '10' }) {
   const { lang } = useLang()
   const L = L2(lang)
   return (
     <section className={styles.section} id="team">
-      <div className="sec-tag">{L({ en: '// SECTION 10 — TEAM', zh: '// 第 10 節 — 團隊' })} <div className="sec-tag-line"/></div>
+      <div className="sec-tag">{L({ en: `// SECTION ${num} — TEAM`, zh: `// 第 ${num} 節 — 團隊` })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'TEAM', zh: '團隊' })}</h2>
       <div className={`${styles.steelCard} ${styles.tightCard}`}>
         <p className={styles.ecoText}>{L({
@@ -277,7 +313,7 @@ export function Team() {
 }
 
 /* 2.12 — Contact */
-export function Contact() {
+export function Contact({ num = '11' }) {
   const { lang } = useLang()
   const L = L2(lang)
 
@@ -315,7 +351,7 @@ export function Contact() {
 
   return (
     <section className={styles.section} id="contact">
-      <div className="sec-tag">{L({ en: '// SECTION 11 — CONTACT', zh: '// 第 11 節 — 聯絡' })} <div className="sec-tag-line"/></div>
+      <div className="sec-tag">{L({ en: `// SECTION ${num} — CONTACT`, zh: `// 第 ${num} 節 — 聯絡` })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'CONTACT', zh: '聯絡' })}</h2>
       <div className={styles.steelCard}>
 
