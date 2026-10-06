@@ -20,6 +20,8 @@ export default function Footer() {
         <span className={styles.sep}>·</span>
         <Link href="/flow" className={styles.footLink}>{t('footer', 'linkDemo', lang)}</Link>
         <span className={styles.sep}>·</span>
+        <Link href="/about" className={styles.footLink}>{t('footer', 'linkAbout', lang)}</Link>
+        <span className={styles.sep}>·</span>
         <Link href="/payment" className={styles.footLink}>{t('footer', 'linkPayment', lang)}</Link>
         <span className={styles.sep}>·</span>
         <Link href="/disclaimer" className={styles.footLink}>{t('footer', 'linkDisclaimer', lang)}</Link>
