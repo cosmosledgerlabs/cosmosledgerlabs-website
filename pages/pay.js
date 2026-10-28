@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
+import Link from 'next/link'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang } from '../lib/i18n'
@@ -78,6 +79,10 @@ const T2 = {
   s3: { en: '03 — GENERATE ORDER', zh: '03 — 產生訂單' },
   btnGenerate: { en: 'GENERATE ORDER →', zh: '產生訂單 →' },
   needAmount: { en: 'Enter an amount above zero and choose a payment method first.', zh: '請先輸入大於零的金額並選擇付款方式。' },
+  /* 2026-10-28: agreement to the Terms of Service before ordering */
+  termsPre: { en: 'By generating an order, you agree to our ', zh: '產生訂單即表示您同意我們的' },
+  termsLink: { en: 'Terms of Service', zh: '服務條款' },
+  termsPost: { en: '.', zh: '。' },
   orderHead: { en: 'PAYMENT ORDER', zh: '付款訂單' },
   orderNo: { en: 'Order number', zh: '訂單編號' },
   orderService: { en: 'Service', zh: '服務項目' },
@@ -553,6 +558,9 @@ export default function Pay() {
                   {L(T2.btnGenerate)}
                 </button>
                 {!canGenerate ? <div className={styles.hint}>{L(T2.needAmount)}</div> : null}
+                <div className={styles.hint}>
+                  {L(T2.termsPre)}<Link href="/terms" style={{ color: 'var(--cyan)' }}>{L(T2.termsLink)}</Link>{L(T2.termsPost)}
+                </div>
               </section>
             </>
           ) : (

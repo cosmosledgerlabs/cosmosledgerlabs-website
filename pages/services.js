@@ -5,6 +5,147 @@ import Footer from '../components/Footer'
 import { useLang, t } from '../lib/i18n'
 import styles from '../styles/Services.module.css'
 
+/* 2026-10-28: countries and regions where website-building services are
+   offered. To add or remove one, edit this list; the count shown on the
+   page updates automatically. */
+const SERVICE_AREAS = [
+  {
+    region: { en: 'NORTH AMERICA', zh: '北美洲' },
+    places: [
+      { en: 'United States', zh: '美國' },
+      { en: 'Canada', zh: '加拿大' },
+      { en: 'Mexico', zh: '墨西哥' },
+      { en: 'Puerto Rico', zh: '波多黎各' },
+      { en: 'Bahamas', zh: '巴哈馬' },
+      { en: 'Barbados', zh: '巴巴多斯' },
+      { en: 'Bermuda', zh: '百慕大' },
+      { en: 'Cayman Islands', zh: '開曼群島' },
+      { en: 'British Virgin Islands', zh: '英屬維爾京群島' },
+      { en: 'Turks and Caicos Islands', zh: '特克斯和凱科斯群島' },
+      { en: 'Antigua and Barbuda', zh: '安提瓜和巴布達' },
+      { en: 'Saint Kitts and Nevis', zh: '聖基茨和尼維斯' },
+      { en: 'Dominican Republic', zh: '多米尼加共和國' },
+      { en: 'Aruba', zh: '阿魯巴' },
+    ],
+  },
+  {
+    region: { en: 'SOUTH AMERICA', zh: '南美洲' },
+    places: [
+      { en: 'Brazil', zh: '巴西' },
+      { en: 'Argentina', zh: '阿根廷' },
+      { en: 'Chile', zh: '智利' },
+      { en: 'Uruguay', zh: '烏拉圭' },
+    ],
+  },
+  {
+    region: { en: 'CENTRAL AMERICA', zh: '中美洲' },
+    places: [
+      { en: 'Panama', zh: '巴拿馬' },
+      { en: 'Costa Rica', zh: '哥斯達黎加' },
+    ],
+  },
+  {
+    region: { en: 'WESTERN EUROPE', zh: '西歐' },
+    places: [
+      { en: 'United Kingdom', zh: '英國' },
+      { en: 'Ireland', zh: '愛爾蘭' },
+      { en: 'France', zh: '法國' },
+      { en: 'Germany', zh: '德國' },
+      { en: 'Netherlands', zh: '荷蘭' },
+      { en: 'Belgium', zh: '比利時' },
+      { en: 'Luxembourg', zh: '盧森堡' },
+      { en: 'Switzerland', zh: '瑞士' },
+      { en: 'Austria', zh: '奧地利' },
+      { en: 'Monaco', zh: '摩納哥' },
+      { en: 'Liechtenstein', zh: '列支敦士登' },
+      { en: 'Andorra', zh: '安道爾' },
+    ],
+  },
+  {
+    region: { en: 'SOUTHERN EUROPE', zh: '南歐' },
+    places: [
+      { en: 'Italy', zh: '意大利' },
+      { en: 'Spain', zh: '西班牙' },
+      { en: 'Portugal', zh: '葡萄牙' },
+      { en: 'Greece', zh: '希臘' },
+      { en: 'Malta', zh: '馬耳他' },
+      { en: 'Cyprus', zh: '塞浦路斯' },
+      { en: 'San Marino', zh: '聖馬力諾' },
+      { en: 'Gibraltar', zh: '直布羅陀' },
+    ],
+  },
+  {
+    region: { en: 'NORTHERN EUROPE', zh: '北歐' },
+    places: [
+      { en: 'Sweden', zh: '瑞典' },
+      { en: 'Denmark', zh: '丹麥' },
+      { en: 'Norway', zh: '挪威' },
+      { en: 'Finland', zh: '芬蘭' },
+      { en: 'Iceland', zh: '冰島' },
+    ],
+  },
+  {
+    region: { en: 'EASTERN EUROPE', zh: '東歐' },
+    places: [
+      { en: 'Poland', zh: '波蘭' },
+      { en: 'Czech Republic', zh: '捷克' },
+      { en: 'Slovakia', zh: '斯洛伐克' },
+      { en: 'Slovenia', zh: '斯洛文尼亞' },
+      { en: 'Croatia', zh: '克羅地亞' },
+      { en: 'Hungary', zh: '匈牙利' },
+      { en: 'Romania', zh: '羅馬尼亞' },
+      { en: 'Bulgaria', zh: '保加利亞' },
+      { en: 'Estonia', zh: '愛沙尼亞' },
+      { en: 'Latvia', zh: '拉脫維亞' },
+      { en: 'Lithuania', zh: '立陶宛' },
+    ],
+  },
+  {
+    region: { en: 'BRITISH CROWN DEPENDENCIES', zh: '英倫附屬' },
+    places: [
+      { en: 'Jersey', zh: '澤西島' },
+      { en: 'Isle of Man', zh: '馬恩島' },
+    ],
+  },
+  {
+    region: { en: 'EAST & SOUTHEAST ASIA', zh: '東亞／東南亞' },
+    places: [
+      { en: 'Japan', zh: '日本' },
+      { en: 'South Korea', zh: '韓國' },
+      { en: 'Hong Kong', zh: '香港' },
+      { en: 'Macau', zh: '澳門' },
+      { en: 'Taiwan', zh: '台灣' },
+      { en: 'Singapore', zh: '新加坡' },
+      { en: 'Malaysia', zh: '馬來西亞' },
+      { en: 'Brunei', zh: '文萊' },
+      { en: 'Thailand', zh: '泰國' },
+    ],
+  },
+  {
+    region: { en: 'OCEANIA', zh: '大洋洲' },
+    places: [
+      { en: 'Australia', zh: '澳大利亞' },
+      { en: 'New Zealand', zh: '新西蘭' },
+    ],
+  },
+  {
+    region: { en: 'MIDDLE EAST', zh: '中東' },
+    places: [
+      { en: 'United Arab Emirates', zh: '阿聯酋' },
+      { en: 'Saudi Arabia', zh: '沙特阿拉伯' },
+      { en: 'Qatar', zh: '卡塔爾' },
+      { en: 'Kuwait', zh: '科威特' },
+      { en: 'Bahrain', zh: '巴林' },
+      { en: 'Oman', zh: '阿曼' },
+      { en: 'Israel', zh: '以色列' },
+      { en: 'Mauritius', zh: '毛里求斯' },
+      { en: 'Seychelles', zh: '塞舌爾' },
+      { en: 'Maldives', zh: '馬爾代夫' },
+    ],
+  },
+]
+const AREA_COUNT = SERVICE_AREAS.reduce((n, r) => n + r.places.length, 0)
+
 const SERVICES = [
   {
     n: '01',
@@ -468,6 +609,29 @@ export default function Services() {
             <h2 className={styles.secTitle}>{t('services', 'headSecurity', lang)}</h2>
             <div className={styles.steelCard}>
               <p className={styles.plainText}>{t('services', 'securityText', lang)}</p>
+            </div>
+          </section>
+
+          <hr className="divider" />
+
+          <section className={styles.section} id="areas">
+            <div className="sec-tag">{t('services', 'tagAreas', lang)} <div className="sec-tag-line" /></div>
+            <h2 className={styles.secTitle}>{t('services', 'headAreas', lang)}</h2>
+            <p className={styles.secBody}>{t('services', 'areasIntro', lang).replace('{n}', AREA_COUNT)}</p>
+            <div className={styles.areaGrid}>
+              {SERVICE_AREAS.map((r) => (
+                <div key={r.region.en} className={styles.areaCard}>
+                  <div className={styles.areaHead}>
+                    <span>{L(r.region)}</span>
+                    <span className={styles.areaCount}>{r.places.length}</span>
+                  </div>
+                  <ul className={styles.areaList}>
+                    {r.places.map((p) => (
+                      <li key={p.en}>{L(p)}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
           </section>
 

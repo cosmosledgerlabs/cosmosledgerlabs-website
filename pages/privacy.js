@@ -32,7 +32,7 @@ function withMail(text, inline) {
 /* Backup date only. The date shown on the page is filled in automatically
    from GitHub (see lib/lastUpdated.js); this one is used only if GitHub
    cannot be reached when the site is built. */
-const UPDATED = '2026-09-25'
+const UPDATED = '2026-10-28'
 
 const SECTIONS = [
   {
@@ -44,6 +44,25 @@ const SECTIONS = [
       },
     ],
     contact: true,
+  },
+  {
+    /* 2026-10-28: PIPEDA (Canada's federal private-sector privacy law) */
+    h: { en: 'CANADIAN PRIVACY LAW (PIPEDA)', zh: '加拿大隱私法（PIPEDA）' },
+    body: [
+      {
+        en: 'We handle personal information in accordance with the Personal Information Protection and Electronic Documents Act (PIPEDA). We collect personal information only for the purposes described in this policy, with your knowledge and consent, and we use and keep it only as long as those purposes require or the law obliges us to. We protect it with safeguards appropriate to its sensitivity.',
+        zh: '我們依照《個人資料保護及電子文件法》（PIPEDA）處理個人資料。我們僅在您知情並同意的情況下，為本政策所述目的收集個人資料，並僅在該等目的所需或法律要求的期間內使用及保存。我們會依資料的敏感程度採取適當的保護措施。',
+      },
+      {
+        en: 'Some of our service providers store information outside Canada (our order database in the United States and our live chat in the European Union, as described below). Information stored in another country is subject to that country\'s laws and may be accessible to its courts and authorities.',
+        zh: '我們部分服務供應商將資料儲存於加拿大境外（如下所述，訂單資料庫位於美國，在線聊天位於歐盟）。儲存於其他國家的資料受該國法律管轄，並可能被該國法院及主管機關取用。',
+      },
+      {
+        en: 'Our Privacy Officer is responsible for our compliance with this policy and can be reached at info@cosmosledgerlabs.com.',
+        zh: '我們的隱私事務負責人負責本政策的遵循事宜，聯絡方式：info@cosmosledgerlabs.com。',
+        mailInline: ['en', 'zh'],
+      },
+    ],
   },
   {
     h: { en: 'WHAT THIS SITE COLLECTS', zh: '本網站收集什麼' },
@@ -91,6 +110,25 @@ const SECTIONS = [
     ],
   },
   {
+    /* 2026-10-28: CASL (Canada's Anti-Spam Legislation) — consent and unsubscribe */
+    h: { en: 'MARKETING EMAILS AND UNSUBSCRIBING (CASL)', zh: '行銷電子郵件與取消訂閱（CASL）' },
+    body: [
+      {
+        en: 'We comply with Canada\'s Anti-Spam Legislation (CASL). We send commercial electronic messages (such as news about our services) only to people who have given us their consent, or where CASL otherwise permits it. Every such message identifies COSMOS Ledger Labs Inc., includes our contact information, and contains a simple way to unsubscribe.',
+        zh: '我們遵守加拿大《反垃圾郵件法》（CASL）。我們僅向已同意接收的人士，或在 CASL 另行允許的情況下，傳送商業電子訊息（例如我們服務的相關消息）。每一則此類訊息均會表明 COSMOS Ledger Labs Inc. 的身分、附上我們的聯絡資料，並提供簡便的取消訂閱方式。',
+      },
+      {
+        en: 'You can unsubscribe at any time, free of charge, by using the unsubscribe link in the message, by replying with the word "unsubscribe", or by writing to info@cosmosledgerlabs.com. We act on every unsubscribe request within 10 business days.',
+        zh: '您可隨時免費取消訂閱：點擊訊息中的取消訂閱連結、回覆「取消訂閱」，或寫信至 info@cosmosledgerlabs.com。我們會在 10 個工作天內處理每一項取消訂閱請求。',
+        mailInline: ['en', 'zh'],
+      },
+      {
+        en: 'Messages about an order or engagement you have with us (such as order confirmations, payment receipts and project updates) are not marketing and will still be sent.',
+        zh: '與您的訂單或委託相關的訊息（例如訂單確認、付款收據與專案進度通知）不屬於行銷訊息，仍會照常寄送。',
+      },
+    ],
+  },
+  {
     h: { en: 'LIVE CHAT', zh: '在線聊天' },
     body: [
       {
@@ -115,6 +153,10 @@ const SECTIONS = [
         en: 'If you have contacted us or generated a payment order and would like to know what information we hold, or would like it deleted where we have no legal or contractual reason to keep it, contact info@cosmosledgerlabs.com.',
         zh: '若您曾與我們聯絡或產生付款訂單，並希望了解我們保存了哪些資料，或在我們無法律或合約上保存理由的情況下希望刪除該資料，請聯絡 info@cosmosledgerlabs.com。',
         mailInline: ['zh'],
+      },
+      {
+        en: 'Under PIPEDA you may also ask us to correct inaccurate information, or withdraw your consent, subject to legal or contractual restrictions. We respond to written requests within 30 days. If you are not satisfied with our response, you may complain to the Office of the Privacy Commissioner of Canada (priv.gc.ca).',
+        zh: '依 PIPEDA，您亦可要求我們更正不正確的資料，或撤回您的同意（受法律或合約限制）。我們會在 30 天內回覆書面請求。若您對我們的回覆不滿意，可向加拿大隱私專員辦公室（priv.gc.ca）提出申訴。',
       },
     ],
   },
@@ -142,8 +184,8 @@ export default function Privacy({ updated }) {
       <Head>
         <title>{isZh ? '隱私政策 — COSMOS Ledger Labs' : 'Privacy — COSMOS Ledger Labs'}</title>
         <meta name="description" content={isZh
-          ? 'COSMOS Ledger Labs Inc. 網站隱私政策：無帳號、無分析工具、無廣告追蹤器。說明我們處理哪些資料及其處理方。'
-          : 'Privacy policy for the COSMOS Ledger Labs Inc. website: no accounts, no analytics, no advertising trackers. What is processed, and by whom.'} />
+          ? 'COSMOS Ledger Labs Inc. 網站隱私政策：無帳號、無分析工具、無廣告追蹤器。說明我們處理哪些資料及其處理方，以及我們如何遵守 PIPEDA 與 CASL。'
+          : 'Privacy policy for the COSMOS Ledger Labs Inc. website: no accounts, no analytics, no advertising trackers. What is processed, by whom, and how we comply with PIPEDA and CASL.'} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />

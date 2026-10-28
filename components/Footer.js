@@ -28,6 +28,8 @@ export default function Footer() {
         <span className={styles.sep}>·</span>
         <Link href="/privacy" className={styles.footLink}>{t('footer', 'linkPrivacy', lang)}</Link>
         <span className={styles.sep}>·</span>
+        <Link href="/terms" className={styles.footLink}>{t('footer', 'linkTerms', lang)}</Link>
+        <span className={styles.sep}>·</span>
         <a className={styles.footLink} href="mailto:info@cosmosledgerlabs.com">{t('footer', 'linkContact', lang)}</a>
       </nav>
 
