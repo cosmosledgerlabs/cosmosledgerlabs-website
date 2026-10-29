@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import { useLang, t } from '../lib/i18n'
+import { useLang, t, pick, ogLocale } from '../lib/i18n'
 import { lastUpdated } from '../lib/lastUpdated'
 import { MailLink, linkMail } from '../lib/mail'
 import styles from '../styles/Legal.module.css'
@@ -356,11 +356,11 @@ export async function getStaticProps() {
 
 export default function Payment({ updated }) {
   const { lang, isZh } = useLang()
-  const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+  const L = (obj) => { const v = pick(obj, lang); return v == null ? '' : v }
   const fitRefs = useRef([])
 
   useEffect(() => {
-    const run = () => fitRefs.current.forEach((el) => fitLine(el, !isZh))
+    const run = () => fitRefs.current.forEach((el) => fitLine(el, lang === 'en'))
     run()
     let t
     const onResize = () => { clearTimeout(t); t = setTimeout(run, 100) }
@@ -372,15 +372,13 @@ export default function Payment({ updated }) {
       clearTimeout(late)
       window.removeEventListener('resize', onResize)
     }
-  }, [isZh])
+  }, [lang])
 
   return (
     <>
       <Head>
-        <title>{isZh ? '付款 — COSMOS Ledger Labs' : 'Payment — COSMOS Ledger Labs'}</title>
-        <meta name="description" content={isZh
-          ? 'COSMOS Ledger Labs Inc. 的發票與收款方式說明，以及如何辨識詐騙付款要求。'
-          : 'How COSMOS Ledger Labs Inc. invoices and accepts payment, and how to recognise fraudulent payment requests.'} />
+        <title>{L({ en: 'Payment — COSMOS Ledger Labs', zh: '付款 — COSMOS Ledger Labs' })}</title>
+        <meta name="description" content={L({ en: 'How COSMOS Ledger Labs Inc. invoices and accepts payment, and how to recognise fraudulent payment requests.', zh: 'COSMOS Ledger Labs Inc. 的發票與收款方式說明，以及如何辨識詐騙付款要求。' })} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -388,12 +386,12 @@ export default function Payment({ updated }) {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta property="og:title" content={isZh ? '付款 — COSMOS Ledger Labs' : 'Payment — COSMOS Ledger Labs'} />
-        <meta property="og:description" content={isZh ? 'COSMOS Ledger Labs Inc. 的發票與收款方式說明。' : 'How COSMOS Ledger Labs Inc. invoices and accepts payment.'} />
+        <meta property="og:title" content={L({ en: 'Payment — COSMOS Ledger Labs', zh: '付款 — COSMOS Ledger Labs' })} />
+        <meta property="og:description" content={L({ en: 'How COSMOS Ledger Labs Inc. invoices and accepts payment.', zh: 'COSMOS Ledger Labs Inc. 的發票與收款方式說明。' })} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/payment" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
-        <meta property="og:locale" content={isZh ? 'zh_TW' : 'en_CA'} />
+        <meta property="og:locale" content={ogLocale(lang)} />
       </Head>
 
       <Nav />
@@ -401,10 +399,11 @@ export default function Payment({ updated }) {
       <main className={styles.page}>
         <div className={styles.main}>
 
-          <h1 className={styles.title}>{isZh ? '付款' : 'PAYMENT'}</h1>
+          <h1 className={styles.title}>{L({ en: 'PAYMENT', zh: '付款' })}</h1>
           <div className={styles.updated}>{t('legal', 'updated', lang)} {updated || UPDATED}</div>
 
           {isZh && <p className={styles.prevail}>{t('legal', 'prevail', lang)}</p>}
+          {lang !== 'en' && !isZh && <p className={styles.prevail} style={{ whiteSpace: 'normal' }}>{t('legal', 'translated', lang)}</p>}
 
           {SECTIONS.map((s) => (
             <section key={s.h.en} className={styles.section}>
@@ -426,28 +425,26 @@ export default function Payment({ updated }) {
           <section className={styles.section}>
             <div className={styles.card}>
               <p className={styles.body}>
-                {isZh
-                  ? '準備付款？在付款下單頁面選擇金額與付款方式，即可產生附訂單編號的付款資料。'
-                  : 'Ready to pay? Generate a payment order with your amount, method and order number on the Pay page.'}
+                {L({ en: 'Ready to pay? Generate a payment order with your amount, method and order number on the Pay page.', zh: '準備付款？在付款下單頁面選擇金額與付款方式，即可產生附訂單編號的付款資料。' })}
               </p>
               <p className={styles.strong}>
                 <Link href="/pay" style={{ color: 'inherit', textDecoration: 'underline' }}>
-                  {isZh ? '前往付款下單頁面 →' : 'GENERATE A PAYMENT ORDER →'}
+                  {L({ en: 'GENERATE A PAYMENT ORDER →', zh: '前往付款下單頁面 →' })}
                 </Link>
               </p>
             </div>
           </section>
 
           <section className={styles.section}>
-            <h2 className={styles.h2}>{isZh ? '防詐騙警示' : 'FRAUD WARNING'}</h2>
+            <h2 className={styles.h2}>{L({ en: 'FRAUD WARNING', zh: '防詐騙警示' })}</h2>
             <div className={styles.warnList}>
               {NEVER.map((p, n) => (
-                <p key={p.en} className={styles.strong}>× {n === 1 ? (isZh ? withEmailKept(L(p), styles.emailLine) : <EmailTogether text={L(p)} cls={styles.emailLine} />) : withEmailLine(L(p), styles.emailLine)}</p>
+                <p key={p.en} className={styles.strong}>× {n === 1 ? (lang !== 'en' ? withEmailKept(L(p), styles.emailLine) : <EmailTogether text={L(p)} cls={styles.emailLine} />) : withEmailLine(L(p), styles.emailLine)}</p>
               ))}
             </div>
             <div className={styles.card}>
               {VERIFY_LINES.map((line, i) => (
-                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{i === 0 ? (isZh ? withEmailKept(L(line), styles.emailLine) : <ShrinkEmailLine text={L(line)} />) : (i === 2 && !isZh) ? withCyanMail(L(line)) : withEmailLine(L(line))}</p>
+                <p className={styles.body} key={i} ref={FIT_LINES.includes(i) ? (el) => { fitRefs.current[FIT_LINES.indexOf(i)] = el } : undefined}>{i === 0 ? (lang !== 'en' ? withEmailKept(L(line), styles.emailLine) : <ShrinkEmailLine text={L(line)} />) : (i === 2 && !isZh) ? withCyanMail(L(line)) : withEmailLine(L(line))}</p>
               ))}
             </div>
           </section>

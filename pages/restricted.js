@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import { useLang } from '../lib/i18n'
+import { useLang, pick } from '../lib/i18n'
 import { linkMail } from '../lib/mail'
 import styles from '../styles/Legal.module.css'
 
@@ -25,12 +25,12 @@ const TEXT = {
 
 export default function Restricted() {
   const { lang, isZh } = useLang()
-  const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+  const L = (obj) => { const v = pick(obj, lang); return v == null ? '' : v }
 
   return (
     <>
       <Head>
-        <title>{isZh ? '服務暫不提供 — COSMOS Ledger Labs' : 'Service not available — COSMOS Ledger Labs'}</title>
+        <title>{L({ en: 'Service not available — COSMOS Ledger Labs', zh: '服務暫不提供 — COSMOS Ledger Labs' })}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="noindex, nofollow" />
         <meta name="theme-color" content="#000005" />

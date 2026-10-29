@@ -2,7 +2,7 @@ import Head from 'next/head'
 import { useEffect, useRef } from 'react'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import { useLang, t } from '../lib/i18n'
+import { useLang, t, pick, ogLocale } from '../lib/i18n'
 import styles from '../styles/Services.module.css'
 
 /* 2026-10-28: countries and regions where website-building services are
@@ -443,10 +443,12 @@ export default function Services() {
       /* 2026-09-24: the multi-chain note (noteRef) is no longer stretched to
          the right edge on phones — it keeps normal word spacing. Only the
          fee note is still fitted. */
-      if (!isZh) { try { fitTwoLines(noteRef.current) } catch (e) {} }
+      /* 2026-10-28: line fitting is tuned for English only; every other
+         language is shown with normal spacing, as Chinese already was. */
+      if (lang === 'en') { try { fitTwoLines(noteRef.current) } catch (e) {} }
       ;[feeRef.current].forEach((el) => {
         if (!el) return
-        if (isZh) {
+        if (lang !== 'en') {
           if (el.dataset.fitText !== undefined && el.querySelector('span')) el.textContent = el.dataset.fitText
           delete el.dataset.fitText
           return
@@ -474,15 +476,13 @@ export default function Services() {
       if (fonts && fonts.removeEventListener) fonts.removeEventListener('loadingdone', onResize)
     }
   }, [lang, isZh])
-  const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+  const L = (obj) => { const v = pick(obj, lang); return v == null ? '' : v }
 
   return (
     <>
       <Head>
         <title>{t('services', 'metaTitle', lang)}</title>
-        <meta name="description" content={isZh
-          ? '數位資產專案軟體開發：儀表板、網站、部署執行與資料整合。固定時程、固定價格、完整智慧財產權移交。加拿大多倫多。'
-          : 'Software development for digital asset projects: dashboards, websites, deployment execution and data integration. Fixed timelines, fixed prices, full IP handover. Toronto, Canada.'} />
+        <meta name="description" content={L({ en: 'Software development for digital asset projects: dashboards, websites, deployment execution and data integration. Fixed timelines, fixed prices, full IP handover. Toronto, Canada.', zh: '數位資產專案軟體開發：儀表板、網站、部署執行與資料整合。固定時程、固定價格、完整智慧財產權移交。加拿大多倫多。' })} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -491,14 +491,12 @@ export default function Services() {
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-        <meta property="og:title" content={isZh ? '數位資產技術服務 — COSMOS Ledger Labs' : 'Digital Asset Technology Services — COSMOS Ledger Labs'} />
-        <meta property="og:description" content={isZh
-          ? '為數位資產專案提供儀表板、網站、部署執行與資料整合。固定時程、固定價格、完整智慧財產權移交。'
-          : 'Dashboards, websites, deployment execution and data integration for digital asset projects. Fixed timelines, fixed prices, full IP handover.'} />
+        <meta property="og:title" content={L({ en: 'Digital Asset Technology Services — COSMOS Ledger Labs', zh: '數位資產技術服務 — COSMOS Ledger Labs' })} />
+        <meta property="og:description" content={L({ en: 'Dashboards, websites, deployment execution and data integration for digital asset projects. Fixed timelines, fixed prices, full IP handover.', zh: '為數位資產專案提供儀表板、網站、部署執行與資料整合。固定時程、固定價格、完整智慧財產權移交。' })} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/services" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
-        <meta property="og:locale" content={isZh ? 'zh_TW' : 'en_CA'} />
+        <meta property="og:locale" content={ogLocale(lang)} />
         <meta property="og:image" content="https://cosmosledgerlabs.com/og-image.png" />
       </Head>
 
@@ -561,7 +559,7 @@ export default function Services() {
               ))}
             </div>
 
-            <p key={lang} ref={noteRef} className={styles.note} style={isZh ? undefined : { textAlign: 'left', textAlignLast: 'left' }}>{t('services', 'note', lang)}</p>
+            <p key={lang} ref={noteRef} className={styles.note} style={isZh ? undefined : { textAlign: 'start', textAlignLast: 'start' }}>{t('services', 'note', lang)}</p>
           </section>
 
           <hr className="divider" />

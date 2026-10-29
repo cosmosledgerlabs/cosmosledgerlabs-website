@@ -285,3 +285,16 @@ a.mail-link {
 a.mail-link:hover {
   text-decoration: underline;
 }
+
+/* ===== Other languages (2026-10-28) =====
+   Arabic and Thai letters join or stack, so the site's wide letter-spacing
+   would pull words apart: it is switched off for those two languages.
+   Arabic pages are laid out right to left (dir="rtl", set in lib/i18n.js). */
+html[lang="ar"] body *,
+html[lang="th"] body * {
+  letter-spacing: 0 !important;
+}
+html[lang="ar"] body {
+  line-height: 1.8;
+}
+

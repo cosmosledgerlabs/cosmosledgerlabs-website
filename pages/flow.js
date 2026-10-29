@@ -3,7 +3,7 @@ import Head from 'next/head'
 import Router from 'next/router'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import { useLang } from '../lib/i18n'
+import { useLang, pick, tr } from '../lib/i18n'
 import { STEPS, newFlowId } from '../lib/steps'
 import { runFlow, initSteps, STATUS, FLOW_STATE, readableError } from '../lib/orchestrator'
 import { runSetup, readBalance, FLOW_AMOUNT, INITIAL_SUPPLY } from '../lib/spl'
@@ -354,7 +354,7 @@ function saveFile(text, name, type) {
 
 export default function FlowPage() {
   const { lang, isZh } = useLang()
-  const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+  const L = (obj) => { const v = pick(obj, lang); return v == null ? '' : v }
 
   // Chinese overlay for step names/descriptions coming from lib/steps.js.
   // Keyed on the English strings so no lib file needs to change.
@@ -369,9 +369,10 @@ export default function FlowPage() {
     'MOVE THE ALLOCATION INTO THE ESCROW ACCOUNT. REAL SPL TOKEN TRANSFER.': '將分配額移入託管帳戶。真實的 SPL 代幣轉帳。',
     'RELEASE THE ALLOCATION TO THE RECIPIENT. REAL SPL TOKEN TRANSFER.': '將分配額釋出給接收方。真實的 SPL 代幣轉帳。',
   }
-  const zhStepLabel = (t) => (isZh && t && STEP_LABEL_ZH[String(t).trim().toUpperCase()]) || t
-  const zhStepDesc = (t) => (isZh && t && STEP_DESC_ZH[String(t).trim().toUpperCase()]) || t
-  const LF = (obj) => (obj && (obj[lang] || obj.en))
+  // Other languages (2026-10-28): looked up in lib/locales by the English text.
+  const zhStepLabel = (t) => (isZh ? (t && STEP_LABEL_ZH[String(t).trim().toUpperCase()]) || t : tr(t, lang))
+  const zhStepDesc = (t) => (isZh ? (t && STEP_DESC_ZH[String(t).trim().toUpperCase()]) || t : tr(t, lang))
+  const LF = (obj) => pick(obj, lang)
 
   const [wallet, setWallet] = useState(null)
   const [busy, setBusy] = useState(false)
@@ -1065,7 +1066,7 @@ export default function FlowPage() {
                           {isZh
                             ? L(T3.sumRun) + ' ' + String(r.run).padStart(2, '0') + ' 次'
                             : L(T3.sumRun) + ' ' + String(r.run).padStart(2, '0')}
-                          {' · '}{r.injection === 'NONE' ? L(T3.injNone) : (isZh ? LF(T3.injAt)(r.injection.replace('FAIL AT ', '')) : r.injection)}
+                          {' · '}{r.injection === 'NONE' ? L(T3.injNone) : (lang !== 'en' ? LF(T3.injAt)(r.injection.replace('FAIL AT ', '')) : r.injection)}
                           {' · '}{L(T3.sumExec)} {c.executed}
                           {' · '}{L(T3.sumComp)} {c.compensated}
                           {' · '}{c.tx} {L(T3.sumTx)}

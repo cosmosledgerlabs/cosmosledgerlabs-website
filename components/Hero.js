@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { useLang } from '../lib/i18n'
+import { useLang, pick } from '../lib/i18n'
 import styles from './Hero.module.css'
 
 /* 2.1 — Hero: technical delivery narrative; no funding language, no deck links.
@@ -27,7 +27,7 @@ const T = {
 
 export default function Hero() {
   const { lang, isZh } = useLang()
-  const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+  const L = (obj) => { const v = pick(obj, lang); return v == null ? '' : v }
 
   return (
     <section className={styles.hero} id="top">
@@ -49,9 +49,9 @@ export default function Hero() {
             </>
           ) : (
             <>
-              <span className={styles.tw}>{T.title0.en}</span>
-              <span className={styles.tw}>{T.title1.en}</span>
-              <span className={styles.tw}><span className={styles.tc}>{T.title2a.en}</span>{T.title2b.en}</span>
+              <span className={styles.tw}>{L(T.title0)}</span>
+              <span className={styles.tw}>{L(T.title1)}</span>
+              <span className={styles.tw}><span className={styles.tc}>{L(T.title2a)}</span>{L(T.title2b)}</span>
             </>
           )}
         </h1>

@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import { useLang, t } from '../lib/i18n'
+import { useLang, t, isRtl } from '../lib/i18n'
 import { lastUpdated } from '../lib/lastUpdated'
 import { linkMail } from '../lib/mail'
 import styles from '../styles/Legal.module.css'
@@ -176,7 +176,10 @@ export async function getStaticProps() {
 }
 
 export default function Privacy({ updated }) {
-  const { lang, isZh } = useLang()
+  const { lang: siteLang, isZh } = useLang()
+  /* Legal page: kept in English for every language except Chinese
+     (2026-10-28, Osler requirement). */
+  const lang = isZh ? 'zh' : 'en'
   const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
 
   return (
@@ -203,13 +206,14 @@ export default function Privacy({ updated }) {
 
       <Nav />
 
-      <main className={styles.page}>
+      <main className={styles.page} dir="ltr" lang={isZh ? 'zh-Hant' : 'en'}>
         <div className={styles.main}>
 
           <h1 className={styles.title}>{isZh ? '隱私政策' : 'PRIVACY'}</h1>
           <div className={styles.updated}>{t('legal', 'updated', lang)} {updated || UPDATED}</div>
 
           {isZh && <p className={styles.prevail}>{t('legal', 'prevail', lang)}</p>}
+          {siteLang !== 'en' && !isZh && <p className={styles.prevail} style={{ whiteSpace: 'normal' }} dir={isRtl(siteLang) ? 'rtl' : 'ltr'}>{t('legal', 'englishOnly', siteLang)}</p>}
 
           {SECTIONS.map((s) => (
             <section key={s.h.en} className={styles.section}>

@@ -5,15 +5,18 @@ import styles from './Footer.module.css'
 /* Footer: canonical boilerplate + required disclaimer */
 export default function Footer() {
   const { lang, isZh } = useLang()
+  /* The legal lines stay in English in every language except Chinese; on
+     right-to-left (Arabic) pages they are still laid out left to right. */
+  const legalDir = isZh ? undefined : 'ltr'
 
   return (
     <footer className={styles.footer}>
 
       <p className={styles.text}>{t('footer', 'about', lang)}</p>
 
-      <p className={styles.legal}>{t('footer', 'legal', lang)}</p>
+      <p className={styles.legal} dir={legalDir}>{t('footer', 'legal', lang)}</p>
 
-      <p className={styles.legal}>{t('footer', 'fraud', lang)}</p>
+      <p className={styles.legal} dir={legalDir}>{t('footer', 'fraud', lang)}</p>
 
       <nav className={styles.links}>
         <Link href="/services" className={styles.footLink}>{t('footer', 'linkServices', lang)}</Link>
@@ -33,7 +36,7 @@ export default function Footer() {
         <a className={styles.footLink} href="mailto:info@cosmosledgerlabs.com">{t('footer', 'linkContact', lang)}</a>
       </nav>
 
-      <p className={styles.legal}>© 2026 COSMOS Ledger Labs Inc.</p>
+      <p className={styles.legal} dir="ltr">© 2026 COSMOS Ledger Labs Inc.</p>
     </footer>
   )
 }

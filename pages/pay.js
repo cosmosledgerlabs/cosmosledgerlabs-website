@@ -3,7 +3,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import { useLang } from '../lib/i18n'
+import { useLang, pick, ogLocale, t } from '../lib/i18n'
 import { MailLink, linkMail } from '../lib/mail'
 import styles from '../styles/Pay.module.css'
 
@@ -224,7 +224,7 @@ const BANKS = [
 
 export default function Pay() {
   const { lang, isZh } = useLang()
-  const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+  const L = (obj) => { const v = pick(obj, lang); return v == null ? '' : v }
 
   const [serviceId, setServiceId] = useState('custom')
   const [amount, setAmount] = useState('')
@@ -413,9 +413,7 @@ export default function Pay() {
     <>
       <Head>
         <title>{L(T2.metaTitle)}</title>
-        <meta name="description" content={isZh
-          ? '產生付款訂單，以銀行電匯、Interac e-Transfer 或 USDT 支付 COSMOS Ledger Labs Inc.。'
-          : 'Generate a payment order and pay COSMOS Ledger Labs Inc. by bank wire, Interac e-Transfer or USDT.'} />
+        <meta name="description" content={L({ en: 'Generate a payment order and pay COSMOS Ledger Labs Inc. by bank wire, Interac e-Transfer or USDT.', zh: '產生付款訂單，以銀行電匯、Interac e-Transfer 或 USDT 支付 COSMOS Ledger Labs Inc.。' })} />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="robots" content="index, follow" />
         <meta name="theme-color" content="#000005" />
@@ -423,12 +421,12 @@ export default function Pay() {
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <meta property="og:title" content={isZh ? '付款下單 — COSMOS Ledger Labs' : 'Pay — COSMOS Ledger Labs'} />
-        <meta property="og:description" content={isZh ? '產生付款訂單，以銀行電匯、Interac e-Transfer 或 USDT 付款。' : 'Generate a payment order and pay by bank wire, Interac e-Transfer or USDT.'} />
+        <meta property="og:title" content={L({ en: 'Pay — COSMOS Ledger Labs', zh: '付款下單 — COSMOS Ledger Labs' })} />
+        <meta property="og:description" content={L({ en: 'Generate a payment order and pay by bank wire, Interac e-Transfer or USDT.', zh: '產生付款訂單，以銀行電匯、Interac e-Transfer 或 USDT 付款。' })} />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://cosmosledgerlabs.com/pay" />
         <meta property="og:site_name" content="COSMOS Ledger Labs" />
-        <meta property="og:locale" content={isZh ? 'zh_TW' : 'en_CA'} />
+        <meta property="og:locale" content={ogLocale(lang)} />
       </Head>
 
       <Nav />
@@ -438,6 +436,7 @@ export default function Pay() {
 
           <h1 className={styles.title}>{L(T2.title)}</h1>
           {isZh && <p className={styles.prevail}>{L(T2.prevail)}</p>}
+          {lang !== 'en' && !isZh && <p className={styles.prevail} style={{ whiteSpace: 'normal' }}>{t('legal', 'translated', lang)}</p>}
           <p className={styles.intro}>{L(T2.intro)}</p>
 
           {!order ? (
@@ -516,7 +515,7 @@ export default function Pay() {
                   value={rep}
                   maxLength={40}
                   onChange={(e) => setRep(e.target.value)}
-                  placeholder={isZh ? '例如：Lily' : 'e.g. Lily'}
+                  placeholder={L({ en: 'e.g. Lily', zh: '例如：Lily' })}
                 />
                 <div className={styles.hint}>{L(T2.csHint)}</div>
 
@@ -525,7 +524,7 @@ export default function Pay() {
                   <span className={styles.totalValue}>{payNow > 0 ? fmtAmount(payNow, currency) : '—'}</span>
                   {payNow > 0 && plan.pct < 100 ? (
                     <span className={styles.totalSub}>
-                      {T2.ofTotal[lang] ? T2.ofTotal[lang](plan.pct, fmtAmount(amount, currency)) : T2.ofTotal.en(plan.pct, fmtAmount(amount, currency))}
+                      {pick(T2.ofTotal, lang)(plan.pct, fmtAmount(amount, currency))}
                     </span>
                   ) : null}
                 </div>

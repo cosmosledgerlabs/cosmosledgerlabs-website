@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react'
-import { useLang } from '../lib/i18n'
+import { useLang, pick } from '../lib/i18n'
 import styles from './Sections.module.css'
 
-const L2 = (lang) => (obj) => (obj && (obj[lang] || obj.en)) || ''
+const L2 = (lang) => (obj) => { const v = pick(obj, lang); return v == null ? '' : v }
 
 /* 2.2 — Problem: The delivery gap (client delivery pain, not platform narrative) */
 export function Problem() {

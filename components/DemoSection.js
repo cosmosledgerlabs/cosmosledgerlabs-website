@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { useLang } from '../lib/i18n'
+import { useLang, pick } from '../lib/i18n'
 import styles from './Sections.module.css'
 
 /* 2.4 — Engineering Showcase
@@ -21,7 +21,7 @@ const T = {
 
 export default function Demo() {
   const { lang } = useLang()
-  const L = (obj) => (obj && (obj[lang] || obj.en)) || ''
+  const L = (obj) => { const v = pick(obj, lang); return v == null ? '' : v }
 
   return (
     <section className={styles.section} id="demo">

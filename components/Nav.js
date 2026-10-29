@@ -6,7 +6,7 @@ import styles from './Nav.module.css'
 
 export default function Nav() {
   const [open, setOpen] = useState(false)
-  const { lang, setLang, isZh } = useLang()
+  const { lang, setLang, L } = useLang()
   const close = () => setOpen(false)
 
   return (
@@ -17,7 +17,7 @@ export default function Nav() {
         <button
           className={`${styles.burger} ${open ? styles.burgerOpen : ''}`}
           onClick={() => setOpen((o) => !o)}
-          aria-label={open ? (isZh ? '關閉選單' : 'Close menu') : (isZh ? '開啟選單' : 'Open menu')}
+          aria-label={open ? (L({ en: 'Close menu', zh: '關閉選單' })) : (L({ en: 'Open menu', zh: '開啟選單' }))}
           aria-expanded={open}
         >
           <span></span><span></span><span></span>

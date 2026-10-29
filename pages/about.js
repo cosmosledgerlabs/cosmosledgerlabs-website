@@ -8,11 +8,9 @@ import { AboutIntro, Partners, Team } from '../components/Sections'
    Company overview, strategic cooperation and team now live here
    (moved off the homepage). Opened from ABOUT US in the top nav. */
 export default function About() {
-  const { isZh } = useLang()
-  const title = isZh ? '關於我們 — COSMOS Ledger Labs' : 'About Us — COSMOS Ledger Labs'
-  const desc = isZh
-    ? 'COSMOS Ledger Labs Inc. 是一家位於加拿大多倫多的數位資產技術公司。公司簡介、策略合作與團隊。'
-    : 'COSMOS Ledger Labs Inc. is a Toronto-based digital asset technology company. Company overview, strategic cooperation and team.'
+  const { L } = useLang()
+  const title = L({ en: 'About Us — COSMOS Ledger Labs', zh: '關於我們 — COSMOS Ledger Labs' })
+  const desc = L({ en: 'COSMOS Ledger Labs Inc. is a Toronto-based digital asset technology company. Company overview, strategic cooperation and team.', zh: 'COSMOS Ledger Labs Inc. 是一家位於加拿大多倫多的數位資產技術公司。公司簡介、策略合作與團隊。' })
 
   return (
     <>
