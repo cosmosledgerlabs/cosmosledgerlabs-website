@@ -1,8 +1,9 @@
 import '../styles/globals.css'
 import Head from 'next/head'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 import ErrorBoundary from '../components/ErrorBoundary'
+import { useLang } from '../lib/i18n'
 
 // Crisp live chat.
 //
@@ -19,20 +20,21 @@ import ErrorBoundary from '../components/ErrorBoundary'
 // (next.config.js) blocks inline scripts. next.config.js allows *.crisp.chat.
 const CRISP_ID = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID
 
+// Site language → Crisp chatbox language (ISO 639-1; Chinese is zh-tw).
+const CRISP_LOCALE = {
+  en: 'en', zh: 'zh-tw', ar: 'ar', es: 'es', pt: 'pt', ja: 'ja',
+  ko: 'ko', ms: 'ms', fr: 'fr', de: 'de', th: 'th',
+}
+
 function loadCrisp() {
   if (!CRISP_ID || typeof window === 'undefined' || window.$crisp) return
   window.$crisp = []
   window.CRISP_WEBSITE_ID = CRISP_ID
-  // Match the chat language to the site language (?lang= wins, then the
-  // stored language-menu choice, otherwise English). Crisp reads
-  // CRISP_RUNTIME_CONFIG once at load, so a language change after load
-  // applies on the next page view.
+  // Start the chat in the site language (?lang= wins, then the stored
+  // language-menu choice, otherwise English). Later changes from the
+  // language menu are applied immediately by App below.
   // 2026-10-28: all site languages, not only English and Chinese.
   try {
-    const CRISP_LOCALE = {
-      en: 'en', zh: 'zh-tw', ar: 'ar', es: 'es', pt: 'pt', ja: 'ja',
-      ko: 'ko', ms: 'ms', fr: 'fr', de: 'de', th: 'th',
-    }
     const norm = (v) => {
       if (!v) return null
       const c = String(v).toLowerCase()
@@ -107,6 +109,19 @@ function wechatFullPageLinks() {
 
 export default function App({ Component, pageProps }) {
   const router = useRouter()
+  const { lang } = useLang()
+  const prevLang = useRef(null)
+
+  // Switch the chat language as soon as the visitor picks a language in the
+  // menu — no page reload needed (2026-10-29). Uses Crisp's documented
+  // runtime command: $crisp.push(["config", "locale", [code]]).
+  useEffect(() => {
+    if (prevLang.current === null) { prevLang.current = lang; return }
+    if (prevLang.current === lang) return
+    prevLang.current = lang
+    if (!CRISP_ID || typeof window === 'undefined' || !window.$crisp) return
+    try { window.$crisp.push(['config', 'locale', [CRISP_LOCALE[lang] || 'en']]) } catch (e) {}
+  }, [lang])
 
   useEffect(() => {
     lockWeChatFontSize()
