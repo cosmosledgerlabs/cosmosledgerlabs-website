@@ -24,20 +24,27 @@ function loadCrisp() {
   window.$crisp = []
   window.CRISP_WEBSITE_ID = CRISP_ID
   // Match the chat language to the site language (?lang= wins, then the
-  // stored toggle choice, otherwise English). Crisp reads
-  // CRISP_RUNTIME_CONFIG once at load, so a toggle after load applies on
-  // the next page view.
+  // stored language-menu choice, otherwise English). Crisp reads
+  // CRISP_RUNTIME_CONFIG once at load, so a language change after load
+  // applies on the next page view.
+  // 2026-10-28: all site languages, not only English and Chinese.
   try {
-    let lang = 'en'
-    const param = new URLSearchParams(window.location.search).get('lang')
-    if (param === 'zh' || param === 'zh-TW' || param === 'zh-Hant') {
-      lang = 'zh'
-    } else if (param !== 'en') {
-      try {
-        if (window.localStorage.getItem('cll_lang') === 'zh') lang = 'zh'
-      } catch (e) {}
+    const CRISP_LOCALE = {
+      en: 'en', zh: 'zh-tw', ar: 'ar', es: 'es', pt: 'pt', ja: 'ja',
+      ko: 'ko', ms: 'ms', fr: 'fr', de: 'de', th: 'th',
     }
-    window.CRISP_RUNTIME_CONFIG = { locale: lang === 'zh' ? 'zh-tw' : 'en' }
+    const norm = (v) => {
+      if (!v) return null
+      const c = String(v).toLowerCase()
+      if (c === 'zh' || c === 'zh-tw' || c === 'zh-hant') return 'zh'
+      const base = c.split('-')[0]
+      return base !== 'zh' && CRISP_LOCALE[base] ? base : null
+    }
+    let lang = norm(new URLSearchParams(window.location.search).get('lang'))
+    if (!lang) {
+      try { lang = norm(window.localStorage.getItem('cll_lang')) } catch (e) {}
+    }
+    window.CRISP_RUNTIME_CONFIG = { locale: CRISP_LOCALE[lang || 'en'] }
   } catch (e) {}
   const s = document.createElement('script')
   s.src = 'https://client.crisp.chat/l.js'
