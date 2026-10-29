@@ -1,9 +1,9 @@
 import '../styles/globals.css'
 import Head from 'next/head'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import ErrorBoundary from '../components/ErrorBoundary'
-import { useLang } from '../lib/i18n'
+import { onUserLangChange } from '../lib/i18n'
 
 // Crisp live chat.
 //
@@ -19,6 +19,8 @@ import { useLang } from '../lib/i18n'
 // not as an inline <script>, because the site's Content-Security-Policy
 // (next.config.js) blocks inline scripts. next.config.js allows *.crisp.chat.
 const CRISP_ID = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID
+
+const CRISP_REOPEN_KEY = 'cll_chat_reopen'
 
 // Site language → Crisp chatbox language (ISO 639-1; Chinese is zh-tw).
 const CRISP_LOCALE = {
@@ -47,6 +49,13 @@ function loadCrisp() {
       try { lang = norm(window.localStorage.getItem('cll_lang')) } catch (e) {}
     }
     window.CRISP_RUNTIME_CONFIG = { locale: CRISP_LOCALE[lang || 'en'] }
+  } catch (e) {}
+  // Reopen the chat if it was open before a language-change reload.
+  try {
+    if (window.sessionStorage.getItem(CRISP_REOPEN_KEY) === '1') {
+      window.sessionStorage.removeItem(CRISP_REOPEN_KEY)
+      window.$crisp.push(['do', 'chat:open'])
+    }
   } catch (e) {}
   const s = document.createElement('script')
   s.src = 'https://client.crisp.chat/l.js'
@@ -109,19 +118,31 @@ function wechatFullPageLinks() {
 
 export default function App({ Component, pageProps }) {
   const router = useRouter()
-  const { lang } = useLang()
-  const prevLang = useRef(null)
 
-  // Switch the chat language as soon as the visitor picks a language in the
-  // menu — no page reload needed (2026-10-29). Uses Crisp's documented
-  // runtime command: $crisp.push(["config", "locale", [code]]).
-  useEffect(() => {
-    if (prevLang.current === null) { prevLang.current = lang; return }
-    if (prevLang.current === lang) return
-    prevLang.current = lang
+  // When the visitor picks another language in the menu, reload the page
+  // once so the chat comes back fully in that language (2026-10-29).
+  // Crisp builds its welcome greeting only when the chat loads — its own
+  // docs say the load-time settings "cannot be changed after the chatbox
+  // script has loaded" — so a reload is the one reliable way. The chosen
+  // language is already saved, ?lang= in the address is updated to match,
+  // and if the chat window was open it is reopened after the reload.
+  // Only happens when the chat is switched on (NEXT_PUBLIC_CRISP_WEBSITE_ID),
+  // and only for a menu choice — restoring the saved language on page load
+  // never triggers it.
+  useEffect(() => onUserLangChange((code) => {
     if (!CRISP_ID || typeof window === 'undefined' || !window.$crisp) return
-    try { window.$crisp.push(['config', 'locale', [CRISP_LOCALE[lang] || 'en']]) } catch (e) {}
-  }, [lang])
+    try {
+      let wasOpen = false
+      try { wasOpen = typeof window.$crisp.is === 'function' && window.$crisp.is('chat:opened') } catch (e) {}
+      try { if (wasOpen) window.sessionStorage.setItem(CRISP_REOPEN_KEY, '1') } catch (e) {}
+      const url = new URL(window.location.href)
+      if (url.searchParams.has('lang')) url.searchParams.set('lang', code)
+      window.location.replace(url.toString())
+    } catch (e) {
+      // If the reload cannot happen, at least switch the chat's own labels.
+      try { window.$crisp.push(['config', 'locale', [CRISP_LOCALE[code] || 'en']]) } catch (err) {}
+    }
+  }), [])
 
   useEffect(() => {
     lockWeChatFontSize()
