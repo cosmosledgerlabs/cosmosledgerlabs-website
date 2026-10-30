@@ -108,13 +108,22 @@
     position: fixed;
     top: 56px; left: 0; right: 0;
     flex-direction: column;
+    flex-wrap: nowrap;   /* one column; scrolls instead of wrapping (2026-10-30) */
     gap: 0;
     background: rgba(0,5,18,.98);
     border-bottom: 1px solid rgba(0,180,220,.25);
     backdrop-filter: blur(12px);
     padding: 6px 5% 14px;
+    /* 2026-10-30: the menu (with the language buttons) scrolls on short
+       screens instead of running off the bottom. */
+    max-height: calc(100vh - 56px);
+    max-height: calc(100dvh - 56px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
   .links.linksOpen { display: flex; }
+  .links > * { flex-shrink: 0; }
   .links a {
     padding: 14px 2px;
     font-size: 15px;
