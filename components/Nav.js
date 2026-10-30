@@ -29,7 +29,7 @@ export default function Nav() {
           <Link href="/#problem" onClick={close}>{t('nav', 'problem', lang)}</Link>
           <Link href="/payment" onClick={close}>{t('nav', 'payment', lang)}</Link>
           <Link href="/#contact" onClick={close}>{t('nav', 'contact', lang)}</Link>
-          <LangToggle lang={lang} setLang={setLang} />
+          <LangToggle lang={lang} setLang={setLang} onChosen={close} />
         </div>
       </nav>
     </>
