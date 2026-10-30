@@ -268,6 +268,25 @@ html[lang^="zh"] { --para-align: justify; --para-justify: auto; }
 html[lang^="zh"] .sec-body { text-align: justify; }
 html[lang^="zh"] body { line-break: strict; }
 
+/* Other languages (2026-10-30). Justified text stretched the spaces into
+   big gaps on phones: Thai has no spaces between words, and Portuguese,
+   Spanish, French, German and Malay have long words, so there are too few
+   places to share the leftover room. These languages are now aligned to
+   the start of the line (left; right for Arabic) with normal word spacing.
+   Japanese behaves like Chinese and stays justified. English and Chinese
+   are unchanged. The English-only legal pages keep their English layout. */
+html:not([lang^="en"]):not([lang^="zh"]):not([lang="ja"]) {
+  --para-align: start;
+  --para-justify: auto;
+}
+html:not([lang^="en"]):not([lang^="zh"]):not([lang="ja"]) main[lang="en"] {
+  --para-align: justify;
+  --para-justify: inter-word;
+}
+html[lang="ja"] { --para-align: justify; --para-justify: auto; }
+html[lang="ja"] body { line-break: strict; }
+html[lang="th"] body { line-break: auto; word-break: normal; }
+
 body {
   -webkit-hyphens: none;
   hyphens: none;
@@ -297,4 +316,3 @@ html[lang="th"] body * {
 html[lang="ar"] body {
   line-height: 1.8;
 }
-
