@@ -267,7 +267,8 @@ export function Partners({ num = '09' }) {
   const L = L2(lang)
   const aladdinRef = useRef(null)
   useEffect(() => {
-    if (lang === 'zh') return undefined
+    // English only: the line fitting is tuned for English words (2026-10-30).
+    if (lang !== 'en') return undefined
     const el = aladdinRef.current
     const run = () => { try { fitAladdin(el) } catch (e) {} }
     run()
