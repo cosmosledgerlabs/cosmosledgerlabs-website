@@ -61,13 +61,15 @@ const T2 = {
     en: 'Deposit and milestone percentages are set in your written agreement — use the split that matches your quote.',
     zh: '訂金與里程碑比例以您的書面協議為準——請依您的報價選擇對應的付款比例。',
   },
-  cs: { en: 'Customer service (optional)', zh: '客服人員（選填）' },
-  /* 2026-11-01: pick from the staff list instead of typing a name */
+  /* 2026-11-01: customer service must be chosen from the staff list
+     (required) so every order is credited to the right person */
+  cs: { en: 'Customer service (required)', zh: '客服人員（必選）' },
   csHint: {
-    en: 'If one of our customer service staff assisted you, choose their name so we can credit them.',
-    zh: '若我們的客服人員曾協助您，請選擇其姓名，以便我們記錄。',
+    en: 'Choose the customer service person who is helping you with this order.',
+    zh: '請選擇正在協助您處理此訂單的客服人員。',
   },
-  csNone: { en: 'No one / not sure', zh: '無／不確定' },
+  csPick: { en: '— Choose your customer service —', zh: '— 請選擇您的客服人員 —' },
+  needCs: { en: 'Choose your customer service person first.', zh: '請先選擇您的客服人員。' },
   payNow: { en: 'AMOUNT PAYABLE NOW', zh: '本次應付金額' },
   ofTotal: {
     en: (pct, total) => pct + '% of project amount ' + total,
@@ -235,6 +237,7 @@ export default function Pay() {
   const [method, setMethod] = useState('')
   const [repId, setRepId] = useState('')
   const [staffList, setStaffList] = useState([])
+  const [staffLoaded, setStaffLoaded] = useState(false)
   const [order, setOrder] = useState(null)
   const [copiedKey, setCopiedKey] = useState('')
   const [emtNote, setEmtNote] = useState(false)
@@ -267,13 +270,14 @@ export default function Pay() {
         if (stop) return
         const list = Array.isArray(j.staff) ? j.staff : []
         setStaffList(list)
+        setStaffLoaded(true)
         try {
           const q = (new URLSearchParams(window.location.search).get('rep') || '').trim().toLowerCase()
           const hit = q && list.find((s) => String(s.name).toLowerCase() === q)
           if (hit) setRepId(String(hit.id))
         } catch (e) { /* ignore */ }
       })
-      .catch(() => {})
+      .catch(() => { if (!stop) setStaffLoaded(true) })
     return () => { stop = true }
   }, [])
 
@@ -312,7 +316,12 @@ export default function Pay() {
     setMethod(id)
   }
 
-  const canGenerate = payNow > 0 && !!method
+  /* Customer service is required. If the staff list could not be loaded
+     (or no staff are set up yet) the client is never blocked from paying. */
+  const csRequired = staffList.length > 0
+  const csChosen = staffList.some((s) => String(s.id) === repId)
+  const csOk = !csRequired || csChosen
+  const canGenerate = payNow > 0 && !!method && staffLoaded && csOk
 
   const generate = () => {
     if (!canGenerate) return
@@ -531,8 +540,11 @@ export default function Pay() {
                   value={repId}
                   onChange={(e) => setRepId(e.target.value)}
                   aria-label={L(T2.cs)}
+                  required
+                  aria-required="true"
+                  style={csRequired && !csChosen ? { borderColor: 'var(--cyan)' } : undefined}
                 >
-                  <option value="">{L(T2.csNone)}</option>
+                  <option value="" disabled>{L(T2.csPick)}</option>
                   {staffList.map((s) => (
                     <option key={s.id} value={String(s.id)}>{s.name}</option>
                   ))}
@@ -576,7 +588,8 @@ export default function Pay() {
                 <button type="button" className={styles.btnBig} disabled={!canGenerate} onClick={generate}>
                   {L(T2.btnGenerate)}
                 </button>
-                {!canGenerate ? <div className={styles.hint}>{L(T2.needAmount)}</div> : null}
+                {!(payNow > 0 && !!method) ? <div className={styles.hint}>{L(T2.needAmount)}</div> : null}
+                {!csOk ? <div className={styles.hint} style={{ color: 'var(--cyan)' }}>{L(T2.needCs)}</div> : null}
                 <div className={styles.hint}>
                   {L(T2.termsPre)}<Link href="/terms" style={{ color: 'var(--cyan)' }}>{L(T2.termsLink)}</Link>{L(T2.termsPost)}
                 </div>
