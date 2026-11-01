@@ -14,7 +14,7 @@
 import { NextResponse } from 'next/server'
 
 export const BLOCKED_COUNTRIES = [
-  'CA', // Canada
+  // 'CA' (Canada) removed 2026-11-01 — Canadian visitors can pay again.
   'US', // United States
   'KP', // North Korea
   'IR', // Iran
