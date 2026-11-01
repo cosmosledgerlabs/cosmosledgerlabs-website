@@ -62,10 +62,12 @@ const T2 = {
     zh: '訂金與里程碑比例以您的書面協議為準——請依您的報價選擇對應的付款比例。',
   },
   cs: { en: 'Customer service (optional)', zh: '客服人員（選填）' },
+  /* 2026-11-01: pick from the staff list instead of typing a name */
   csHint: {
-    en: 'If one of our customer service staff assisted you, type their name here so we can credit them.',
-    zh: '若我們的客服人員曾協助您，請在此填寫其姓名，以便我們記錄。',
+    en: 'If one of our customer service staff assisted you, choose their name so we can credit them.',
+    zh: '若我們的客服人員曾協助您，請選擇其姓名，以便我們記錄。',
   },
+  csNone: { en: 'No one / not sure', zh: '無／不確定' },
   payNow: { en: 'AMOUNT PAYABLE NOW', zh: '本次應付金額' },
   ofTotal: {
     en: (pct, total) => pct + '% of project amount ' + total,
@@ -231,7 +233,8 @@ export default function Pay() {
   const [currency, setCurrency] = useState('CAD')
   const [planId, setPlanId] = useState('full')
   const [method, setMethod] = useState('')
-  const [rep, setRep] = useState('')
+  const [repId, setRepId] = useState('')
+  const [staffList, setStaffList] = useState([])
   const [order, setOrder] = useState(null)
   const [copiedKey, setCopiedKey] = useState('')
   const [emtNote, setEmtNote] = useState(false)
@@ -254,12 +257,24 @@ export default function Pay() {
     return () => { stop = true; clearInterval(t) }
   }, [order, paid])
 
-  /* Pre-fill the customer-service name from a personal link like /pay?rep=Lily */
+  /* Staff list for the customer-service dropdown (2026-11-01). A link like
+     /pay?rep=Lily still pre-selects that person if the name matches. */
   useEffect(() => {
-    try {
-      const q = new URLSearchParams(window.location.search).get('rep')
-      if (q) setRep(q.slice(0, 40))
-    } catch (e) { /* ignore */ }
+    let stop = false
+    fetch('/api/staff?public=1', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : { staff: [] }))
+      .then((j) => {
+        if (stop) return
+        const list = Array.isArray(j.staff) ? j.staff : []
+        setStaffList(list)
+        try {
+          const q = (new URLSearchParams(window.location.search).get('rep') || '').trim().toLowerCase()
+          const hit = q && list.find((s) => String(s.name).toLowerCase() === q)
+          if (hit) setRepId(String(hit.id))
+        } catch (e) { /* ignore */ }
+      })
+      .catch(() => {})
+    return () => { stop = true }
   }, [])
 
   const service = SERVICES.find((s) => s.id === serviceId) || SERVICES[SERVICES.length - 1]
@@ -303,7 +318,8 @@ export default function Pay() {
     if (!canGenerate) return
     setCopiedKey('')
     const id = makeOrderId()
-    const csName = rep.trim().slice(0, 40)
+    const chosen = staffList.find((s) => String(s.id) === repId)
+    const csName = chosen ? chosen.name : ''
     setOrder({
       id,
       serviceId,
@@ -329,7 +345,7 @@ export default function Pay() {
           amount: payable(amount, plan.pct),
           currency,
           method,
-          rep: csName,
+          repId: chosen ? chosen.id : null,
         }),
       }).catch(() => {})
     } catch (e) { /* ignore */ }
@@ -510,13 +526,17 @@ export default function Pay() {
                 </div>
 
                 <label className={styles.label} style={{ marginTop: 14 }}>{L(T2.cs)}</label>
-                <input
+                <select
                   className={styles.input}
-                  value={rep}
-                  maxLength={40}
-                  onChange={(e) => setRep(e.target.value)}
-                  placeholder={L({ en: 'e.g. Lily', zh: '例如：Lily' })}
-                />
+                  value={repId}
+                  onChange={(e) => setRepId(e.target.value)}
+                  aria-label={L(T2.cs)}
+                >
+                  <option value="">{L(T2.csNone)}</option>
+                  {staffList.map((s) => (
+                    <option key={s.id} value={String(s.id)}>{s.name}</option>
+                  ))}
+                </select>
                 <div className={styles.hint}>{L(T2.csHint)}</div>
 
                 <div className={styles.totalCard}>

@@ -14,12 +14,9 @@
 import { NextResponse } from 'next/server'
 
 export const BLOCKED_COUNTRIES = [
-  // 'CA' (Canada) removed 2026-11-01 — Canadian visitors can pay again.
-  'US', // United States
-  'KP', // North Korea
-  'IR', // Iran
-  'CU', // Cuba
-  'SY', // Syria
+  // 2026-11-01: all countries unblocked — every visitor can open /pay and
+  // /payment and create orders. To block a country again, add its two-letter
+  // code here, e.g.  'KP', // North Korea
 ]
 
 export function middleware(req) {

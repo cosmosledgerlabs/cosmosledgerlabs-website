@@ -1,28 +1,20 @@
 /* pages/api/hours.js
-   POST   (team or admin passcode) — record a worked day (free-typed name)
+   2026-11-01: hours are now recorded by clock in / clock out on /team
+   (pages/api/attendance.js). New typed-name entries are no longer accepted,
+   so nobody can log hours under someone else's name. Old entries can still
+   be listed and deleted, and still count in payroll when the name matches.
+   POST   — closed (returns 410)
    GET    (admin) — list a month's entries: ?month=YYYY-MM
    DELETE (admin) — remove an entry: { id }                    */
 
-import { ensureTables, sql, isAdmin, isTeam } from '../../lib/db'
+import { ensureTables, sql, isAdmin } from '../../lib/db'
 
 export default async function handler(req, res) {
   try {
     await ensureTables()
 
     if (req.method === 'POST') {
-      if (!isTeam(req)) return res.status(401).json({ error: 'unauthorized' })
-      const b = req.body || {}
-      const rep = String(b.rep || '').trim().slice(0, 40)
-      const hours = Number(b.hours)
-      const ok =
-        rep.length >= 2 &&
-        /^\d{4}-\d{2}-\d{2}$/.test(String(b.date)) &&
-        Number.isFinite(hours) && hours > 0 && hours <= 24
-      if (!ok) return res.status(400).json({ error: 'invalid entry' })
-      await sql`INSERT INTO hours (work_date, rep, hours, holiday, note)
-                VALUES (${b.date}, ${rep}, ${hours}, ${b.holiday === true},
-                        ${String(b.note || '').slice(0, 200)})`
-      return res.status(200).json({ ok: true })
+      return res.status(410).json({ error: 'Hours are recorded by clocking in and out on the Team page.' })
     }
 
     if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })

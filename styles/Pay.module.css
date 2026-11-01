@@ -517,3 +517,69 @@
     max-width: none;
   }
 }
+
+/* Customer-service dropdown (2026-11-01): the open list uses the site's
+   dark background and fluorescent-blue text where the browser allows. */
+select.input {
+  cursor: pointer;
+  color-scheme: dark;
+}
+select.input option {
+  background: var(--bg-deep, #00010a);
+  color: var(--cyan);
+}
+
+/* Admin and team pages (2026-11-01): rows inside summary cards and the
+   text lines inside detail cards. */
+.orderRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 14px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(0, 190, 230, .13);
+  flex-wrap: wrap;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.orderRow:last-child { border-bottom: none; }
+.orderRow > span:last-child { text-align: right; margin-left: auto; }
+
+.orderKey {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.orderId {
+  color: var(--cyan);
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-shadow: 0 0 8px rgba(0, 232, 255, .35);
+}
+
+.item,
+.itemStrong {
+  margin: 8px 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.itemStrong {
+  font-weight: 700;
+  color: var(--cyan);
+}
+
+/* Inputs side by side in admin cards: share the row, wrap on phones. */
+.detailCard .row { margin: 8px 0; gap: 10px; }
+.detailCard .row .input { flex: 1 1 180px; width: auto; }
+
+/* The 44px left padding leaves room for the currency sign in the amount
+   field only; every other field gets normal padding (2026-11-01). */
+.input { padding-left: 14px; }
+.amountWrap .input { padding-left: 44px; }
+

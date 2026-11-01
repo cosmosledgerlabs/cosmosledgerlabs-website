@@ -1,95 +1,53 @@
 /* pages/api/settle.js
-   GET (admin) ?month=YYYY-MM — full monthly settlement.
-   Rep names come from the month's recorded orders and hours.
-   Rates/full-time status come from REP_INFO in lib/settings.js;
-   names without an entry there get hourlyRate 0 and no full-time
-   bonuses until you add them.                                     */
+   GET (admin) ?month=YYYY-MM — the full monthly payroll for every staff
+   member, calculated automatically (2026-11-01) from:
+     • clock in / clock out shifts           (/team)
+     • orders credited to them, PAID only    (staff picked on /pay)
+     • Ontario statutory holidays            (worked out automatically)
+     • the month's USD → CAD rate             (/admin)
+     • pay rules in lib/settings.js
+   Add ?format=csv to download it as a spreadsheet. All money in CAD. */
 
-import { ensureTables, sql, isAdmin } from '../../lib/db'
-import { SETTINGS, REP_INFO } from '../../lib/settings'
+import { ensureTables, isAdmin } from '../../lib/db'
+import { loadPayroll, MONTH_RE } from '../../lib/payrollData'
+
+function csvCell(v) {
+  const s = String(v === null || v === undefined ? '' : v)
+  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s
+}
 
 export default async function handler(req, res) {
   try {
     if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })
     await ensureTables()
-
     const month = String(req.query.month || '')
-    if (!/^\d{4}-\d{2}$/.test(month)) return res.status(400).json({ error: 'invalid month' })
+    if (!MONTH_RE.test(month)) return res.status(400).json({ error: 'invalid month' })
 
-    const orders = (await sql`SELECT rep, amount, currency, status FROM orders
-      WHERE to_char(created_at AT TIME ZONE 'America/Toronto', 'YYYY-MM') = ${month}`).rows
-    const hours = (await sql`SELECT rep, hours, holiday, work_date FROM hours
-      WHERE to_char(work_date, 'YYYY-MM') = ${month}`).rows
+    const p = await loadPayroll(month)
 
-    const per = {}
-    const ensure = (r) => {
-      if (!per[r]) {
-        per[r] = { rep: r, orders: 0, paidOrders: 0, orderAmount: 0, commission: 0,
-                   hours: 0, hoursPay: 0, holidayDays: 0, holidayBonus: 0,
-                   daysWorked: 0, attendanceAward: 0, internetSubsidy: 0, totalPay: 0 }
-      }
-      return per[r]
+    if (req.query.format === 'csv') {
+      const head = ['Staff', 'Full-time', 'Hourly rate', 'Hours', 'Days worked', 'Hours pay',
+        'Orders credited', 'Paid orders', 'Paid amount (CAD)', 'Commission',
+        'Holiday days worked', 'Holiday bonus', 'Attendance award', 'Internet subsidy',
+        'TOTAL PAY (CAD)', 'Shifts missing clock-out']
+      const lines = [head.map(csvCell).join(',')]
+      p.staff.forEach((s) => {
+        lines.push([s.name, s.fullTime ? 'yes' : 'no', s.hourlyRate, s.hours, s.daysWorked, s.hoursPay,
+          s.ordersCredited, s.paidOrders, s.paidAmountCad, s.commission,
+          s.holidayDaysWorked.join(' '), s.holidayBonus, s.attendanceAward, s.internetSubsidy,
+          s.totalPay, s.openShifts].map(csvCell).join(','))
+      })
+      lines.push(['TOTAL', '', '', p.totals.hours, '', p.totals.hoursPay, '', '', '', p.totals.commission,
+        '', p.totals.holidayBonus, p.totals.attendanceAward, p.totals.internetSubsidy, p.totals.totalPay, '']
+        .map(csvCell).join(','))
+      lines.push('')
+      lines.push(csvCell('USD to CAD rate used') + ',' + p.usdCad + (p.usdCadEntered ? '' : ' (default — not entered)'))
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+      res.setHeader('Content-Disposition', 'attachment; filename="cosmos-payroll-' + month + '.csv"')
+      return res.status(200).send('\uFEFF' + lines.join('\r\n'))
     }
 
-    let totalOrderAmount = 0, paidOrderAmount = 0, ordersCount = orders.length
-    for (const o of orders) {
-      const amt = Number(o.amount)
-      totalOrderAmount += amt
-      if (o.status === 'PAID') paidOrderAmount += amt
-      if (o.rep) {
-        const p = ensure(o.rep)
-        p.orders += 1
-        if (o.status === 'PAID') {
-          p.paidOrders += 1
-          p.orderAmount += amt
-          p.commission += amt * SETTINGS.commissionRate
-        }
-      }
-    }
-
-    const seenDays = {}
-    for (const h of hours) {
-      if (!h.rep) continue
-      const p = ensure(h.rep)
-      const info = REP_INFO[h.rep] || { hourlyRate: 0, fullTime: false }
-      p.hours += Number(h.hours)
-      p.hoursPay += Number(h.hours) * info.hourlyRate
-      const key = h.rep + '|' + h.work_date
-      if (!seenDays[key]) { seenDays[key] = true; p.daysWorked += 1 }
-      if (h.holiday && info.fullTime) {
-        p.holidayDays += 1
-        p.holidayBonus += SETTINGS.holidayBonusPerDay
-      }
-    }
-
-    const names = Object.keys(per).sort()
-    let totals = { commission: 0, hoursPay: 0, holidayBonus: 0,
-                   attendanceAwards: 0, internetSubsidy: 0, totalPayout: 0 }
-    for (const r of names) {
-      const p = per[r]
-      const info = REP_INFO[r] || { fullTime: false }
-      if (info.fullTime && p.daysWorked >= SETTINGS.attendanceRequiredDays)
-        p.attendanceAward = SETTINGS.attendanceAwardPerMonth
-      if (p.daysWorked > 0) p.internetSubsidy = SETTINGS.internetSubsidyPerMonth
-      p.totalPay = p.commission + p.hoursPay + p.holidayBonus + p.attendanceAward + p.internetSubsidy
-      totals.commission += p.commission
-      totals.hoursPay += p.hoursPay
-      totals.holidayBonus += p.holidayBonus
-      totals.attendanceAwards += p.attendanceAward
-      totals.internetSubsidy += p.internetSubsidy
-      totals.totalPayout += p.totalPay
-    }
-
-    return res.status(200).json({
-      month,
-      settings: SETTINGS,
-      ordersCount,
-      totalOrderAmount,
-      paidOrderAmount,
-      totals,
-      net: paidOrderAmount - totals.totalPayout,
-      perRep: names.map((r) => per[r]),
-    })
+    return res.status(200).json(p)
   } catch (e) {
     return res.status(500).json({ error: 'database error' })
   }

@@ -4,7 +4,10 @@
                       so the client's /pay page can show "payment received"
    GET    (admin)   — list recent orders
    PATCH  (admin)   — set an order's status: { id, status: 'PAID' | 'UNPAID' }
-   DELETE (admin)   — remove an order: { id }                                */
+   DELETE (admin)   — remove an order: { id }
+   2026-11-01: the customer picks the staff member who helped them from a
+   list (repId). The name stored is the one in the staff list, so commission
+   is always credited to exactly the right person.                          */
 
 import { ensureTables, sql, isAdmin } from '../../lib/db'
 
@@ -18,16 +21,22 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
       const b = req.body || {}
       const amount = Number(b.amount)
-      const rep = String(b.rep || '').trim().slice(0, 40)
+      let rep = ''
+      let repId = null
+      const wantId = Number(b.repId)
+      if (Number.isInteger(wantId) && wantId > 0) {
+        const st = await sql`SELECT id, name FROM staff WHERE id = ${wantId} AND active = TRUE`
+        if (st.rows.length) { repId = st.rows[0].id; rep = st.rows[0].name }
+      }
       const ok =
         typeof b.id === 'string' && ID_RE.test(b.id) &&
         Number.isFinite(amount) && amount > 0 && amount < 100000000 &&
         METHODS.includes(b.method) &&
         ['CAD', 'USD'].includes(b.currency)
       if (!ok) return res.status(400).json({ error: 'invalid order' })
-      await sql`INSERT INTO orders (id, service, amount, currency, method, rep)
+      await sql`INSERT INTO orders (id, service, amount, currency, method, rep, rep_id)
                 VALUES (${b.id}, ${String(b.service || '').slice(0, 80)}, ${amount},
-                        ${b.currency}, ${b.method}, ${rep})
+                        ${b.currency}, ${b.method}, ${rep}, ${repId})
                 ON CONFLICT (id) DO NOTHING`
       return res.status(200).json({ ok: true })
     }
@@ -44,7 +53,7 @@ export default async function handler(req, res) {
     if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })
 
     if (req.method === 'GET') {
-      const { rows } = await sql`SELECT id, service, amount, currency, method, rep, status, paid_via,
+      const { rows } = await sql`SELECT id, service, amount, currency, method, rep, rep_id, status, paid_via,
                 to_char(created_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS created,
                 to_char(paid_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS paid
                 FROM orders ORDER BY created_at DESC LIMIT 200`

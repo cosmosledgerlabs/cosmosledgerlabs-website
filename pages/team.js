@@ -1,52 +1,167 @@
 /* pages/team.js
-   Internal page for customer-service reps: log a worked day.
-   Requires the TEAM passcode. Not linked from the public nav/footer. */
+   Internal page for customer-service staff. Not linked from the public
+   nav/footer; not indexed.
 
-import { useState } from 'react'
+   2026-11-01 — rebuilt:
+   • Each person logs in with their own name + PIN (set on /admin), so the
+     website always knows exactly who is working — no typing names.
+   • CLOCK IN / CLOCK OUT records the exact times (from the server clock);
+     hours are added up automatically.
+   • MY PAY shows only their own hours, credited orders and estimated pay
+     for the month, using the same calculation as the admin payroll. */
+
+import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import styles from '../styles/Pay.module.css'
 
-function today() {
-  const d = new Date()
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0')
+const TOKEN_KEY = 'cll_staff_token'
+
+function torontoMonth() {
+  try {
+    const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit' }).formatToParts(new Date())
+    return p.find((x) => x.type === 'year').value + '-' + p.find((x) => x.type === 'month').value
+  } catch (e) {
+    const d = new Date()
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+  }
+}
+
+const fmt = (n) => '$' + Number(n || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const fmtH = (h) => (h === null || h === undefined ? '—' : Number(h).toFixed(2) + ' h')
+
+// "2026-11-01 09:02" (Toronto) → elapsed "3 h 14 min"
+function elapsedSince(since, now) {
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(new Date(now))
+    const g = (t) => parts.find((x) => x.type === t).value
+    const nowLocal = Date.UTC(+g('year'), +g('month') - 1, +g('day'), +g('hour'), +g('minute'))
+    const [d, t] = since.split(' ')
+    const [Y, M, D] = d.split('-').map(Number)
+    const [h, m] = t.split(':').map(Number)
+    const mins = Math.max(0, Math.round((nowLocal - Date.UTC(Y, M - 1, D, h, m)) / 60000))
+    return Math.floor(mins / 60) + ' h ' + (mins % 60) + ' min'
+  } catch (e) {
+    return ''
+  }
 }
 
 export default function Team() {
-  const [code, setCode] = useState('')
-  const [unlocked, setUnlocked] = useState(false)
-  const [rep, setRep] = useState('')
-  const [date, setDate] = useState(today())
-  const [hours, setHours] = useState('')
-  const [holiday, setHoliday] = useState(false)
-  const [note, setNote] = useState('')
+  const [staffList, setStaffList] = useState([])
+  const [staffId, setStaffId] = useState('')
+  const [pin, setPin] = useState('')
+  const [token, setToken] = useState('')
+  const [name, setName] = useState('')
+  const [open, setOpen] = useState(null)
+  const [shifts, setShifts] = useState([])
+  const [month, setMonth] = useState(torontoMonth())
+  const [pay, setPay] = useState(null)
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
-  const [log, setLog] = useState([])
+  const [now, setNow] = useState(Date.now())
 
-  const submit = async () => {
-    setMsg('')
-    const name = rep.trim()
-    if (!name || !date || !(Number(hours) > 0)) { setMsg('Type your name, date and hours.'); return }
+  // Staff names for the login list; restore a login from this browser tab.
+  useEffect(() => {
+    fetch('/api/staff?public=1', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : { staff: [] }))
+      .then((j) => setStaffList(Array.isArray(j.staff) ? j.staff : []))
+      .catch(() => {})
+    try {
+      const t = window.sessionStorage.getItem(TOKEN_KEY)
+      if (t) setToken(t)
+    } catch (e) { /* ignore */ }
+  }, [])
+
+  // Live timer while clocked in.
+  useEffect(() => {
+    if (!open) return undefined
+    const t = setInterval(() => setNow(Date.now()), 30000)
+    return () => clearInterval(t)
+  }, [open])
+
+  const logout = useCallback((why) => {
+    try { window.sessionStorage.removeItem(TOKEN_KEY) } catch (e) { /* ignore */ }
+    setToken(''); setName(''); setOpen(null); setShifts([]); setPay(null); setPin('')
+    setMsg(why || '')
+  }, [])
+
+  const authed = useCallback(async (url, opts) => {
+    const r = await fetch(url, {
+      ...(opts || {}),
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/json', 'x-staff-token': token },
+    })
+    if (r.status === 401) { logout('Your login has ended — please log in again.'); return null }
+    return r
+  }, [token, logout])
+
+  const load = useCallback(async () => {
+    if (!token) return
     setBusy(true)
     try {
-      const r = await fetch('/api/hours', {
+      const [ra, rp] = await Promise.all([
+        authed('/api/attendance?month=' + month),
+        authed('/api/my-pay?month=' + month),
+      ])
+      if (!ra || !rp) return
+      if (ra.ok) {
+        const j = await ra.json()
+        setName(j.name); setOpen(j.open); setShifts(j.shifts || [])
+      }
+      if (rp.ok) setPay(await rp.json())
+      if (!ra.ok || !rp.ok) setMsg('Could not load everything — try again.')
+    } catch (e) {
+      setMsg('Network error — try again.')
+    } finally {
+      setBusy(false)
+    }
+  }, [token, month, authed])
+
+  useEffect(() => { load() }, [load])
+
+  const login = async () => {
+    setMsg('')
+    if (!staffId || !/^\d{4,8}$/.test(pin)) { setMsg('Choose your name and enter your 4–8 digit PIN.'); return }
+    setBusy(true)
+    try {
+      const r = await fetch('/api/staff-login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-passcode': code },
-        body: JSON.stringify({ rep: name, date, hours: Number(hours), holiday, note }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ staffId: Number(staffId), pin }),
       })
-      if (r.status === 401) { setUnlocked(false); setMsg('Wrong passcode.'); return }
-      if (!r.ok) { setMsg('Not saved — check the entry and try again.'); return }
-      setLog([{ rep: name, date, hours, holiday, note }, ...log])
-      setMsg('RECORDED ✓')
-      setHours(''); setHoliday(false); setNote('')
+      const j = await r.json().catch(() => ({}))
+      if (!r.ok) { setMsg(j.error || 'Login failed.'); return }
+      try { window.sessionStorage.setItem(TOKEN_KEY, j.token) } catch (e) { /* ignore */ }
+      setPin(''); setName(j.name); setToken(j.token)
     } catch (e) {
       setMsg('Network error — try again.')
     } finally {
       setBusy(false)
     }
   }
+
+  const clock = async (action) => {
+    setMsg(''); setBusy(true)
+    try {
+      const r = await authed('/api/attendance', { method: 'POST', body: JSON.stringify({ action }) })
+      if (!r) return
+      const j = await r.json().catch(() => ({}))
+      if (!r.ok) setMsg(j.error || 'Not saved — try again.')
+      else setMsg(action === 'in' ? 'CLOCKED IN ✓' : 'CLOCKED OUT ✓')
+      await load()
+    } catch (e) {
+      setMsg('Network error — try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const p = pay && pay.pay
+  const missing = shifts.filter((s) => s.open && !(open && s.id === open.id))
 
   return (
     <>
@@ -58,66 +173,137 @@ export default function Team() {
       <Nav />
       <main className={styles.page}>
         <div className={styles.main}>
-          <h1 className={styles.title}>TEAM — LOG YOUR DAY</h1>
+          <h1 className={styles.title}>TEAM — ATTENDANCE & PAY</h1>
 
-          {!unlocked ? (
+          {!token ? (
             <section className={styles.section}>
-              <label className={styles.label}>Team passcode</label>
-              <input className={styles.input} type="password" value={code}
-                     onChange={(e) => setCode(e.target.value)} placeholder="passcode" />
-              <div style={{ marginTop: 14 }}>
-                <button type="button" className={styles.btnBig} onClick={() => code && setUnlocked(true)}>ENTER →</button>
+              <label className={styles.label}>Your name</label>
+              <select className={styles.input} value={staffId} onChange={(e) => setStaffId(e.target.value)}>
+                <option value="">Choose your name…</option>
+                {staffList.map((s) => <option key={s.id} value={String(s.id)}>{s.name}</option>)}
+              </select>
+              <label className={styles.label} style={{ marginTop: 14 }}>Your PIN</label>
+              <input className={styles.input} type="password" inputMode="numeric" autoComplete="current-password"
+                     maxLength={8} value={pin} placeholder="••••"
+                     onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                     onKeyDown={(e) => { if (e.key === 'Enter') login() }} />
+              <div style={{ marginTop: 16 }}>
+                <button type="button" className={styles.btnBig} disabled={busy} onClick={login}>
+                  {busy ? 'CHECKING…' : 'LOG IN →'}
+                </button>
               </div>
               {msg ? <div className={styles.hint}>{msg}</div> : null}
+              {staffList.length === 0 ? (
+                <div className={styles.hint}>No staff accounts yet — the admin adds them on the admin page.</div>
+              ) : null}
             </section>
           ) : (
             <>
+              {/* ---------- clock in / out ---------- */}
               <section className={styles.section}>
-                <label className={styles.label}>Your name (type it the same way every time)</label>
-                <input className={styles.input} value={rep} maxLength={40}
-                       onChange={(e) => setRep(e.target.value)} placeholder="Your name" />
-                <div className={styles.row}>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Date</label>
-                    <input className={styles.input} type="date" value={date}
-                           onChange={(e) => setDate(e.target.value)} />
+                <div className={styles.orderCard}>
+                  <div className={styles.orderHead}>{name ? name.toUpperCase() : '…'}</div>
+                  <div className={styles.orderRow}>
+                    <span className={styles.orderKey}>Status</span>
+                    <span className={styles.orderId}>{open ? 'CLOCKED IN' : 'NOT CLOCKED IN'}</span>
                   </div>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Hours worked</label>
-                    <input className={styles.input} type="number" min="0.5" max="24" step="0.5"
-                           value={hours} onChange={(e) => setHours(e.target.value)} placeholder="8" />
-                  </div>
+                  {open ? (
+                    <>
+                      <div className={styles.orderRow}><span className={styles.orderKey}>Since</span><span>{open.since}</span></div>
+                      <div className={styles.orderRow}><span className={styles.orderKey}>Working for</span><span>{elapsedSince(open.since, now)}</span></div>
+                    </>
+                  ) : null}
                 </div>
-                <label className={styles.label} style={{ marginTop: 14 }}>Statutory holiday?</label>
-                <div className={styles.segmented}>
-                  <button type="button" className={!holiday ? styles.segOn : styles.seg}
-                          onClick={() => setHoliday(false)}>NO</button>
-                  <button type="button" className={holiday ? styles.segOn : styles.seg}
-                          onClick={() => setHoliday(true)}>YES</button>
-                </div>
-                <label className={styles.label} style={{ marginTop: 14 }}>Note (optional — e.g. burst case)</label>
-                <input className={styles.input} value={note} maxLength={200}
-                       onChange={(e) => setNote(e.target.value)} placeholder="Burst case — extra client support" />
                 <div style={{ marginTop: 16 }}>
-                  <button type="button" className={styles.btnBig} disabled={busy} onClick={submit}>
-                    {busy ? 'SAVING…' : 'RECORD DAY →'}
-                  </button>
+                  {open ? (
+                    <button type="button" className={styles.btnBig} disabled={busy} onClick={() => clock('out')}>
+                      {busy ? 'SAVING…' : 'CLOCK OUT ■'}
+                    </button>
+                  ) : (
+                    <button type="button" className={styles.btnBig} disabled={busy} onClick={() => clock('in')}>
+                      {busy ? 'SAVING…' : 'CLOCK IN ▶'}
+                    </button>
+                  )}
                 </div>
                 {msg ? <div className={styles.hint}>{msg}</div> : null}
+                {missing.length ? (
+                  <div className={styles.hint} style={{ color: '#ffb347' }}>
+                    {missing.length} earlier shift{missing.length > 1 ? 's have' : ' has'} no clock-out and count{missing.length > 1 ? '' : 's'} 0 hours until the admin fixes {missing.length > 1 ? 'them' : 'it'}. Tell the admin your real finishing time.
+                  </div>
+                ) : null}
               </section>
 
-              {log.length > 0 ? (
-                <section className={styles.section}>
-                  <div className={styles.stepTag}>RECORDED THIS SESSION</div>
-                  <div className={styles.detailCard}>
-                    {log.map((e, i) => (
-                      <p key={i} className={styles.item}>
-                        {e.date} — {e.rep} — {e.hours}h{e.holiday ? ' — HOLIDAY' : ''}{e.note ? ' — ' + e.note : ''}
-                      </p>
-                    ))}
+              {/* ---------- my pay ---------- */}
+              <section className={styles.section}>
+                <div className={styles.stepTag}>MY PAY</div>
+                <div className={styles.row}>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Month</label>
+                    <input className={styles.input} type="month" value={month}
+                           onChange={(e) => e.target.value && setMonth(e.target.value)} />
                   </div>
-                </section>
-              ) : null}
+                </div>
+
+                {p ? (
+                  <div className={styles.orderCard} style={{ marginTop: 14 }}>
+                    <div className={styles.orderHead}>{pay.month} — ESTIMATED PAY (CAD)</div>
+                    <div className={styles.orderRow}><span className={styles.orderKey}>Hours worked</span>
+                      <span>{p.hours.toFixed(2)} h × {fmt(p.hourlyRate)} = {fmt(p.hoursPay)}</span></div>
+                    <div className={styles.orderRow}><span className={styles.orderKey}>Days worked</span><span>{p.daysWorked}</span></div>
+                    <div className={styles.orderRow}><span className={styles.orderKey}>Orders credited to you</span>
+                      <span>{p.ordersCredited} ({p.paidOrders} paid)</span></div>
+                    <div className={styles.orderRow}><span className={styles.orderKey}>Commission</span>
+                      <span>{(pay.rules.commissionRate * 100).toFixed(1)}% × {fmt(p.paidAmountCad)} = {fmt(p.commission)}</span></div>
+                    <div className={styles.orderRow}><span className={styles.orderKey}>Holiday bonus</span>
+                      <span>{p.fullTime
+                        ? p.holidayDaysWorked.length + ' × ' + fmt(pay.rules.holidayBonusPerDay) + ' = ' + fmt(p.holidayBonus)
+                        : 'full-time only'}</span></div>
+                    <div className={styles.orderRow}><span className={styles.orderKey}>Attendance award</span>
+                      <span>{p.fullTime
+                        ? (p.attendanceAward ? fmt(p.attendanceAward) : p.daysWorked + ' / ' + pay.rules.attendanceRequiredDays + ' days')
+                        : 'full-time only'}</span></div>
+                    <div className={styles.orderRow}><span className={styles.orderKey}>Internet subsidy</span><span>{fmt(p.internetSubsidy)}</span></div>
+                    <div className={styles.orderRow}><span className={styles.orderKey}>TOTAL</span>
+                      <span className={styles.orderId}>{fmt(p.totalPay)}</span></div>
+                  </div>
+                ) : (
+                  <div className={styles.hint}>{busy ? 'Loading…' : 'Nothing recorded for this month yet.'}</div>
+                )}
+                {pay ? (
+                  <div className={styles.hint}>
+                    Estimate only — final pay is confirmed by the admin. USD orders are converted at {pay.usdCad} CAD per USD
+                    {pay.usdCadEntered ? '' : ' (provisional rate)'}. A day counts as worked from {pay.rules.minHoursForDay} h.
+                    {Object.keys(pay.holidays || {}).length
+                      ? ' Statutory holidays this month: ' + Object.entries(pay.holidays).map(([d, n]) => n + ' (' + d + ')').join(', ') + '.'
+                      : ''}
+                  </div>
+                ) : null}
+              </section>
+
+              {/* ---------- my shifts ---------- */}
+              <section className={styles.section}>
+                <div className={styles.stepTag}>MY SHIFTS — {month}</div>
+                {shifts.map((s) => (
+                  <div key={s.id} className={styles.detailCard} style={{ marginBottom: 8 }}>
+                    <p className={styles.itemStrong}>
+                      {s.clockIn.replace('T', ' ')} → {s.clockOut ? s.clockOut.replace('T', ' ').slice(11) : (open && s.id === open.id ? 'now' : 'no clock-out')}
+                      {'  ·  '}{fmtH(s.hours)}
+                    </p>
+                    {s.edited || s.tooLong || (s.open && !(open && s.id === open.id)) || s.note ? (
+                      <p className={styles.item}>
+                        {s.edited ? 'Corrected by admin. ' : ''}
+                        {s.tooLong ? 'Over the maximum shift length — counts 0 h until checked. ' : ''}
+                        {s.open && !(open && s.id === open.id) ? 'Missing clock-out — counts 0 h until fixed. ' : ''}
+                        {s.note}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+                {shifts.length === 0 ? <div className={styles.hint}>No shifts this month.</div> : null}
+                <div style={{ marginTop: 16 }}>
+                  <button type="button" className={styles.btnGhost} onClick={() => logout('Logged out.')}>LOG OUT</button>
+                </div>
+              </section>
             </>
           )}
         </div>
