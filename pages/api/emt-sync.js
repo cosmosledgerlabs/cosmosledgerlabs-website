@@ -14,6 +14,8 @@
      • the amount in the email equals the order amount.
    Anything else is logged as REVIEW with the reason, for a manual decision.
    Every email is processed once only (emt_log).
+   2026-11-01: the amount in the email is saved as orders.amount_received,
+   used by the DAILY CHECK.
 
    Who can run it:
      • the ADMIN passcode (the "CHECK E-TRANSFERS NOW" button in /admin);
@@ -119,7 +121,8 @@ export default async function handler(req, res) {
           else if (Math.abs(Number(o.amount) - amount) > 0.005) result = 'REVIEW: amount ' + amount.toFixed(2) + ' ≠ order ' + Number(o.amount).toFixed(2)
           else if (requireDkim && !dkimPassedForInterac(parsed)) result = 'REVIEW: no DKIM pass for interac.ca'
           else {
-            await sql`UPDATE orders SET status = 'PAID', paid_via = 'e-Transfer auto', paid_at = NOW()
+            await sql`UPDATE orders SET status = 'PAID', paid_via = 'e-Transfer auto', paid_at = NOW(),
+                      amount_received = ${amount}
                       WHERE id = ${orderId} AND status = 'UNPAID'`
             result = 'PAID'
           }

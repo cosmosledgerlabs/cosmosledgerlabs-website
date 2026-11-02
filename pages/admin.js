@@ -10,7 +10,11 @@
      orders, Ontario statutory holidays and the month's USD→CAD rate;
      download as a spreadsheet (CSV).
    • ATTENDANCE: every shift of the month; fix a forgotten clock-out, add a
-     missed shift, or delete a wrong one. */
+     missed shift, or delete a wrong one.
+   • DAILY CHECK: for any day, totals every order and payment (overall, per
+     customer service person, per payment channel) and checks that they
+     agree — with the money received and with the bank / wallet figures
+     the owner types in. Problems are shown with ⚠. */
 
 import { useState } from 'react'
 import Head from 'next/head'
@@ -23,7 +27,24 @@ function thisMonth() {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
 }
 
+function todayToronto() {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
+  } catch (e) {
+    return new Date().toISOString().slice(0, 10)
+  }
+}
+
 const fmt = (n) => '$' + Number(n || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+/* "CAD $1,200.00 + USD $500.00" — the two currencies are never added together */
+const fmtCur = (t) => {
+  const parts = []
+  if (t.CAD || !t.USD) parts.push('CAD ' + fmt(t.CAD))
+  if (t.USD) parts.push('USD ' + fmt(t.USD))
+  return parts.join(' + ')
+}
+const OK = '#3ddc84'
+const WARN = '#ffb347'
 
 export default function Admin() {
   const [code, setCode] = useState('')
@@ -44,21 +65,27 @@ export default function Admin() {
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
   const [emt, setEmt] = useState(null)
+  const [day, setDay] = useState(todayToronto())
+  const [daily, setDaily] = useState(null)
+  const [dailyMsg, setDailyMsg] = useState('')
+  const [stInput, setStInput] = useState({})       // channel → bank / wallet figure typed in
+  const [recvInput, setRecvInput] = useState({})   // order id → amount received
 
   const H = { 'Content-Type': 'application/json', 'x-passcode': code }
 
   const loadAll = async () => {
     setMsg(''); setBusy(true)
     try {
-      const [ro, rs, rh, rst, rsh, rfx] = await Promise.all([
+      const [ro, rs, rh, rst, rsh, rfx, rd] = await Promise.all([
         fetch('/api/orders', { headers: H }),
         fetch('/api/settle?month=' + month, { headers: H }),
         fetch('/api/hours?month=' + month, { headers: H }),
         fetch('/api/staff', { headers: H }),
         fetch('/api/attendance?month=' + month, { headers: H }),
         fetch('/api/fx?month=' + month, { headers: H }),
+        fetch('/api/daily-check?day=' + (day || todayToronto()), { headers: H }),
       ])
-      const all = [ro, rs, rh, rst, rsh, rfx]
+      const all = [ro, rs, rh, rst, rsh, rfx, rd]
       if (all.some((r) => r.status === 401)) { setUnlocked(false); setMsg('Wrong passcode.'); return }
       if (all.some((r) => !r.ok)) { setMsg('Load failed — try again.'); return }
       setOrders((await ro.json()).orders || [])
@@ -68,6 +95,7 @@ export default function Admin() {
       setShifts((await rsh.json()).shifts || [])
       const fx = await rfx.json()
       setFxInput(fx.usdCad ? String(fx.usdCad) : '')
+      showDaily(await rd.json())
       setUnlocked(true)
     } catch (e) {
       setMsg('Network error — try again.')
@@ -76,12 +104,65 @@ export default function Admin() {
     }
   }
 
+  /* received = the amount that actually arrived (blank = exactly the order amount) */
   const setStatus = async (id, status) => {
     setBusy(true)
     try {
-      const r = await fetch('/api/orders', { method: 'PATCH', headers: H, body: JSON.stringify({ id, status }) })
-      if (r.ok) await loadAll()
+      const received = status === 'PAID' ? (recvInput[id] || '') : ''
+      const r = await fetch('/api/orders', { method: 'PATCH', headers: H, body: JSON.stringify({ id, status, received }) })
+      if (r.ok) {
+        setRecvInput({ ...recvInput, [id]: '' })
+        await loadAll()
+      } else {
+        const j = await r.json().catch(() => ({}))
+        setMsg(j.error || 'Not saved — try again.')
+      }
     } finally { setBusy(false) }
+  }
+
+  /* ---------- daily check ---------- */
+  const showDaily = (d) => {
+    setDaily(d)
+    const s = {}
+    ;(d.channels || []).forEach((c) => { s[c.channel] = c.statement === null ? '' : String(c.statement) })
+    setStInput(s)
+  }
+  const loadDaily = async (d) => {
+    const which = d || day
+    setDailyMsg(''); setBusy(true)
+    try {
+      const r = await fetch('/api/daily-check?day=' + which, { headers: H })
+      const j = await r.json().catch(() => ({}))
+      if (!r.ok) { setDailyMsg(j.error || 'Load failed — try again.'); return }
+      showDaily(j)
+    } catch (e) {
+      setDailyMsg('Network error — try again.')
+    } finally { setBusy(false) }
+  }
+  const saveStatement = async (channel) => {
+    setDailyMsg(''); setBusy(true)
+    try {
+      const r = await fetch('/api/daily-check', { method: 'PUT', headers: H,
+        body: JSON.stringify({ day: daily.day, channel, amount: stInput[channel] || '' }) })
+      const j = await r.json().catch(() => ({}))
+      if (!r.ok) { setDailyMsg(j.error || 'Not saved — try again.'); return }
+      setDailyMsg('Saved ✓')
+    } catch (e) {
+      setDailyMsg('Network error — try again.')
+    } finally { setBusy(false) }
+    await loadDaily(daily.day)
+  }
+  const downloadDaily = async () => {
+    try {
+      const r = await fetch('/api/daily-check?format=csv&day=' + daily.day, { headers: H })
+      if (!r.ok) { setDailyMsg('Download failed.'); return }
+      const blob = await r.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'cosmos-daily-check-' + daily.day + '.csv'
+      document.body.appendChild(a); a.click(); a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 2000)
+    } catch (e) { setDailyMsg('Download failed.') }
   }
 
   const removeOrder = async (id) => {
@@ -187,7 +268,7 @@ export default function Admin() {
       <Nav />
       <main className={styles.page}>
         <div className={styles.main}>
-          <h1 className={styles.title}>ADMIN — PAYROLL, STAFF & ORDERS</h1>
+          <h1 className={styles.title}>ADMIN — DAILY CHECK, PAYROLL, STAFF & ORDERS</h1>
 
           {!unlocked ? (
             <section className={styles.section}>
@@ -203,6 +284,104 @@ export default function Admin() {
             </section>
           ) : (
             <>
+              {/* ---------- daily check ---------- */}
+              <section className={styles.section}>
+                <div className={styles.stepTag}>DAILY CHECK — are the day's order count and amounts correct?</div>
+                <div className={styles.row}>
+                  <div className={styles.field}>
+                    <label className={styles.label}>Day (Toronto time)</label>
+                    <input className={styles.input} type="date" value={day}
+                           onChange={(e) => setDay(e.target.value)} />
+                  </div>
+                  <div className={styles.field} style={{ alignSelf: 'flex-end' }}>
+                    <button type="button" className={styles.btnBig} disabled={busy || !day} onClick={() => loadDaily()}>
+                      {busy ? 'CHECKING…' : 'CHECK DAY →'}
+                    </button>
+                  </div>
+                </div>
+                {dailyMsg ? <div className={styles.hint}>{dailyMsg}</div> : null}
+
+                {daily ? (
+                  <>
+                    <div className={styles.orderCard} style={{ marginTop: 14, borderColor: daily.status === 'ok' ? OK : WARN }}>
+                      <div className={styles.orderHead} style={{ color: daily.status === 'ok' ? OK : WARN }}>
+                        {daily.status === 'ok'
+                          ? '✅ ' + daily.day + ' — ALL CHECKS OK'
+                          : '⚠ ' + daily.day + ' — ' + daily.problems + ' PROBLEM' + (daily.problems === 1 ? '' : 'S') + ' FOUND'}
+                      </div>
+                      <div className={styles.orderRow}><span className={styles.orderKey}>Orders created</span>
+                        <span className={styles.orderId}>{daily.totals.all.count} · {fmtCur(daily.totals.all)}</span></div>
+                      <div className={styles.orderRow}><span className={styles.orderKey}>Paid</span>
+                        <span>{daily.totals.paid.count} · {fmtCur(daily.totals.paid)}</span></div>
+                      <div className={styles.orderRow}><span className={styles.orderKey}>Unpaid</span>
+                        <span>{daily.totals.unpaid.count} · {fmtCur(daily.totals.unpaid)}</span></div>
+                    </div>
+
+                    <div className={styles.detailCard} style={{ marginTop: 12 }}>
+                      <p className={styles.itemStrong}>CHECKS</p>
+                      {daily.checks.map((c, i) => (
+                        <div key={i} style={{ marginTop: 6 }}>
+                          <p className={styles.item} style={{ color: c.ok === true ? OK : c.ok === false ? WARN : undefined }}>
+                            {c.ok === true ? '✅ ' : c.ok === false ? '⚠ ' : '• '}{c.text}
+                          </p>
+                          {c.ok !== true && c.detail && c.detail.length ? (
+                            <ul style={{ margin: '2px 0 0 18px', padding: 0 }}>
+                              {c.detail.slice(0, 50).map((d, j) => <li key={j} className={styles.item}>{d}</li>)}
+                              {c.detail.length > 50 ? <li className={styles.item}>… and {c.detail.length - 50} more (see the spreadsheet)</li> : null}
+                            </ul>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={styles.detailCard} style={{ marginTop: 12 }}>
+                      <p className={styles.itemStrong}>BY CUSTOMER SERVICE</p>
+                      {daily.byStaff.map((s, i) => (
+                        <p key={i} className={styles.item}>
+                          {s.name || '(no customer service)'} — {s.all.count} order{s.all.count === 1 ? '' : 's'} · {fmtCur(s.all)} · {s.paid.count} paid, {s.unpaid.count} unpaid
+                        </p>
+                      ))}
+                      {daily.byStaff.length === 0 ? <p className={styles.item}>No orders this day.</p> : null}
+                      {daily.byStaff.length ? (
+                        <p className={styles.itemStrong} style={{ marginTop: 6 }}>
+                          TOTAL — {daily.totals.all.count} orders · {fmtCur(daily.totals.all)}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <div className={styles.detailCard} style={{ marginTop: 12 }}>
+                      <p className={styles.itemStrong}>MONEY RECEIVED THIS DAY — compare with your bank / wallet</p>
+                      <p className={styles.item}>Type the total that arrived in your bank account or wallet for each channel, then SAVE. The system compares it with the payments it recorded.</p>
+                      {daily.channels.map((c) => (
+                        <div key={c.channel} style={{ marginTop: 10 }}>
+                          <p className={styles.item}>
+                            <b>{c.label}</b> — {c.count} payment{c.count === 1 ? '' : 's'} · system: {c.currency} {fmt(c.received)}
+                            {c.status === 'ok' ? <span style={{ color: OK }}> · ✅ matches bank / wallet</span> : null}
+                            {c.status === 'mismatch' ? (
+                              <span style={{ color: WARN }}> · ⚠ bank / wallet {c.currency} {fmt(c.statement)} — difference {c.difference > 0 ? '+' : '−'}{fmt(Math.abs(c.difference))}</span>
+                            ) : null}
+                            {c.status === 'not-entered' ? <span> · bank / wallet figure not entered</span> : null}
+                          </p>
+                          <div className={styles.row}>
+                            <input className={styles.input} type="number" step="0.01" min="0" inputMode="decimal"
+                                   placeholder={'Bank / wallet total (' + c.currency + ')'}
+                                   aria-label={'Bank / wallet total for ' + c.label}
+                                   value={stInput[c.channel] || ''}
+                                   onChange={(e) => setStInput({ ...stInput, [c.channel]: e.target.value })} />
+                            <button type="button" className={styles.btnGhost} disabled={busy}
+                                    onClick={() => saveStatement(c.channel)}>SAVE</button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ marginTop: 12 }}>
+                      <button type="button" className={styles.btnGhost} onClick={downloadDaily}>DOWNLOAD DAILY CHECK (CSV) ↓</button>
+                    </div>
+                  </>
+                ) : null}
+              </section>
+
               {/* ---------- payroll (automatic) ---------- */}
               <section className={styles.section}>
                 <div className={styles.stepTag}>MONTHLY PAYROLL — calculated automatically (CAD)</div>
@@ -445,12 +624,25 @@ export default function Admin() {
 
               {/* ---------- orders ledger ---------- */}
               <section className={styles.section}>
-                <div className={styles.stepTag}>ORDERS (LATEST {orders.length}) — mark PAID when money arrives; commission counts PAID orders, in the month they are paid</div>
+                <div className={styles.stepTag}>ORDERS (LATEST {orders.length}) — mark PAID when money arrives (type the amount received if it is different); commission counts PAID orders, in the month they are paid</div>
                 {orders.map((o) => (
                   <div key={o.id} className={styles.detailCard} style={{ marginBottom: 10 }}>
                     <p className={styles.itemStrong}>{o.id} — {o.currency} {fmt(o.amount)} — {o.status}</p>
                     <p className={styles.item}>{o.created} · {o.method.toUpperCase()} · rep: {o.rep || '—'} · {o.service || 'custom'}</p>
                     {o.status === 'PAID' && o.paid_via ? <p className={styles.item}>Paid: {o.paid_via}{o.paid ? ' · ' + o.paid : ''}</p> : null}
+                    {o.status === 'PAID' && o.amount_received !== null && o.amount_received !== undefined &&
+                      Math.round(Number(o.amount_received) * 100) !== Math.round(Number(o.amount) * 100) ? (
+                      <p className={styles.item} style={{ color: WARN }}>⚠ Received {o.currency} {fmt(o.amount_received)} — order is {o.currency} {fmt(o.amount)}</p>
+                    ) : null}
+                    {o.status === 'UNPAID' ? (
+                      <div className={styles.row}>
+                        <input className={styles.input} type="number" step="0.01" min="0" inputMode="decimal"
+                               placeholder={'Amount received (blank = ' + Number(o.amount).toFixed(2) + ')'}
+                               aria-label={'Amount received for ' + o.id}
+                               value={recvInput[o.id] || ''}
+                               onChange={(e) => setRecvInput({ ...recvInput, [o.id]: e.target.value })} />
+                      </div>
+                    ) : null}
                     <div className={styles.row}>
                       {o.status === 'UNPAID' ? (
                         <button type="button" className={styles.btnBig} disabled={busy}
