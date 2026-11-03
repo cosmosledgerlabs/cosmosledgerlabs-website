@@ -8,7 +8,13 @@
    • CLOCK IN / CLOCK OUT records the exact times (from the server clock);
      hours are added up automatically.
    • MY PAY shows only their own hours, credited orders and estimated pay
-     for the month, using the same calculation as the admin payroll. */
+     for the month, using the same calculation as the admin payroll.
+
+   2026-11-02 — rest time:
+   • START BREAK / END BREAK during a shift (breaks are paid; the 30-minute
+     break is due after no more than 5 hours of work in a row).
+   • A reminder appears 30 minutes before the break is due, and a warning
+     when it is overdue or when a break runs over 30 minutes. */
 
 import { useState, useEffect, useCallback } from 'react'
 import Head from 'next/head'
@@ -63,6 +69,8 @@ export default function Team() {
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
   const [now, setNow] = useState(Date.now())
+  const [rest, setRest] = useState(null)       // break status from the server
+  const [skew, setSkew] = useState(0)          // server clock − this device's clock
 
   // Staff names for the login list; restore a login from this browser tab.
   useEffect(() => {
@@ -79,13 +87,14 @@ export default function Team() {
   // Live timer while clocked in.
   useEffect(() => {
     if (!open) return undefined
-    const t = setInterval(() => setNow(Date.now()), 30000)
+    setNow(Date.now())
+    const t = setInterval(() => setNow(Date.now()), 15000)
     return () => clearInterval(t)
   }, [open])
 
   const logout = useCallback((why) => {
     try { window.sessionStorage.removeItem(TOKEN_KEY) } catch (e) { /* ignore */ }
-    setToken(''); setName(''); setOpen(null); setShifts([]); setPay(null); setPin('')
+    setToken(''); setName(''); setOpen(null); setShifts([]); setPay(null); setPin(''); setRest(null)
     setMsg(why || '')
   }, [])
 
@@ -111,6 +120,8 @@ export default function Team() {
       if (ra.ok) {
         const j = await ra.json()
         setName(j.name); setOpen(j.open); setShifts(j.shifts || [])
+        setRest(j.rest || null)
+        if (j.rest && j.rest.nowMs) setSkew(j.rest.nowMs - Date.now())
       }
       if (rp.ok) setPay(await rp.json())
       if (!ra.ok || !rp.ok) setMsg('Could not load everything — try again.')
@@ -151,7 +162,7 @@ export default function Team() {
       if (!r) return
       const j = await r.json().catch(() => ({}))
       if (!r.ok) setMsg(j.error || 'Not saved — try again.')
-      else setMsg(action === 'in' ? 'CLOCKED IN ✓' : 'CLOCKED OUT ✓')
+      else setMsg({ in: 'CLOCKED IN ✓', out: 'CLOCKED OUT ✓', 'break-start': 'BREAK STARTED ☕ — enjoy your break', 'break-end': 'BREAK ENDED ✓ — welcome back' }[action] || 'Saved ✓')
       await load()
     } catch (e) {
       setMsg('Network error — try again.')
@@ -163,10 +174,27 @@ export default function Team() {
   const p = pay && pay.pay
   const missing = shifts.filter((s) => s.open && !(open && s.id === open.id))
 
+  /* ---------- rest time ---------- */
+  const R = rest && rest.rules
+  const nowServer = now + skew
+  const onBreak = open && rest && rest.onBreak
+  const breakMin = onBreak ? Math.max(0, Math.floor((nowServer - rest.onBreak.startMs) / 60000)) : 0
+  const workedMin = open && rest && !onBreak && rest.stretchStartMs ? Math.max(0, Math.floor((nowServer - rest.stretchStartMs) / 60000)) : 0
+  const dueMin = R ? R.eatingBreakAfterHours * 60 : 300
+  const remindMin = R ? dueMin - R.breakReminderMinutes : 270
+  const breakLong = onBreak && R && breakMin > R.breakMinutes
+  const breakDue = open && !onBreak && R && workedMin >= remindMin
+  const breakOverdue = open && !onBreak && R && workedMin >= dueMin
+  const hm = (m) => Math.floor(m / 60) + ' h ' + (m % 60) + ' min'
+
+  // The reminder also shows in the browser tab title.
+  const pageTitle = breakOverdue ? '⏰ Break overdue — Team' : breakDue ? '⏰ Break due soon — Team'
+    : breakLong ? '⏰ End your break — Team' : 'Team — COSMOS Ledger Labs'
+
   return (
     <>
       <Head>
-        <title>Team — COSMOS Ledger Labs</title>
+        <title>{pageTitle}</title>
         <meta name="robots" content="noindex, nofollow" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
@@ -205,26 +233,82 @@ export default function Team() {
                   <div className={styles.orderHead}>{name ? name.toUpperCase() : '…'}</div>
                   <div className={styles.orderRow}>
                     <span className={styles.orderKey}>Status</span>
-                    <span className={styles.orderId}>{open ? 'CLOCKED IN' : 'NOT CLOCKED IN'}</span>
+                    <span className={styles.orderId}>{onBreak ? 'ON BREAK ☕' : open ? 'CLOCKED IN' : 'NOT CLOCKED IN'}</span>
                   </div>
                   {open ? (
                     <>
                       <div className={styles.orderRow}><span className={styles.orderKey}>Since</span><span>{open.since}</span></div>
-                      <div className={styles.orderRow}><span className={styles.orderKey}>Working for</span><span>{elapsedSince(open.since, now)}</span></div>
+                      <div className={styles.orderRow}><span className={styles.orderKey}>Shift so far</span><span>{elapsedSince(open.since, now)}</span></div>
+                      {onBreak ? (
+                        <div className={styles.orderRow}>
+                          <span className={styles.orderKey}>Break since {rest.onBreak.since}</span>
+                          <span style={{ color: breakLong ? '#ffb347' : '#3dffa8' }}>{breakMin} min of {R.breakMinutes}</span>
+                        </div>
+                      ) : rest && rest.stretchStartMs ? (
+                        <div className={styles.orderRow}>
+                          <span className={styles.orderKey}>Working without a {R ? R.breakMinutes : 30}-min break</span>
+                          <span style={{ color: breakDue ? '#ffb347' : undefined }}>{hm(workedMin)}</span>
+                        </div>
+                      ) : null}
+                      {rest && rest.breaks && rest.breaks.length ? (
+                        <div className={styles.orderRow}>
+                          <span className={styles.orderKey}>Breaks this shift</span>
+                          <span>{rest.breaks.map((b) => b.start + '–' + (b.end || 'now') + ' (' + b.minutes + ' min)').join(', ')}</span>
+                        </div>
+                      ) : null}
                     </>
                   ) : null}
                 </div>
-                <div style={{ marginTop: 16 }}>
+
+                {breakOverdue ? (
+                  <div className={styles.detailCard} style={{ marginTop: 14, borderColor: '#ff6b6b' }}>
+                    <p className={styles.itemStrong} style={{ color: '#ff6b6b', margin: 0 }}>
+                      ⏰ Your {R.breakMinutes}-minute break is overdue — you have worked {hm(workedMin)} without it. Please press START BREAK now.
+                    </p>
+                  </div>
+                ) : breakDue ? (
+                  <div className={styles.detailCard} style={{ marginTop: 14, borderColor: '#ffb347' }}>
+                    <p className={styles.itemStrong} style={{ color: '#ffb347', margin: 0 }}>
+                      ⏰ You have worked {hm(workedMin)} without a break. Please take your {R.breakMinutes}-minute break within {Math.max(0, dueMin - workedMin)} min.
+                    </p>
+                  </div>
+                ) : null}
+                {breakLong ? (
+                  <div className={styles.detailCard} style={{ marginTop: 14, borderColor: '#ffb347' }}>
+                    <p className={styles.itemStrong} style={{ color: '#ffb347', margin: 0 }}>
+                      Your break is over {R.breakMinutes} minutes ({breakMin} min). Please press END BREAK when you are back.
+                    </p>
+                  </div>
+                ) : null}
+
+                <div className={styles.row} style={{ marginTop: 16 }}>
                   {open ? (
-                    <button type="button" className={styles.btnBig} disabled={busy} onClick={() => clock('out')}>
-                      {busy ? 'SAVING…' : 'CLOCK OUT ■'}
-                    </button>
+                    <>
+                      {onBreak ? (
+                        <button type="button" className={styles.btnBig} disabled={busy} onClick={() => clock('break-end')}>
+                          {busy ? 'SAVING…' : 'END BREAK ▶'}
+                        </button>
+                      ) : (
+                        <button type="button" className={styles.btnBig} disabled={busy} onClick={() => clock('break-start')}>
+                          {busy ? 'SAVING…' : 'START BREAK ☕'}
+                        </button>
+                      )}
+                      <button type="button" className={styles.btnGhost} disabled={busy}
+                              onClick={() => { if (!onBreak || confirm('You are on a break. Clock out now? (The break ends too.)')) clock('out') }}>
+                        CLOCK OUT ■
+                      </button>
+                    </>
                   ) : (
                     <button type="button" className={styles.btnBig} disabled={busy} onClick={() => clock('in')}>
                       {busy ? 'SAVING…' : 'CLOCK IN ▶'}
                     </button>
                   )}
                 </div>
+                {open && R ? (
+                  <div className={styles.hint}>
+                    Breaks are {R.breaksPaid ? 'paid' : 'unpaid'}. Take your {R.breakMinutes}-minute break before you have worked {R.eatingBreakAfterHours} hours in a row — press START BREAK when you go and END BREAK when you are back.
+                  </div>
+                ) : null}
                 {msg ? <div className={styles.hint}>{msg}</div> : null}
                 {missing.length ? (
                   <div className={styles.hint} style={{ color: '#ffb347' }}>
@@ -263,8 +347,20 @@ export default function Team() {
                         ? (p.attendanceAward ? fmt(p.attendanceAward) : p.daysWorked + ' / ' + pay.rules.attendanceRequiredDays + ' days')
                         : 'full-time only'}</span></div>
                     <div className={styles.orderRow}><span className={styles.orderKey}>Internet subsidy</span><span>{fmt(p.internetSubsidy)}</span></div>
+                    {p.complaints && p.complaints.length ? (
+                      <div className={styles.orderRow}>
+                        <span className={styles.orderKey}>Complaint deductions ({p.complaints.length})</span>
+                        <span style={{ color: '#ffb347' }}>−{fmt(p.finesDeducted)}</span>
+                      </div>
+                    ) : null}
                     <div className={styles.orderRow}><span className={styles.orderKey}>TOTAL</span>
                       <span className={styles.orderId}>{fmt(p.totalPay)}</span></div>
+                    {p.complaints && p.complaints.length ? p.complaints.map((c) => (
+                      <div key={c.id} className={styles.orderRow}>
+                        <span className={styles.orderKey}>⚠ Complaint {c.decided}{c.orderId ? ' · ' + c.orderId : ''} · {c.kind}</span>
+                        <span>{c.fine ? '−' + fmt(c.fine) : 'no fine'}</span>
+                      </div>
+                    )) : null}
                   </div>
                 ) : (
                   <div className={styles.hint}>{busy ? 'Loading…' : 'Nothing recorded for this month yet.'}</div>
@@ -289,6 +385,9 @@ export default function Team() {
                       {s.clockIn.replace('T', ' ')} → {s.clockOut ? s.clockOut.replace('T', ' ').slice(11) : (open && s.id === open.id ? 'now' : 'no clock-out')}
                       {'  ·  '}{fmtH(s.hours)}
                     </p>
+                    {s.breaks && s.breaks.length ? (
+                      <p className={styles.item}>Breaks: {s.breaks.map((b) => b.start + '–' + (b.end || 'now') + ' (' + b.minutes + ' min)').join(', ')}</p>
+                    ) : null}
                     {s.edited || s.tooLong || (s.open && !(open && s.id === open.id)) || s.note ? (
                       <p className={styles.item}>
                         {s.edited ? 'Corrected by admin. ' : ''}

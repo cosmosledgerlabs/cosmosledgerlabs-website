@@ -94,6 +94,19 @@ const T2 = {
   orderAmount: { en: 'Amount payable', zh: '應付金額' },
   orderMethod: { en: 'Method', zh: '付款方式' },
   orderCs: { en: 'Customer service', zh: '客服人員' },
+  /* 2026-11-02: customer vouchers (issued by management) */
+  vLabel: { en: 'Voucher code (optional)', zh: '優惠券代碼（選填）' },
+  vApply: { en: 'APPLY', zh: '使用' },
+  vRemove: { en: 'REMOVE', zh: '移除' },
+  vApplied: { en: 'Voucher applied', zh: '已使用優惠券' },
+  vInvalid: { en: 'This voucher code is not valid, already used or expired.', zh: '此優惠券代碼無效、已使用或已過期。' },
+  vCurrency: { en: 'This voucher is in a different currency — switch the currency to use it.', zh: '此優惠券為另一種幣別——請切換幣別後使用。' },
+  vTooBig: { en: 'The payment must be larger than the voucher amount.', zh: '付款金額必須大於優惠券金額。' },
+  vNotNow: { en: 'The voucher does not apply to this amount or currency.', zh: '優惠券不適用於此金額或幣別。' },
+  vFail: { en: 'Your voucher could not be used. Please check the code and try again.', zh: '您的優惠券無法使用，請檢查代碼後重試。' },
+  vCheckFail: { en: 'Could not check the voucher — check your connection and try again.', zh: '無法核對優惠券——請檢查網路連線後重試。' },
+  genFail: { en: 'Could not create the order — check your connection and try again.', zh: '無法產生訂單——請檢查網路連線後重試。' },
+  orderVoucher: { en: 'Voucher', zh: '優惠券' },
   wireHead: { en: 'PAY BY BANK WIRE', zh: '以銀行電匯付款' },
   wireNote: {
     en: 'Send the wire from your bank using the details below, and quote the order number in the wire reference / payment details field. Incoming international wires can take 1–5 business days.',
@@ -242,6 +255,12 @@ export default function Pay() {
   const [copiedKey, setCopiedKey] = useState('')
   const [emtNote, setEmtNote] = useState(false)
   const [paid, setPaid] = useState(false)
+  const [voucherInput, setVoucherInput] = useState('')
+  const [voucher, setVoucher] = useState(null)      // { code, amount, currency } once checked
+  const [voucherMsg, setVoucherMsg] = useState('')
+  const [voucherBusy, setVoucherBusy] = useState(false)
+  const [genBusy, setGenBusy] = useState(false)
+  const [genMsg, setGenMsg] = useState('')
 
   /* After an order is generated, check its status every 30 s; when the
      e-Transfer is matched in the back office the page shows "received". */
@@ -321,14 +340,84 @@ export default function Pay() {
   const csRequired = staffList.length > 0
   const csChosen = staffList.some((s) => String(s.id) === repId)
   const csOk = !csRequired || csChosen
-  const canGenerate = payNow > 0 && !!method && staffLoaded && csOk
+  /* Voucher (2026-11-02): applies only in its own currency and to a payment
+     larger than the voucher. The amount to pay is shown after the voucher. */
+  const voucherOk = !!voucher && voucher.currency === currency && payNow > voucher.amount
+  const due = voucherOk ? Math.round((payNow - voucher.amount) * 100) / 100 : payNow
 
-  const generate = () => {
+  const applyVoucher = async () => {
+    const code = voucherInput.trim()
+    if (!code) return
+    setVoucherMsg(''); setVoucherBusy(true)
+    try {
+      const q = '?code=' + encodeURIComponent(code) + '&currency=' + currency + (payNow > 0 ? '&amount=' + payNow : '')
+      const r = await fetch('/api/voucher-check' + q, { cache: 'no-store' })
+      const j = await r.json().catch(() => ({}))
+      if (!r.ok) { setVoucherMsg(L(T2.vCheckFail)); return }
+      if (j.ok) {
+        setVoucher({ code: j.code, amount: Number(j.amount), currency: j.currency })
+        setVoucherInput(j.code)
+      } else {
+        setVoucher(null)
+        setVoucherMsg(L(j.reason === 'currency' ? T2.vCurrency : j.reason === 'too-big' ? T2.vTooBig : T2.vInvalid))
+      }
+    } catch (e) {
+      setVoucherMsg(L(T2.vCheckFail))
+    } finally { setVoucherBusy(false) }
+  }
+  const removeVoucher = () => { setVoucher(null); setVoucherInput(''); setVoucherMsg('') }
+
+  const canGenerate = payNow > 0 && !!method && staffLoaded && csOk && !genBusy
+
+  const generate = async () => {
     if (!canGenerate) return
-    setCopiedKey('')
+    setCopiedKey(''); setGenMsg('')
     const id = makeOrderId()
     const chosen = staffList.find((s) => String(s.id) === repId)
     const csName = chosen ? chosen.name : ''
+    const gross = payable(amount, plan.pct)
+    const body = JSON.stringify({
+      id,
+      service: service.name.en,
+      amount: gross,
+      currency,
+      method,
+      repId: chosen ? chosen.id : null,
+      voucherCode: voucherOk ? voucher.code : undefined,
+    })
+    /* e-Transfer: copy the order number right away, ready to paste into the
+       transfer message (the GENERATE click allows clipboard access). */
+    if (method === 'emt') {
+      copyText(id).then((ok) => { if (ok) setCopiedKey('autoEmt') })
+    }
+
+    let finalAmount = gross
+    let usedVoucher = null
+    if (voucherOk) {
+      /* With a voucher the order must be saved first: the discount is only
+         shown once the voucher has really been used for this order. */
+      setGenBusy(true)
+      try {
+        const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+        const j = await r.json().catch(() => ({}))
+        if (!r.ok) {
+          if (r.status === 409) { setVoucher(null); setVoucherMsg(L(T2.vFail)) } else { setGenMsg(L(T2.genFail)) }
+          return
+        }
+        finalAmount = Number(j.amount)
+        usedVoucher = j.voucher || null
+      } catch (e) {
+        setGenMsg(L(T2.genFail))
+        return
+      } finally { setGenBusy(false) }
+    } else {
+      /* Auto-record the order in the back office. Never blocks the client:
+         if this fails, they still get their payment details. */
+      try {
+        fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch(() => {})
+      } catch (e) { /* ignore */ }
+    }
+
     setOrder({
       id,
       serviceId,
@@ -337,32 +426,14 @@ export default function Pay() {
       planId: plan.id,
       planPct: plan.pct,
       planName: plan.name,
-      amount: payable(amount, plan.pct),
+      amount: finalAmount,
       currency,
       method,
       rep: csName,
+      voucherCode: usedVoucher ? usedVoucher.code : '',
+      voucherAmount: usedVoucher ? usedVoucher.amount : 0,
     })
-    /* Auto-record the order in the back office. Never blocks the client:
-       if this fails, they still get their payment details. */
-    try {
-      fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          service: service.name.en,
-          amount: payable(amount, plan.pct),
-          currency,
-          method,
-          repId: chosen ? chosen.id : null,
-        }),
-      }).catch(() => {})
-    } catch (e) { /* ignore */ }
-    /* e-Transfer: copy the order number right away, ready to paste into the
-       transfer message (the GENERATE click allows clipboard access). */
-    if (method === 'emt') {
-      copyText(id).then((ok) => { if (ok) setCopiedKey('autoEmt') })
-    }
+    if (usedVoucher) removeVoucher()
     setPaid(false)
     if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -397,6 +468,7 @@ export default function Pay() {
       'Amount payable: ' + fmtAmount(order.amount, order.currency),
       'Payment method: ' + (methodName ? methodName.en : order.method),
       order.rep ? 'Customer service: ' + order.rep : '',
+      order.voucherCode ? 'Voucher: ' + order.voucherCode + ' (−' + fmtAmount(order.voucherAmount, order.currency) + ')' : '',
       'Sent from cosmosledgerlabs.com/pay',
     ].filter(Boolean).join('\n')
   }
@@ -423,9 +495,10 @@ export default function Pay() {
       'Amount payable: ' + fmtAmount(order.amount, order.currency),
       'Payment method: ' + (methodName ? methodName.en : order.method),
       order.rep ? 'Customer service: ' + order.rep : '',
+      order.voucherCode ? 'Voucher: ' + order.voucherCode + ' (−' + fmtAmount(order.voucherAmount, order.currency) + ')' : '',
       '',
       'Sent from cosmosledgerlabs.com/pay',
-    ].filter((line, i) => line !== '' || i >= 5).join('\n')
+    ].filter((line, i) => line !== '' || i === 7).join('\n')
     return (
       'mailto:info@cosmosledgerlabs.com?subject=' +
       encodeURIComponent(subject) +
@@ -551,12 +624,50 @@ export default function Pay() {
                 </select>
                 <div className={styles.hint}>{L(T2.csHint)}</div>
 
+                <label className={styles.label} style={{ marginTop: 14 }}>{L(T2.vLabel)}</label>
+                <div className={styles.row} style={{ alignItems: 'center' }}>
+                  <input
+                    className={styles.input}
+                    style={{ flex: '1 1 180px', textTransform: 'uppercase' }}
+                    value={voucherInput}
+                    placeholder="CLV-XXXX-XXXX"
+                    maxLength={20}
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={!!voucher}
+                    aria-label={L(T2.vLabel)}
+                    onChange={(e) => { setVoucherInput(e.target.value); setVoucherMsg('') }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyVoucher() } }}
+                  />
+                  {voucher ? (
+                    <button type="button" className={styles.btnCopyMini} onClick={removeVoucher}>{L(T2.vRemove)}</button>
+                  ) : (
+                    <button type="button" className={styles.btnCopyMini} disabled={voucherBusy || !voucherInput.trim()} onClick={applyVoucher}>
+                      {voucherBusy ? '…' : L(T2.vApply)}
+                    </button>
+                  )}
+                </div>
+                {voucher ? (
+                  <div className={styles.hint} style={{ color: voucherOk ? '#3dffa8' : 'var(--cyan)' }}>
+                    {voucherOk
+                      ? '✓ ' + L(T2.vApplied) + ': ' + voucher.code + ' (−' + fmtAmount(voucher.amount, voucher.currency) + ')'
+                      : voucher.currency !== currency ? L(T2.vCurrency) : payNow > 0 ? L(T2.vTooBig) : L(T2.vNotNow)}
+                  </div>
+                ) : null}
+                {voucherMsg ? <div className={styles.hint} style={{ color: 'var(--cyan)' }}>{voucherMsg}</div> : null}
+
                 <div className={styles.totalCard}>
                   <span className={styles.totalLabel}>{L(T2.payNow)}</span>
-                  <span className={styles.totalValue}>{payNow > 0 ? fmtAmount(payNow, currency) : '—'}</span>
+                  <span className={styles.totalValue}>{payNow > 0 ? fmtAmount(due, currency) : '—'}</span>
                   {payNow > 0 && plan.pct < 100 ? (
                     <span className={styles.totalSub}>
                       {pick(T2.ofTotal, lang)(plan.pct, fmtAmount(amount, currency))}
+                    </span>
+                  ) : null}
+                  {voucherOk ? (
+                    <span className={styles.totalSub}>
+                      {fmtAmount(payNow, currency)} − {L(T2.orderVoucher)} {fmtAmount(voucher.amount, currency)}
                     </span>
                   ) : null}
                 </div>
@@ -590,6 +701,7 @@ export default function Pay() {
                 </button>
                 {!(payNow > 0 && !!method) ? <div className={styles.hint}>{L(T2.needAmount)}</div> : null}
                 {!csOk ? <div className={styles.hint} style={{ color: 'var(--cyan)' }}>{L(T2.needCs)}</div> : null}
+                {genMsg ? <div className={styles.hint} style={{ color: 'var(--cyan)' }}>{genMsg}</div> : null}
                 <div className={styles.hint}>
                   {L(T2.termsPre)}<Link href="/terms" style={{ color: 'var(--cyan)' }}>{L(T2.termsLink)}</Link>{L(T2.termsPost)}
                 </div>
@@ -619,6 +731,12 @@ export default function Pay() {
                       {order.planPct < 100 ? ' · ' + order.planPct + '% × ' + fmtAmount(order.baseAmount, order.currency) : ''}
                     </span>
                   </div>
+                  {order.voucherCode ? (
+                    <div className={styles.kvRow}>
+                      <span className={styles.kvKey}>{L(T2.orderVoucher)}</span>
+                      <span className={styles.kvVal}>{order.voucherCode} (−{fmtAmount(order.voucherAmount, order.currency)})</span>
+                    </div>
+                  ) : null}
                   <div className={styles.kvRow}>
                     <span className={styles.kvKey}>{L(T2.orderAmount)}</span>
                     <span className={styles.kvVal + ' ' + styles.kvStrong}>{fmtAmount(order.amount, order.currency)}</span>

@@ -11,6 +11,8 @@
      download as a spreadsheet (CSV).
    • ATTENDANCE: every shift of the month; fix a forgotten clock-out, add a
      missed shift, or delete a wrong one.
+   • MANAGERS (2026-11-02): personal logins for the management backend
+     /manage (orders, complaints, vouchers, staff figures, activity log).
    • DAILY CHECK: for any day, totals every order and payment (overall, per
      customer service person, per payment channel) and checks that they
      agree — with the money received and with the bank / wallet figures
@@ -20,6 +22,7 @@ import { useState } from 'react'
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
+import DailyCheckPanel from '../components/DailyCheckPanel'
 import styles from '../styles/Pay.module.css'
 
 function thisMonth() {
@@ -27,23 +30,7 @@ function thisMonth() {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
 }
 
-function todayToronto() {
-  try {
-    return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date())
-  } catch (e) {
-    return new Date().toISOString().slice(0, 10)
-  }
-}
-
 const fmt = (n) => '$' + Number(n || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-/* "CAD $1,200.00 + USD $500.00" — the two currencies are never added together */
-const fmtCur = (t) => {
-  const parts = []
-  if (t.CAD || !t.USD) parts.push('CAD ' + fmt(t.CAD))
-  if (t.USD) parts.push('USD ' + fmt(t.USD))
-  return parts.join(' + ')
-}
-const OK = '#3ddc84'
 const WARN = '#ffb347'
 
 export default function Admin() {
@@ -65,10 +52,11 @@ export default function Admin() {
   const [msg, setMsg] = useState('')
   const [busy, setBusy] = useState(false)
   const [emt, setEmt] = useState(null)
-  const [day, setDay] = useState(todayToronto())
-  const [daily, setDaily] = useState(null)
-  const [dailyMsg, setDailyMsg] = useState('')
-  const [stInput, setStInput] = useState({})       // channel → bank / wallet figure typed in
+  const [managers, setManagers] = useState([])
+  const [newMgr, setNewMgr] = useState({ username: '', name: '', password: '' })
+  const [mgrPass, setMgrPass] = useState({})     // manager id → new password typed
+  const [mgrMsg, setMgrMsg] = useState('')
+  const [version, setVersion] = useState(0)        // bumps after each reload → Daily Check refreshes
   const [recvInput, setRecvInput] = useState({})   // order id → amount received
 
   const H = { 'Content-Type': 'application/json', 'x-passcode': code }
@@ -76,16 +64,16 @@ export default function Admin() {
   const loadAll = async () => {
     setMsg(''); setBusy(true)
     try {
-      const [ro, rs, rh, rst, rsh, rfx, rd] = await Promise.all([
+      const [ro, rs, rh, rst, rsh, rfx, rmg] = await Promise.all([
         fetch('/api/orders', { headers: H }),
         fetch('/api/settle?month=' + month, { headers: H }),
         fetch('/api/hours?month=' + month, { headers: H }),
         fetch('/api/staff', { headers: H }),
         fetch('/api/attendance?month=' + month, { headers: H }),
         fetch('/api/fx?month=' + month, { headers: H }),
-        fetch('/api/daily-check?day=' + (day || todayToronto()), { headers: H }),
+        fetch('/api/managers', { headers: H }),
       ])
-      const all = [ro, rs, rh, rst, rsh, rfx, rd]
+      const all = [ro, rs, rh, rst, rsh, rfx, rmg]
       if (all.some((r) => r.status === 401)) { setUnlocked(false); setMsg('Wrong passcode.'); return }
       if (all.some((r) => !r.ok)) { setMsg('Load failed — try again.'); return }
       setOrders((await ro.json()).orders || [])
@@ -95,7 +83,8 @@ export default function Admin() {
       setShifts((await rsh.json()).shifts || [])
       const fx = await rfx.json()
       setFxInput(fx.usdCad ? String(fx.usdCad) : '')
-      showDaily(await rd.json())
+      setManagers((await rmg.json()).managers || [])
+      setVersion((v) => v + 1)
       setUnlocked(true)
     } catch (e) {
       setMsg('Network error — try again.')
@@ -118,51 +107,6 @@ export default function Admin() {
         setMsg(j.error || 'Not saved — try again.')
       }
     } finally { setBusy(false) }
-  }
-
-  /* ---------- daily check ---------- */
-  const showDaily = (d) => {
-    setDaily(d)
-    const s = {}
-    ;(d.channels || []).forEach((c) => { s[c.channel] = c.statement === null ? '' : String(c.statement) })
-    setStInput(s)
-  }
-  const loadDaily = async (d) => {
-    const which = d || day
-    setDailyMsg(''); setBusy(true)
-    try {
-      const r = await fetch('/api/daily-check?day=' + which, { headers: H })
-      const j = await r.json().catch(() => ({}))
-      if (!r.ok) { setDailyMsg(j.error || 'Load failed — try again.'); return }
-      showDaily(j)
-    } catch (e) {
-      setDailyMsg('Network error — try again.')
-    } finally { setBusy(false) }
-  }
-  const saveStatement = async (channel) => {
-    setDailyMsg(''); setBusy(true)
-    try {
-      const r = await fetch('/api/daily-check', { method: 'PUT', headers: H,
-        body: JSON.stringify({ day: daily.day, channel, amount: stInput[channel] || '' }) })
-      const j = await r.json().catch(() => ({}))
-      if (!r.ok) { setDailyMsg(j.error || 'Not saved — try again.'); return }
-      setDailyMsg('Saved ✓')
-    } catch (e) {
-      setDailyMsg('Network error — try again.')
-    } finally { setBusy(false) }
-    await loadDaily(daily.day)
-  }
-  const downloadDaily = async () => {
-    try {
-      const r = await fetch('/api/daily-check?format=csv&day=' + daily.day, { headers: H })
-      if (!r.ok) { setDailyMsg('Download failed.'); return }
-      const blob = await r.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url; a.download = 'cosmos-daily-check-' + daily.day + '.csv'
-      document.body.appendChild(a); a.click(); a.remove()
-      setTimeout(() => URL.revokeObjectURL(url), 2000)
-    } catch (e) { setDailyMsg('Download failed.') }
   }
 
   const removeOrder = async (id) => {
@@ -229,6 +173,13 @@ export default function Admin() {
     } catch (e) { setMsg('Download failed.') }
   }
 
+  /* ---------- managers (2026-11-02) ---------- */
+  const addManager = async () => {
+    const ok = await callApi('/api/managers', 'POST', newMgr, setMgrMsg)
+    if (ok) setNewMgr({ username: '', name: '', password: '' })
+  }
+  const patchManager = (body) => callApi('/api/managers', 'PATCH', body, setMgrMsg)
+
   /* ---------- attendance ---------- */
   const setShiftField = (s, k, v) => setShiftEdit({
     ...shiftEdit,
@@ -284,103 +235,8 @@ export default function Admin() {
             </section>
           ) : (
             <>
-              {/* ---------- daily check ---------- */}
-              <section className={styles.section}>
-                <div className={styles.stepTag}>DAILY CHECK — are the day's order count and amounts correct?</div>
-                <div className={styles.row}>
-                  <div className={styles.field}>
-                    <label className={styles.label}>Day (Toronto time)</label>
-                    <input className={styles.input} type="date" value={day}
-                           onChange={(e) => setDay(e.target.value)} />
-                  </div>
-                  <div className={styles.field} style={{ alignSelf: 'flex-end' }}>
-                    <button type="button" className={styles.btnBig} disabled={busy || !day} onClick={() => loadDaily()}>
-                      {busy ? 'CHECKING…' : 'CHECK DAY →'}
-                    </button>
-                  </div>
-                </div>
-                {dailyMsg ? <div className={styles.hint}>{dailyMsg}</div> : null}
-
-                {daily ? (
-                  <>
-                    <div className={styles.orderCard} style={{ marginTop: 14, borderColor: daily.status === 'ok' ? OK : WARN }}>
-                      <div className={styles.orderHead} style={{ color: daily.status === 'ok' ? OK : WARN }}>
-                        {daily.status === 'ok'
-                          ? '✅ ' + daily.day + ' — ALL CHECKS OK'
-                          : '⚠ ' + daily.day + ' — ' + daily.problems + ' PROBLEM' + (daily.problems === 1 ? '' : 'S') + ' FOUND'}
-                      </div>
-                      <div className={styles.orderRow}><span className={styles.orderKey}>Orders created</span>
-                        <span className={styles.orderId}>{daily.totals.all.count} · {fmtCur(daily.totals.all)}</span></div>
-                      <div className={styles.orderRow}><span className={styles.orderKey}>Paid</span>
-                        <span>{daily.totals.paid.count} · {fmtCur(daily.totals.paid)}</span></div>
-                      <div className={styles.orderRow}><span className={styles.orderKey}>Unpaid</span>
-                        <span>{daily.totals.unpaid.count} · {fmtCur(daily.totals.unpaid)}</span></div>
-                    </div>
-
-                    <div className={styles.detailCard} style={{ marginTop: 12 }}>
-                      <p className={styles.itemStrong}>CHECKS</p>
-                      {daily.checks.map((c, i) => (
-                        <div key={i} style={{ marginTop: 6 }}>
-                          <p className={styles.item} style={{ color: c.ok === true ? OK : c.ok === false ? WARN : undefined }}>
-                            {c.ok === true ? '✅ ' : c.ok === false ? '⚠ ' : '• '}{c.text}
-                          </p>
-                          {c.ok !== true && c.detail && c.detail.length ? (
-                            <ul style={{ margin: '2px 0 0 18px', padding: 0 }}>
-                              {c.detail.slice(0, 50).map((d, j) => <li key={j} className={styles.item}>{d}</li>)}
-                              {c.detail.length > 50 ? <li className={styles.item}>… and {c.detail.length - 50} more (see the spreadsheet)</li> : null}
-                            </ul>
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className={styles.detailCard} style={{ marginTop: 12 }}>
-                      <p className={styles.itemStrong}>BY CUSTOMER SERVICE</p>
-                      {daily.byStaff.map((s, i) => (
-                        <p key={i} className={styles.item}>
-                          {s.name || '(no customer service)'} — {s.all.count} order{s.all.count === 1 ? '' : 's'} · {fmtCur(s.all)} · {s.paid.count} paid, {s.unpaid.count} unpaid
-                        </p>
-                      ))}
-                      {daily.byStaff.length === 0 ? <p className={styles.item}>No orders this day.</p> : null}
-                      {daily.byStaff.length ? (
-                        <p className={styles.itemStrong} style={{ marginTop: 6 }}>
-                          TOTAL — {daily.totals.all.count} orders · {fmtCur(daily.totals.all)}
-                        </p>
-                      ) : null}
-                    </div>
-
-                    <div className={styles.detailCard} style={{ marginTop: 12 }}>
-                      <p className={styles.itemStrong}>MONEY RECEIVED THIS DAY — compare with your bank / wallet</p>
-                      <p className={styles.item}>Type the total that arrived in your bank account or wallet for each channel, then SAVE. The system compares it with the payments it recorded.</p>
-                      {daily.channels.map((c) => (
-                        <div key={c.channel} style={{ marginTop: 10 }}>
-                          <p className={styles.item}>
-                            <b>{c.label}</b> — {c.count} payment{c.count === 1 ? '' : 's'} · system: {c.currency} {fmt(c.received)}
-                            {c.status === 'ok' ? <span style={{ color: OK }}> · ✅ matches bank / wallet</span> : null}
-                            {c.status === 'mismatch' ? (
-                              <span style={{ color: WARN }}> · ⚠ bank / wallet {c.currency} {fmt(c.statement)} — difference {c.difference > 0 ? '+' : '−'}{fmt(Math.abs(c.difference))}</span>
-                            ) : null}
-                            {c.status === 'not-entered' ? <span> · bank / wallet figure not entered</span> : null}
-                          </p>
-                          <div className={styles.row}>
-                            <input className={styles.input} type="number" step="0.01" min="0" inputMode="decimal"
-                                   placeholder={'Bank / wallet total (' + c.currency + ')'}
-                                   aria-label={'Bank / wallet total for ' + c.label}
-                                   value={stInput[c.channel] || ''}
-                                   onChange={(e) => setStInput({ ...stInput, [c.channel]: e.target.value })} />
-                            <button type="button" className={styles.btnGhost} disabled={busy}
-                                    onClick={() => saveStatement(c.channel)}>SAVE</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div style={{ marginTop: 12 }}>
-                      <button type="button" className={styles.btnGhost} onClick={downloadDaily}>DOWNLOAD DAILY CHECK (CSV) ↓</button>
-                    </div>
-                  </>
-                ) : null}
-              </section>
+              {/* ---------- daily check (shared with /manage) ---------- */}
+              <DailyCheckPanel headers={H} refreshKey={version} />
 
               {/* ---------- payroll (automatic) ---------- */}
               <section className={styles.section}>
@@ -425,6 +281,7 @@ export default function Admin() {
                       <div className={styles.orderRow}><span className={styles.orderKey}>Holiday bonus</span><span>{fmt(settle.totals.holidayBonus)}</span></div>
                       <div className={styles.orderRow}><span className={styles.orderKey}>Attendance awards</span><span>{fmt(settle.totals.attendanceAward)}</span></div>
                       <div className={styles.orderRow}><span className={styles.orderKey}>Internet subsidy</span><span>{fmt(settle.totals.internetSubsidy)}</span></div>
+                      <div className={styles.orderRow}><span className={styles.orderKey}>Complaint fines deducted</span><span>−{fmt(settle.totals.fines)}</span></div>
                       <div className={styles.orderRow}><span className={styles.orderKey}>TOTAL PAYOUT</span>
                         <span className={styles.orderId}>{fmt(settle.totals.totalPay)}</span></div>
                       <div className={styles.orderRow}><span className={styles.orderKey}>COSMOS net (paid − payout)</span><span>{fmt(settle.net)}</span></div>
@@ -444,6 +301,11 @@ export default function Admin() {
                         <p className={styles.item}>Orders: {p.ordersCredited} credited, {p.paidOrders} paid ({fmt(p.paidAmountCad)}) → commission {fmt(p.commission)}</p>
                         <p className={styles.item}>Holiday days worked: {p.holidayDaysWorked.length ? p.holidayDaysWorked.join(', ') : 'none'} → bonus {fmt(p.holidayBonus)}</p>
                         <p className={styles.item}>Attendance award: {fmt(p.attendanceAward)} · Internet subsidy: {fmt(p.internetSubsidy)}</p>
+                        {p.complaints && p.complaints.length ? (
+                          <p className={styles.item} style={{ color: '#ffb347' }}>
+                            Valid complaints: {p.complaints.length} · fines {fmt(p.fines)} → deducted {fmt(p.finesDeducted)} (gross {fmt(p.grossPay)})
+                          </p>
+                        ) : null}
                         {p.openShifts ? (
                           <p className={styles.item} style={{ color: '#ffb347' }}>
                             ⚠ {p.openShifts} shift{p.openShifts > 1 ? 's' : ''} without a valid clock-out (counted as 0 h) — fix below in ATTENDANCE.
@@ -532,6 +394,61 @@ export default function Admin() {
                 {staffMsg ? <div className={styles.hint}>{staffMsg}</div> : null}
               </section>
 
+              {/* ---------- managers ---------- */}
+              <section className={styles.section}>
+                <div className={styles.stepTag}>MANAGERS — personal logins for the management backend at /manage</div>
+                {managers.map((m) => (
+                  <div key={m.id} className={styles.detailCard} style={{ marginBottom: 10, opacity: m.active ? 1 : 0.55 }}>
+                    <p className={styles.itemStrong}>
+                      {m.name} — username: {m.username}{m.active ? '' : ' — INACTIVE'}{m.locked ? ' — LOCKED (wrong passwords)' : ''}
+                    </p>
+                    <div className={styles.row}>
+                      <input className={styles.input} type="password" placeholder="New password (8+ characters)" autoComplete="new-password"
+                             value={mgrPass[m.id] || ''} onChange={(e) => setMgrPass({ ...mgrPass, [m.id]: e.target.value })} />
+                      <button type="button" className={styles.btnGhost} disabled={busy || !mgrPass[m.id]}
+                              onClick={() => patchManager({ id: m.id, password: mgrPass[m.id] }).then((ok) => ok && setMgrPass({ ...mgrPass, [m.id]: '' }))}>RESET PASSWORD</button>
+                    </div>
+                    <div className={styles.row}>
+                      {m.locked ? (
+                        <button type="button" className={styles.btnGhost} disabled={busy}
+                                onClick={() => patchManager({ id: m.id, unlock: true })}>UNLOCK</button>
+                      ) : null}
+                      <button type="button" className={styles.btnGhost} disabled={busy}
+                              onClick={() => {
+                                if (m.active && !confirm('Deactivate ' + m.name + '? They can no longer log in to /manage.')) return
+                                patchManager({ id: m.id, active: !m.active })
+                              }}>
+                        {m.active ? 'DEACTIVATE' : 'REACTIVATE'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {managers.length === 0 ? <div className={styles.hint}>No managers yet.</div> : null}
+                <div className={styles.detailCard} style={{ marginTop: 14 }}>
+                  <p className={styles.itemStrong}>ADD A MANAGER</p>
+                  <div className={styles.row}>
+                    <div className={styles.field}>
+                      <label className={styles.label}>Name</label>
+                      <input className={styles.input} maxLength={40} value={newMgr.name} placeholder="e.g. Lisa Chen"
+                             onChange={(e) => setNewMgr({ ...newMgr, name: e.target.value })} />
+                    </div>
+                    <div className={styles.field}>
+                      <label className={styles.label}>Username (for logging in)</label>
+                      <input className={styles.input} maxLength={30} value={newMgr.username} placeholder="e.g. lisa" autoCapitalize="none"
+                             onChange={(e) => setNewMgr({ ...newMgr, username: e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, '') })} />
+                    </div>
+                  </div>
+                  <label className={styles.label}>Password (8+ characters — tell them privately)</label>
+                  <input className={styles.input} type="password" autoComplete="new-password" value={newMgr.password}
+                         onChange={(e) => setNewMgr({ ...newMgr, password: e.target.value })} />
+                  <div style={{ marginTop: 14 }}>
+                    <button type="button" className={styles.btnBig} disabled={busy} onClick={addManager}>ADD MANAGER →</button>
+                  </div>
+                </div>
+                {mgrMsg ? <div className={styles.hint}>{mgrMsg}</div> : null}
+                <div className={styles.hint}>Managers log in at cosmosledgerlabs.com/manage. They can see all orders and figures, record and decide complaints, issue vouchers and mark orders paid. They cannot change pay rules, staff PINs or delete orders. Everything they change is in the activity log there.</div>
+              </section>
+
               {/* ---------- attendance ---------- */}
               <section className={styles.section}>
                 <div className={styles.stepTag}>ATTENDANCE ({month}) — every clock in / out; times are Toronto time</div>
@@ -544,6 +461,9 @@ export default function Admin() {
                         {s.name} — {s.clockIn.replace('T', ' ')} → {s.clockOut ? s.clockOut.replace('T', ' ') : '…'} — {s.hours === null ? '0 h (not counted)' : Number(s.hours).toFixed(2) + ' h'}
                         {flag ? ' — ⚠ ' + flag : ''}{s.edited ? ' — edited' : ''}
                       </p>
+                      {s.breaks && s.breaks.length ? (
+                        <p className={styles.item}>Breaks: {s.breaks.map((b) => b.start + '–' + (b.end || 'now') + ' (' + b.minutes + ' min)').join(', ')} — correct breaks on /manage → REST</p>
+                      ) : null}
                       <div className={styles.row}>
                         <input className={styles.input} type="datetime-local" value={e.clockIn}
                                onChange={(ev) => setShiftField(s, 'clockIn', ev.target.value)} aria-label="Clock in" />
@@ -629,6 +549,7 @@ export default function Admin() {
                   <div key={o.id} className={styles.detailCard} style={{ marginBottom: 10 }}>
                     <p className={styles.itemStrong}>{o.id} — {o.currency} {fmt(o.amount)} — {o.status}</p>
                     <p className={styles.item}>{o.created} · {o.method.toUpperCase()} · rep: {o.rep || '—'} · {o.service || 'custom'}</p>
+                    {o.voucher_code ? <p className={styles.item}>Voucher {o.voucher_code}: −{o.currency} {fmt(o.voucher_amount)} (amount above is after the voucher)</p> : null}
                     {o.status === 'PAID' && o.paid_via ? <p className={styles.item}>Paid: {o.paid_via}{o.paid ? ' · ' + o.paid : ''}</p> : null}
                     {o.status === 'PAID' && o.amount_received !== null && o.amount_received !== undefined &&
                       Math.round(Number(o.amount_received) * 100) !== Math.round(Number(o.amount) * 100) ? (

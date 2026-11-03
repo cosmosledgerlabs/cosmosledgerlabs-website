@@ -29,16 +29,19 @@ export default async function handler(req, res) {
       const head = ['Staff', 'Full-time', 'Hourly rate', 'Hours', 'Days worked', 'Hours pay',
         'Orders credited', 'Paid orders', 'Paid amount (CAD)', 'Commission',
         'Holiday days worked', 'Holiday bonus', 'Attendance award', 'Internet subsidy',
+        'Gross pay', 'Valid complaints', 'Complaint fines deducted',
         'TOTAL PAY (CAD)', 'Shifts missing clock-out']
       const lines = [head.map(csvCell).join(',')]
       p.staff.forEach((s) => {
         lines.push([s.name, s.fullTime ? 'yes' : 'no', s.hourlyRate, s.hours, s.daysWorked, s.hoursPay,
           s.ordersCredited, s.paidOrders, s.paidAmountCad, s.commission,
           s.holidayDaysWorked.join(' '), s.holidayBonus, s.attendanceAward, s.internetSubsidy,
+          s.grossPay, s.complaints.length, s.finesDeducted,
           s.totalPay, s.openShifts].map(csvCell).join(','))
       })
       lines.push(['TOTAL', '', '', p.totals.hours, '', p.totals.hoursPay, '', '', '', p.totals.commission,
-        '', p.totals.holidayBonus, p.totals.attendanceAward, p.totals.internetSubsidy, p.totals.totalPay, '']
+        '', p.totals.holidayBonus, p.totals.attendanceAward, p.totals.internetSubsidy,
+        p.totals.grossPay, '', p.totals.fines, p.totals.totalPay, '']
         .map(csvCell).join(','))
       lines.push('')
       lines.push(csvCell('USD to CAD rate used') + ',' + p.usdCad + (p.usdCadEntered ? '' : ' (default — not entered)'))

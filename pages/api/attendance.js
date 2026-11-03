@@ -3,18 +3,24 @@
    Staff (header x-staff-token, from /api/staff-login):
      GET                       — am I clocked in? + my shifts this month
      POST { action: 'in' }     — clock in  (time is taken from the server)
-     POST { action: 'out' }    — clock out
+     POST { action: 'out' }    — clock out (ends a break still running)
+     POST { action: 'break-start' } / { action: 'break-end' }
+                               — 2026-11-02: START BREAK / END BREAK (paid
+                                 breaks; times from the server)
    Admin (header x-passcode):
      GET  ?month=YYYY-MM       — every shift that month
      POST  { staffId, clockIn, clockOut, note }  — add a missed shift
      PATCH { id, clockIn, clockOut, note }       — correct a shift
      DELETE { id }                                — remove a shift
-   Admin times are entered in Toronto time as 'YYYY-MM-DDTHH:MM'. */
+   Admin times are entered in Toronto time as 'YYYY-MM-DDTHH:MM'.
+   Each shift now lists its breaks. Breaks are corrected by managers on
+   /manage → REST. */
 
 import { ensureTables, sql, isAdmin } from '../../lib/db'
 import { currentStaff } from '../../lib/staffAuth'
 import { SETTINGS } from '../../lib/settings'
 import { MONTH_RE } from '../../lib/payrollData'
+import { stretchStart } from '../../lib/rest'
 
 const LOCAL_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
 
@@ -55,7 +61,29 @@ async function shiftsFor(month, staffId) {
         FROM shifts s JOIN staff st ON st.id = s.staff_id
         WHERE to_char(s.clock_in AT TIME ZONE 'America/Toronto', 'YYYY-MM') = ${month}
         ORDER BY s.clock_in DESC`
-  return SHIFT_FIELDS(rows)
+  const list = SHIFT_FIELDS(rows)
+  // Breaks of these shifts (2026-11-02)
+  const { rows: br } = await sql`SELECT b.shift_id,
+      to_char(b.start_at AT TIME ZONE 'America/Toronto', 'HH24:MI') AS start_t,
+      to_char(b.end_at AT TIME ZONE 'America/Toronto', 'HH24:MI') AS end_t,
+      ROUND((EXTRACT(EPOCH FROM (COALESCE(b.end_at, NOW()) - b.start_at)) / 60.0)::numeric) AS minutes
+    FROM breaks b JOIN shifts s ON s.id = b.shift_id
+    WHERE to_char(s.clock_in AT TIME ZONE 'America/Toronto', 'YYYY-MM') = ${month}
+      AND (${staffId || 0} = 0 OR s.staff_id = ${staffId || 0})
+    ORDER BY b.start_at`
+  const byShift = {}
+  br.forEach((b) => { (byShift[b.shift_id] = byShift[b.shift_id] || []).push({ start: b.start_t, end: b.end_t, minutes: Number(b.minutes) }) })
+  list.forEach((x) => { x.breaks = byShift[x.id] || [] })
+  return list
+}
+
+function restRules() {
+  return {
+    breakMinutes: SETTINGS.breakMinutes,
+    eatingBreakAfterHours: SETTINGS.eatingBreakAfterHours,
+    breakReminderMinutes: SETTINGS.breakReminderMinutes,
+    breaksPaid: !!SETTINGS.breaksPaid,
+  }
 }
 
 function torontoMonthNow() {
@@ -120,9 +148,33 @@ export default async function handler(req, res) {
         FROM shifts WHERE staff_id = ${me.id} AND clock_out IS NULL
         ORDER BY clock_in DESC LIMIT 1`).rows[0] || null
 
+    /* Break status of the open shift, for the buttons and the reminder. */
+    const restInfo = async (open) => {
+      const nowMs = Date.now()
+      if (!open) return { nowMs, onBreak: null, stretchStartMs: null, breaks: [], rules: restRules() }
+      const { rows: sh } = await sql`SELECT (EXTRACT(EPOCH FROM clock_in) * 1000)::bigint AS in_ms FROM shifts WHERE id = ${open.id}`
+      const { rows: br } = await sql`SELECT id,
+          (EXTRACT(EPOCH FROM start_at) * 1000)::bigint AS start_ms,
+          (EXTRACT(EPOCH FROM end_at) * 1000)::bigint AS end_ms,
+          to_char(start_at AT TIME ZONE 'America/Toronto', 'HH24:MI') AS start_t,
+          to_char(end_at AT TIME ZONE 'America/Toronto', 'HH24:MI') AS end_t
+        FROM breaks WHERE shift_id = ${open.id} ORDER BY start_at`
+      const breaks = br.map((b) => ({ id: b.id, shiftId: open.id, startMs: Number(b.start_ms),
+        endMs: b.end_ms === null ? null : Number(b.end_ms), start: b.start_t, end: b.end_t }))
+      const running = breaks.find((b) => b.endMs === null) || null
+      return {
+        nowMs,
+        onBreak: running ? { since: running.start, startMs: running.startMs } : null,
+        stretchStartMs: stretchStart({ id: open.id, inMs: Number(sh[0].in_ms) }, breaks, SETTINGS, nowMs),
+        breaks: breaks.map((b) => ({ start: b.start, end: b.end, minutes: Math.round(((b.endMs || nowMs) - b.startMs) / 60000) })),
+        rules: restRules(),
+      }
+    }
+
     if (req.method === 'GET') {
       const month = MONTH_RE.test(String(req.query.month || '')) ? String(req.query.month) : torontoMonthNow()
-      return res.status(200).json({ name: me.name, open: await openShift(), shifts: await shiftsFor(month, me.id) })
+      const open = await openShift()
+      return res.status(200).json({ name: me.name, open, rest: await restInfo(open), shifts: await shiftsFor(month, me.id) })
     }
 
     if (req.method === 'POST') {
@@ -142,8 +194,27 @@ export default async function handler(req, res) {
       }
       if (action === 'out') {
         if (!open) return res.status(409).json({ error: 'You are not clocked in.' })
+        await sql`UPDATE breaks SET end_at = NOW() WHERE staff_id = ${me.id} AND end_at IS NULL`
         await sql`UPDATE shifts SET clock_out = NOW() WHERE id = ${open.id} AND clock_out IS NULL`
         return res.status(200).json({ ok: true, open: null })
+      }
+      if (action === 'break-start') {
+        if (!open) return res.status(409).json({ error: 'Clock in first.' })
+        const running = await sql`SELECT 1 FROM breaks WHERE staff_id = ${me.id} AND end_at IS NULL`
+        if (running.rows.length) return res.status(409).json({ error: 'You are already on a break.' })
+        try {
+          await sql`INSERT INTO breaks (shift_id, staff_id, start_at) VALUES (${open.id}, ${me.id}, NOW())`
+        } catch (err) {
+          // Two taps at once: the database allows only one open break.
+          const again = await sql`SELECT 1 FROM breaks WHERE staff_id = ${me.id} AND end_at IS NULL`
+          if (!again.rows.length) throw err
+        }
+        return res.status(200).json({ ok: true, rest: await restInfo(open) })
+      }
+      if (action === 'break-end') {
+        const { rows } = await sql`UPDATE breaks SET end_at = NOW() WHERE staff_id = ${me.id} AND end_at IS NULL RETURNING id`
+        if (!rows.length) return res.status(409).json({ error: 'You are not on a break.' })
+        return res.status(200).json({ ok: true, rest: await restInfo(open) })
       }
       return res.status(400).json({ error: 'invalid action' })
     }

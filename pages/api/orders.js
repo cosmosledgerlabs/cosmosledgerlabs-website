@@ -10,9 +10,17 @@
    DELETE (admin)   — remove an order: { id }
    2026-11-01: the customer picks the staff member who helped them from a
    list (repId). The name stored is the one in the staff list, so commission
-   is always credited to exactly the right person.                          */
+   is always credited to exactly the right person.
+   2026-11-02: customer vouchers — POST may include voucherCode. The
+   voucher is checked and used in one step (it can never be used twice);
+   the order is saved with the amount AFTER the voucher, and the response
+   says the final amount: { ok, amount, voucher: { code, amount } }.
+   If the voucher cannot be used the order is not saved (409) so the
+   customer never sees a discount that was not given. Deleting an order
+   frees its voucher again.                                                 */
 
 import { ensureTables, sql, isAdmin } from '../../lib/db'
+import { normalizeCode } from '../../lib/vouchers'
 
 const ID_RE = /^CLL-\d{6}-[A-Z0-9]{2,6}$/
 const METHODS = ['wire', 'emt', 'usdt']
@@ -37,11 +45,32 @@ export default async function handler(req, res) {
         METHODS.includes(b.method) &&
         ['CAD', 'USD'].includes(b.currency)
       if (!ok) return res.status(400).json({ error: 'invalid order' })
-      await sql`INSERT INTO orders (id, service, amount, currency, method, rep, rep_id)
-                VALUES (${b.id}, ${String(b.service || '').slice(0, 80)}, ${amount},
-                        ${b.currency}, ${b.method}, ${rep}, ${repId})
-                ON CONFLICT (id) DO NOTHING`
-      return res.status(200).json({ ok: true })
+
+      let net = Math.round(amount * 100) / 100
+      let voucher = null
+      if (b.voucherCode) {
+        const code = normalizeCode(b.voucherCode)
+        if (!code) return res.status(409).json({ error: 'voucher', reason: 'invalid' })
+        const used = await sql`UPDATE vouchers SET used_order_id = ${b.id}, used_at = NOW()
+          WHERE code = ${code} AND cancelled = FALSE AND used_order_id IS NULL AND expires_at > NOW()
+            AND currency = ${b.currency} AND amount < ${net}
+          RETURNING amount`
+        if (!used.rows.length) return res.status(409).json({ error: 'voucher', reason: 'invalid' })
+        voucher = { code, amount: Number(used.rows[0].amount) }
+        net = Math.round((net - voucher.amount) * 100) / 100
+      }
+
+      const ins = await sql`INSERT INTO orders (id, service, amount, currency, method, rep, rep_id, voucher_code, voucher_amount)
+                VALUES (${b.id}, ${String(b.service || '').slice(0, 80)}, ${net},
+                        ${b.currency}, ${b.method}, ${rep}, ${repId},
+                        ${voucher ? voucher.code : ''}, ${voucher ? voucher.amount : null})
+                ON CONFLICT (id) DO NOTHING RETURNING id`
+      if (!ins.rows.length && voucher) {
+        // Order number already existed — give the voucher back.
+        await sql`UPDATE vouchers SET used_order_id = NULL, used_at = NULL WHERE code = ${voucher.code} AND used_order_id = ${b.id}`
+        return res.status(409).json({ error: 'duplicate order' })
+      }
+      return res.status(200).json({ ok: true, amount: net, voucher })
     }
 
     /* Public status check for one order — returns nothing else. */
@@ -57,6 +86,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
       const { rows } = await sql`SELECT id, service, amount, currency, method, rep, rep_id, status, paid_via, amount_received,
+                voucher_code, voucher_amount,
                 to_char(created_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS created,
                 to_char(paid_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS paid
                 FROM orders ORDER BY created_at DESC LIMIT 200`
@@ -87,6 +117,7 @@ export default async function handler(req, res) {
       const { id } = req.body || {}
       if (!ID_RE.test(String(id))) return res.status(400).json({ error: 'invalid' })
       await sql`DELETE FROM orders WHERE id = ${id}`
+      await sql`UPDATE vouchers SET used_order_id = NULL, used_at = NULL WHERE used_order_id = ${id}`
       return res.status(200).json({ ok: true })
     }
 
