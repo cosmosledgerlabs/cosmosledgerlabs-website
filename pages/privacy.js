@@ -77,8 +77,8 @@ const SECTIONS = [
     h: { en: 'LANGUAGE PREFERENCE', zh: '語言偏好設定' },
     body: [
       {
-        en: 'When you switch between English and Chinese, your choice is stored in a single browser localStorage entry (cll_lang) so the site remembers your language. This value stays in your browser and is never transmitted to us. You can remove it at any time by clearing your browser data for this site.',
-        zh: '當您在英文與中文之間切換時，您的選擇會儲存在瀏覽器的一筆 localStorage 記錄（cll_lang）中，以便網站記住您的語言。此數值僅保留在您的瀏覽器內，絕不會傳送給我們。您隨時可透過清除本網站的瀏覽器資料將其移除。',
+        en: 'When you choose a language for this site, your choice is stored in a single browser localStorage entry (cll_lang) so the site remembers your language. This value stays in your browser and is never transmitted to us. You can remove it at any time by clearing your browser data for this site.',
+        zh: '當您選擇本網站的語言時，您的選擇會儲存在瀏覽器的一筆 localStorage 記錄（cll_lang）中，以便網站記住您的語言。此數值僅保留在您的瀏覽器內，絕不會傳送給我們。您隨時可透過清除本網站的瀏覽器資料將其移除。',
       },
     ],
   },
@@ -176,7 +176,7 @@ export async function getStaticProps() {
 }
 
 export default function Privacy({ updated }) {
-  const { lang: siteLang, isZh } = useLang()
+  const { lang: siteLang, choice, isZh } = useLang()
   /* Legal page: kept in English for every language except Chinese
      (2026-10-28, Osler requirement). */
   const lang = isZh ? 'zh' : 'en'
@@ -206,7 +206,7 @@ export default function Privacy({ updated }) {
 
       <Nav />
 
-      <main className={styles.page} dir="ltr" lang={isZh ? 'zh-Hant' : 'en'}>
+      <main className={styles.page} dir="ltr" lang={isZh ? (choice === 'zhs' ? 'zh-Hans' : 'zh-Hant') : 'en'}>
         <div className={styles.main}>
 
           <h1 className={styles.title}>{isZh ? '隱私政策' : 'PRIVACY'}</h1>

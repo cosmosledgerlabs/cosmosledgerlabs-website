@@ -81,7 +81,7 @@ export async function getStaticProps() {
 }
 
 export default function Disclaimer({ updated }) {
-  const { lang: siteLang, isZh } = useLang()
+  const { lang: siteLang, choice, isZh } = useLang()
   /* Legal page: kept in English for every language except Chinese
      (2026-10-28, Osler requirement). */
   const lang = isZh ? 'zh' : 'en'
@@ -111,7 +111,7 @@ export default function Disclaimer({ updated }) {
 
       <Nav />
 
-      <main className={styles.page} dir="ltr" lang={isZh ? 'zh-Hant' : 'en'}>
+      <main className={styles.page} dir="ltr" lang={isZh ? (choice === 'zhs' ? 'zh-Hans' : 'zh-Hant') : 'en'}>
         <div className={styles.main}>
 
           <h1 className={styles.title}>{isZh ? '免責聲明' : 'DISCLAIMER'}</h1>

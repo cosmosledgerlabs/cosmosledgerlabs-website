@@ -22,14 +22,19 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       let zh = false
+      let zhs = false
       try {
         if (typeof window !== 'undefined') {
           const p = new URLSearchParams(window.location.search).get('lang')
           if (p === 'zh' || p === 'zh-TW' || p === 'zh-Hant') {
             zh = true
-          } else if (p !== 'en') {
+          } else if (p === 'zhs' || p === 'zh-CN' || p === 'zh-Hans') {
+            zhs = true
+          } else if (!p) {
             try {
-              if (window.localStorage.getItem('cll_lang') === 'zh') zh = true
+              const v = window.localStorage.getItem('cll_lang')
+              if (v === 'zh') zh = true
+              if (v === 'zhs') zhs = true
             } catch (e) {}
           }
         }
@@ -44,10 +49,10 @@ export default class ErrorBoundary extends Component {
         }}>
           <h1 style={{ color: '#00e8ff', letterSpacing: '.08em' }}>COSMOS LEDGER LABS</h1>
           <p style={{ opacity: .85 }}>
-            {zh ? '頁面載入時發生錯誤。' : 'Something went wrong loading this page.'}
+            {zhs ? '页面加载时发生错误。' : zh ? '頁面載入時發生錯誤。' : 'Something went wrong loading this page.'}
           </p>
           <a href="/" style={{ color: '#00e8ff', textDecoration: 'underline' }}>
-            {zh ? '重新載入' : 'Reload'}
+            {zhs ? '重新加载' : zh ? '重新載入' : 'Reload'}
           </a>
         </div>
       )

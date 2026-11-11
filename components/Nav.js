@@ -6,7 +6,7 @@ import styles from './Nav.module.css'
 
 export default function Nav() {
   const [open, setOpen] = useState(false)
-  const { lang, setLang, L } = useLang()
+  const { lang, choice, setLang, L } = useLang()
   const close = () => setOpen(false)
 
   return (
@@ -29,7 +29,7 @@ export default function Nav() {
           <Link href="/#problem" onClick={close}>{t('nav', 'problem', lang)}</Link>
           <Link href="/payment" onClick={close}>{t('nav', 'payment', lang)}</Link>
           <Link href="/#contact" onClick={close}>{t('nav', 'contact', lang)}</Link>
-          <LangToggle lang={lang} setLang={setLang} onChosen={close} />
+          <LangToggle lang={choice} setLang={setLang} onChosen={close} />
         </div>
       </nav>
     </>

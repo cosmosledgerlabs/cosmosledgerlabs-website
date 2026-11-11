@@ -249,14 +249,49 @@ function KeepEmail({ text, cls, phoneOnly }) {
   const before = text.slice(0, i)
   const w1 = before.lastIndexOf(' ')             // space before "from"
   const w2 = before.lastIndexOf(' ', w1 - 1)     // space before the word before "from"
+  /* 2026-11-10: Japanese and Thai have no spaces between words, so the
+     "last two words" would be most of the sentence, kept on one line and
+     running off the side of a phone screen. In that case the sentence wraps
+     normally and only the email stays in one piece. */
+  /* 2026-11-10: only the email itself (with a full stop / comma / dash right
+     after it) is kept in one piece. The rest of the sentence after the email
+     (e.g. "— in reply to your payment order…" in the fraud alert) wraps
+     normally — before, in the translated languages it was kept on one line
+     and ran off the side of phone screens. */
+  const after = text.slice(i + 1)
+  const MAIL = 'info@cosmosledgerlabs.com'
+  let mailPart = after
+  let rest = ''
+  if (after.indexOf(MAIL) === 0) {
+    let n = MAIL.length
+    if ('.,;:。'.indexOf(after.charAt(n)) !== -1 && after.charAt(n) !== '') n += 1
+    mailPart = after.slice(0, n)
+    rest = after.slice(n)
+    if (rest.startsWith(' — ') || rest.startsWith(' – ')) {
+      mailPart += '\u00a0' + rest.charAt(1)
+      rest = rest.slice(2)
+    }
+  }
+  /* Japanese and Thai have no spaces between words, so the "last two words"
+     would be most of the sentence, kept on one line and running off the side
+     of a phone screen. In that case the sentence wraps normally and only the
+     email stays in one piece. */
+  if (w1 === -1 || before.length - w2 > 40) {
+    return (
+      <>
+        {linkMail(before)}{' '}
+        <span className={cls}>{linkMail(mailPart)}</span>{rest ? linkMail(rest) : null}
+      </>
+    )
+  }
   return (
     <>
       {linkMail(before.slice(0, w2 + 1))}
       <span ref={prevRef}>{before.slice(w2 + 1, w1)}</span>{' '}
       <span ref={unitRef} className={phoneOnly ? undefined : styles.mailKeep}>
         {before.slice(w1 + 1)}{' '}
-        <span ref={mailRef} className={cls}>{linkMail(text.slice(i + 1))}</span>
-      </span>
+        <span ref={mailRef} className={cls}>{linkMail(mailPart)}</span>
+      </span>{rest ? linkMail(rest) : null}
     </>
   )
 }

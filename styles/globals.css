@@ -310,9 +310,18 @@ a.mail-link:hover {
    would pull words apart: it is switched off for those two languages.
    Arabic pages are laid out right to left (dir="rtl", set in lib/i18n.js). */
 html[lang="ar"] body *,
-html[lang="th"] body * {
+html[lang="th"] body *,
+html[lang="he"] body *,
+html[lang="dv"] body *,
+html[lang="ta"] body * {
   letter-spacing: 0 !important;
 }
-html[lang="ar"] body {
+html[lang="ar"] body,
+html[lang="dv"] body {
   line-height: 1.8;
+}
+/* 2026-11-10: Dhivehi (Thaana) and Tamil carry vowel marks above and below
+   the letters — a little more line height keeps them from touching. */
+html[lang="ta"] body {
+  line-height: 1.7;
 }

@@ -23,9 +23,16 @@ const CRISP_ID = process.env.NEXT_PUBLIC_CRISP_WEBSITE_ID
 const CRISP_REOPEN_KEY = 'cll_chat_reopen'
 
 // Site language → Crisp chatbox language (ISO 639-1; Chinese is zh-tw).
+// 2026-11-10: + Simplified Chinese and 23 more languages. A language Crisp
+// does not offer falls back to English inside the chat box only.
 const CRISP_LOCALE = {
-  en: 'en', zh: 'zh-tw', ar: 'ar', es: 'es', pt: 'pt', ja: 'ja',
+  en: 'en', zh: 'zh-tw', zhs: 'zh', ar: 'ar', es: 'es', pt: 'pt', ja: 'ja',
   ko: 'ko', ms: 'ms', fr: 'fr', de: 'de', th: 'th',
+  it: 'it', nl: 'nl', ca: 'ca', mt: 'mt', el: 'el', sv: 'sv', da: 'da',
+  nb: 'no', fi: 'fi', is: 'is', pl: 'pl', cs: 'cs', sk: 'sk', sl: 'sl',
+  hr: 'hr', hu: 'hu', ro: 'ro', bg: 'bg', et: 'et', lv: 'lv', lt: 'lt',
+  he: 'he', dv: 'dv', lb: 'lb', ga: 'ga', cy: 'cy', eu: 'eu', gl: 'gl',
+  tr: 'tr', ta: 'ta',
 }
 
 function loadCrisp() {
@@ -40,8 +47,11 @@ function loadCrisp() {
     const norm = (v) => {
       if (!v) return null
       const c = String(v).toLowerCase()
-      if (c === 'zh' || c === 'zh-tw' || c === 'zh-hant') return 'zh'
-      const base = c.split('-')[0]
+      if (c === 'zh' || c === 'zh-tw' || c === 'zh-hant' || c === 'zh-hk' || c === 'zh-mo') return 'zh'
+      if (c === 'zhs' || c === 'zh-cn' || c === 'zh-hans' || c === 'zh-sg' || c === 'zh-my') return 'zhs'
+      let base = c.split('-')[0]
+      if (base === 'no' || base === 'nn') base = 'nb'
+      if (base === 'iw') base = 'he'
       return base !== 'zh' && CRISP_LOCALE[base] ? base : null
     }
     let lang = norm(new URLSearchParams(window.location.search).get('lang'))
