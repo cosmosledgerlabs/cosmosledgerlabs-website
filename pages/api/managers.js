@@ -15,7 +15,7 @@ const cleanName = (v) => String(v || '').replace(/\s+/g, ' ').trim().slice(0, 40
 
 export default async function handler(req, res) {
   try {
-    if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })
+    if (!(await isAdmin(req))) return res.status(401).json({ error: 'unauthorized' })
     await ensureTables()
 
     if (req.method === 'GET') {

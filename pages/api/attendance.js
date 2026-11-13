@@ -21,6 +21,9 @@ import { currentStaff } from '../../lib/staffAuth'
 import { SETTINGS } from '../../lib/settings'
 import { MONTH_RE } from '../../lib/payrollData'
 import { stretchStart } from '../../lib/rest'
+import { logAction } from '../../lib/managerAuth'
+
+const OWNER = { role: 'owner', name: 'Owner' }
 
 const LOCAL_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
 
@@ -97,7 +100,7 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'no-store')
 
     /* ---------- admin ---------- */
-    if (isAdmin(req)) {
+    if (await isAdmin(req)) {
       if (req.method === 'GET') {
         const month = String(req.query.month || '')
         if (!MONTH_RE.test(month)) return res.status(400).json({ error: 'invalid month' })
@@ -119,6 +122,9 @@ export default async function handler(req, res) {
                             (${String(b.clockIn)}::timestamp AT TIME ZONE 'America/Toronto'),
                             (${out}::timestamp AT TIME ZONE 'America/Toronto'),
                             TRUE, ${note})`
+          const st = await sql`SELECT name FROM staff WHERE id = ${sid}`
+          await logAction(OWNER, 'shift added', (st.rows.length ? st.rows[0].name : '#' + sid) + ' ' +
+            String(b.clockIn).replace('T', ' ') + ' → ' + (out ? out.replace('T', ' ') : 'open') + (note ? ' — ' + note : ''))
         } else {
           const id = Number(b.id)
           if (!Number.isInteger(id)) return res.status(400).json({ error: 'invalid' })
@@ -127,13 +133,18 @@ export default async function handler(req, res) {
                       clock_out = (${out}::timestamp AT TIME ZONE 'America/Toronto'),
                       edited = TRUE, note = ${note}
                     WHERE id = ${id}`
+          const st = await sql`SELECT st.name FROM shifts s JOIN staff st ON st.id = s.staff_id WHERE s.id = ${id}`
+          await logAction(OWNER, 'shift corrected', (st.rows.length ? st.rows[0].name : 'shift #' + id) + ' ' +
+            String(b.clockIn).replace('T', ' ') + ' → ' + (out ? out.replace('T', ' ') : 'open') + (note ? ' — ' + note : ''))
         }
         return res.status(200).json({ ok: true })
       }
       if (req.method === 'DELETE') {
         const id = Number(b.id)
         if (!Number.isInteger(id)) return res.status(400).json({ error: 'invalid' })
-        await sql`DELETE FROM shifts WHERE id = ${id}`
+        const { rows: gone } = await sql`DELETE FROM shifts s USING staff st WHERE s.id = ${id} AND st.id = s.staff_id
+          RETURNING st.name, to_char(s.clock_in AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS since`
+        if (gone.length) await logAction(OWNER, 'shift deleted', gone[0].name + ' ' + gone[0].since)
         return res.status(200).json({ ok: true })
       }
       return res.status(405).json({ error: 'method not allowed' })

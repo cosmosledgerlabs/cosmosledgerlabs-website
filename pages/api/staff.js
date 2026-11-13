@@ -9,6 +9,9 @@
 
 import { ensureTables, sql, isAdmin } from '../../lib/db'
 import { hashPin, validPin } from '../../lib/staffAuth'
+import { logAction } from '../../lib/managerAuth'
+
+const OWNER = { role: 'owner', name: 'Owner' }
 
 const NAME_RE = /^[\p{L}\p{M}][\p{L}\p{M} .'-]{0,38}[\p{L}\p{M}.]?$/u
 
@@ -26,7 +29,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ staff: rows })
     }
 
-    if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })
+    if (!(await isAdmin(req))) return res.status(401).json({ error: 'unauthorized' })
 
     if (req.method === 'GET') {
       const { rows } = await sql`SELECT id, name, hourly_rate, full_time, active,
@@ -47,6 +50,7 @@ export default async function handler(req, res) {
       if (dup.rows.length) return res.status(400).json({ error: 'That name is already used — add a surname initial.' })
       await sql`INSERT INTO staff (name, pin_hash, hourly_rate, full_time)
                 VALUES (${name}, ${hashPin(b.pin)}, ${rate}, ${b.fullTime === true})`
+      await logAction(OWNER, 'staff added', name + ' — ' + rate + '/h' + (b.fullTime === true ? ' — full-time' : ''))
       return res.status(200).json({ ok: true })
     }
 
@@ -54,6 +58,10 @@ export default async function handler(req, res) {
       const b = req.body || {}
       const id = Number(b.id)
       if (!Number.isInteger(id)) return res.status(400).json({ error: 'invalid' })
+      const cur = await sql`SELECT name FROM staff WHERE id = ${id}`
+      if (!cur.rows.length) return res.status(404).json({ error: 'not found' })
+      const who = cur.rows[0].name
+      const changes = []
       if (b.name !== undefined) {
         const name = cleanName(b.name)
         if (!NAME_RE.test(name)) return res.status(400).json({ error: 'Enter a name (letters only, up to 40).' })
@@ -61,19 +69,32 @@ export default async function handler(req, res) {
         if (dup.rows.length) return res.status(400).json({ error: 'That name is already used.' })
         await sql`UPDATE staff SET name = ${name} WHERE id = ${id}`
         await sql`UPDATE orders SET rep = ${name} WHERE rep_id = ${id}`
+        changes.push('renamed to ' + name)
       }
       if (b.pin !== undefined) {
         if (!validPin(b.pin)) return res.status(400).json({ error: 'PIN must be 4 to 8 digits.' })
         await sql`UPDATE staff SET pin_hash = ${hashPin(b.pin)}, failed_logins = 0, locked_until = NULL WHERE id = ${id}`
+        changes.push('PIN reset')
       }
       if (b.hourlyRate !== undefined) {
         const rate = Number(b.hourlyRate)
         if (!Number.isFinite(rate) || rate < 0 || rate > 1000) return res.status(400).json({ error: 'Enter an hourly rate.' })
         await sql`UPDATE staff SET hourly_rate = ${rate} WHERE id = ${id}`
+        changes.push('hourly rate ' + rate)
       }
-      if (b.fullTime !== undefined) await sql`UPDATE staff SET full_time = ${b.fullTime === true} WHERE id = ${id}`
-      if (b.active !== undefined) await sql`UPDATE staff SET active = ${b.active === true} WHERE id = ${id}`
-      if (b.unlock === true) await sql`UPDATE staff SET failed_logins = 0, locked_until = NULL WHERE id = ${id}`
+      if (b.fullTime !== undefined) {
+        await sql`UPDATE staff SET full_time = ${b.fullTime === true} WHERE id = ${id}`
+        changes.push(b.fullTime === true ? 'full-time' : 'part-time')
+      }
+      if (b.active !== undefined) {
+        await sql`UPDATE staff SET active = ${b.active === true} WHERE id = ${id}`
+        changes.push(b.active === true ? 'reactivated' : 'deactivated')
+      }
+      if (b.unlock === true) {
+        await sql`UPDATE staff SET failed_logins = 0, locked_until = NULL WHERE id = ${id}`
+        changes.push('unlocked')
+      }
+      if (changes.length) await logAction(OWNER, 'staff changed', who + ' — ' + changes.join(', '))
       return res.status(200).json({ ok: true })
     }
 

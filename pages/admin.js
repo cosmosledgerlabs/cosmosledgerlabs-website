@@ -61,6 +61,26 @@ export default function Admin() {
 
   const H = { 'Content-Type': 'application/json', 'x-passcode': code }
 
+  /* 2026-11-13: check the passcode once first (one typo = one wrong try;
+     5 wrong tries lock this connection for 15 minutes), then load. */
+  const enter = async () => {
+    setMsg(''); setBusy(true)
+    try {
+      const r = await fetch('/api/admin-check', { method: 'POST', headers: H })
+      if (!r.ok) {
+        const j = await r.json().catch(() => ({}))
+        setMsg(j.error || 'Wrong passcode.')
+        return
+      }
+    } catch (e) {
+      setMsg('Network error — try again.')
+      return
+    } finally {
+      setBusy(false)
+    }
+    await loadAll()
+  }
+
   const loadAll = async () => {
     setMsg(''); setBusy(true)
     try {
@@ -74,7 +94,7 @@ export default function Admin() {
         fetch('/api/managers', { headers: H }),
       ])
       const all = [ro, rs, rh, rst, rsh, rfx, rmg]
-      if (all.some((r) => r.status === 401)) { setUnlocked(false); setMsg('Wrong passcode.'); return }
+      if (all.some((r) => r.status === 401)) { setUnlocked(false); setMsg('Passcode no longer accepted — enter it again.'); return }
       if (all.some((r) => !r.ok)) { setMsg('Load failed — try again.'); return }
       setOrders((await ro.json()).orders || [])
       setSettle(await rs.json())
@@ -227,7 +247,7 @@ export default function Admin() {
               <input className={styles.input} type="password" value={code}
                      onChange={(e) => setCode(e.target.value)} placeholder="passcode" />
               <div style={{ marginTop: 14 }}>
-                <button type="button" className={styles.btnBig} disabled={busy} onClick={loadAll}>
+                <button type="button" className={styles.btnBig} disabled={busy} onClick={enter}>
                   {busy ? 'LOADING…' : 'ENTER →'}
                 </button>
               </div>

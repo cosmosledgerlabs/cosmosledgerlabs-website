@@ -1,0 +1,57 @@
+/* components/ReferralBanner.module.css (added 2026-11-13)
+   Height must match PROMO_HEIGHT in ReferralBanner.js (34px). */
+
+.bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 34px;
+  z-index: 95;               /* above the nav (90), below the light bar (99) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4%;
+  background: linear-gradient(90deg, #00303d, #005466 50%, #00303d);
+  border-bottom: 1px solid rgba(0,232,255,.45);
+  overflow: hidden;
+}
+
+.spacer {
+  height: 34px;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap;
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .12em;
+}
+
+.main {
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  text-shadow: 0 0 10px rgba(0,232,255,.6);
+}
+
+.more {
+  flex-shrink: 0;
+  color: var(--cyan);
+  border-bottom: 1px solid rgba(0,232,255,.5);
+}
+
+.link:hover .more {
+  color: #ffffff;
+  border-bottom-color: #ffffff;
+}
+
+@media (max-width: 480px) {
+  .link { font-size: 11px; letter-spacing: .06em; gap: 8px; }
+}

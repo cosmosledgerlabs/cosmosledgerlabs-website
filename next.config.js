@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 // Content-Security-Policy tuned for this static marketing site:
-// - scripts: same-origin only (three.js and @solana/web3.js are bundled, not from a CDN) → no 'unsafe-inline'
+// - scripts: same-origin only (@solana/web3.js is bundled, not from a CDN) → no 'unsafe-inline'
 // - styles: 'unsafe-inline' required because the UI uses inline style={{…}} attributes;
-//   Google Fonts stylesheet is allowed explicitly
-// - fonts: Google Fonts file host
+//   (2026-11-13: Google Fonts removed — every font is self-hosted in public/fonts)
+// - fonts: same-origin (plus Crisp's own chat font)
 // - connect: same-origin plus the Solana devnet RPC nodes (HTTPS + websocket) used by /flow:
 //   the public node and Helius (set via NEXT_PUBLIC_SOLANA_RPC)
 // - frame-ancestors 'none' mirrors X-Frame-Options: DENY (clickjacking)
@@ -17,8 +17,8 @@ const ContentSecurityPolicy = [
   "frame-ancestors 'none'",
   "object-src 'none'",
   "img-src 'self' data: https://*.crisp.chat",
-  "font-src 'self' https://fonts.gstatic.com https://*.crisp.chat",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.crisp.chat",
+  "font-src 'self' https://*.crisp.chat",
+  "style-src 'self' 'unsafe-inline' https://*.crisp.chat",
   "script-src 'self' https://*.crisp.chat",
   "frame-src https://*.crisp.chat",
   "media-src 'self' https://*.crisp.chat",

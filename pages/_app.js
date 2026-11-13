@@ -4,6 +4,17 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { onUserLangChange } from '../lib/i18n'
+import ReferralBanner, { PROMO_HEIGHT } from '../components/ReferralBanner'
+
+// Referral bar pinned to the top of public pages (2026-11-13).
+// Set PROMO_ON to false to remove it everywhere. Internal pages, the
+// full-screen demo and the restricted page never show it.
+const PROMO_ON = true
+const PROMO_HIDDEN = ['/admin', '/manage', '/team', '/demo', '/restricted']
+
+// Internal pages: no live chat there (2026-11-13). The chat is hidden on
+// these pages and loaded / shown again on the public ones.
+const NO_CHAT = ['/admin', '/manage', '/team']
 
 // Crisp live chat.
 //
@@ -128,6 +139,19 @@ function wechatFullPageLinks() {
 
 export default function App({ Component, pageProps }) {
   const router = useRouter()
+  const showPromo = PROMO_ON && !PROMO_HIDDEN.includes(router.pathname)
+
+  // Jumping to #contact etc.: leave room for the referral bar as well as
+  // the nav (the nav's own room is 64px, or 96px on phones — globals.css).
+  useEffect(() => {
+    const html = document.documentElement
+    if (!showPromo) { html.style.scrollPaddingTop = ''; return undefined }
+    const mq = window.matchMedia('(max-width: 767px)')
+    const apply = () => { html.style.scrollPaddingTop = ((mq.matches ? 96 : 64) + PROMO_HEIGHT) + 'px' }
+    apply()
+    window.addEventListener('resize', apply)
+    return () => { window.removeEventListener('resize', apply); html.style.scrollPaddingTop = '' }
+  }, [showPromo])
 
   // When the visitor picks another language in the menu, reload the page
   // once so the chat comes back fully in that language (2026-10-29).
@@ -156,9 +180,18 @@ export default function App({ Component, pageProps }) {
 
   useEffect(() => {
     lockWeChatFontSize()
-    loadCrisp()
     return wechatFullPageLinks()
   }, [])
+
+  const chatAllowed = !NO_CHAT.includes(router.pathname)
+  useEffect(() => {
+    if (chatAllowed) {
+      loadCrisp()
+      try { window.$crisp && window.$crisp.push(['do', 'chat:show']) } catch (e) {}
+    } else {
+      try { window.$crisp && window.$crisp.push(['do', 'chat:hide']) } catch (e) {}
+    }
+  }, [chatAllowed])
 
   useEffect(() => {
     let observer
@@ -207,8 +240,10 @@ export default function App({ Component, pageProps }) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
-      <Component {...pageProps} />
-
+      <div style={{ '--promo-h': showPromo ? PROMO_HEIGHT + 'px' : '0px' }}>
+        {showPromo && <ReferralBanner />}
+        <Component {...pageProps} />
+      </div>
     </ErrorBoundary>
   )
 }

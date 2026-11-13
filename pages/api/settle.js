@@ -18,7 +18,7 @@ function csvCell(v) {
 
 export default async function handler(req, res) {
   try {
-    if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })
+    if (!(await isAdmin(req))) return res.status(401).json({ error: 'unauthorized' })
     await ensureTables()
     const month = String(req.query.month || '')
     if (!MONTH_RE.test(month)) return res.status(400).json({ error: 'invalid month' })

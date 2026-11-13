@@ -34,16 +34,9 @@ const PLANS = [
   { id: 'deposit', pct: 50, name: { en: '50% deposit', zh: '50% 訂金' } },
 ]
 
-const WIRE = [
-  { k: { en: 'Beneficiary', zh: '收款人' }, v: 'COSMOS LEDGER LABS INC.', copy: true },
-  { k: { en: 'Beneficiary address', zh: '收款人地址' }, v: 'Suite 1400, 18 King St E, Toronto, ON M5C 1C4, Canada', copy: true },
-  { k: { en: 'Bank', zh: '銀行' }, v: 'Royal Bank of Canada' },
-  { k: { en: 'Bank address', zh: '銀行地址' }, v: '101 Dundas St W, Toronto, ON M5G 1C4, Canada', copy: true },
-  { k: { en: 'Institution number', zh: '銀行代號' }, v: '003', copy: true },
-  { k: { en: 'Transit number', zh: '分行代號' }, v: '02146', copy: true },
-  { k: { en: 'Account number', zh: '帳號' }, v: '100-104-9', copy: true },
-  { k: { en: 'SWIFT / BIC (international)', zh: 'SWIFT / BIC（國際匯款）' }, v: 'ROYCCAT2', copy: true },
-]
+/* 2026-11-13: the bank wire details are no longer in this file — the
+   server sends them with a saved wire order (lib/payDetails.js). If the
+   order could not be saved, the page asks the client to email us for them. */
 
 const T2 = {
   metaTitle: { en: 'Pay — COSMOS Ledger Labs', zh: '付款下單 — COSMOS Ledger Labs' },
@@ -105,7 +98,12 @@ const T2 = {
   vNotNow: { en: 'The voucher does not apply to this amount or currency.', zh: '優惠券不適用於此金額或幣別。' },
   vFail: { en: 'Your voucher could not be used. Please check the code and try again.', zh: '您的優惠券無法使用，請檢查代碼後重試。' },
   vCheckFail: { en: 'Could not check the voucher — check your connection and try again.', zh: '無法核對優惠券——請檢查網路連線後重試。' },
+  wireAsk: {
+    en: 'Email us this order and we will reply with our bank wire details.',
+    zh: '請以電子郵件將此訂單寄給我們，我們會回覆銀行電匯資料。',
+  },
   genFail: { en: 'Could not create the order — check your connection and try again.', zh: '無法產生訂單——請檢查網路連線後重試。' },
+  regionBlocked: { en: 'Payments and orders are not available in your country or region.', zh: '您所在的國家或地區無法使用付款及下單服務。' },
   orderVoucher: { en: 'Voucher', zh: '優惠券' },
   wireHead: { en: 'PAY BY BANK WIRE', zh: '以銀行電匯付款' },
   wireNote: {
@@ -369,22 +367,23 @@ export default function Pay() {
 
   const canGenerate = payNow > 0 && !!method && staffLoaded && csOk && !genBusy
 
+  /* 2026-11-13: every order is saved before its details are shown, and the
+     answer is checked:
+       • order number already used (409 duplicate) → a new number is made and
+         saving is tried again (up to 3 times);
+       • voucher could not be used (409) → the voucher message is shown;
+       • region not served (451) → a message, no payment details;
+       • no connection / server error → WITHOUT a voucher the client still
+         gets their payment details (never blocked from paying); WITH a
+         voucher an error is shown, because the discount must not be shown
+         unless it was really given. */
   const generate = async () => {
     if (!canGenerate) return
     setCopiedKey(''); setGenMsg('')
-    const id = makeOrderId()
     const chosen = staffList.find((s) => String(s.id) === repId)
     const csName = chosen ? chosen.name : ''
     const gross = payable(amount, plan.pct)
-    const body = JSON.stringify({
-      id,
-      service: service.name.en,
-      amount: gross,
-      currency,
-      method,
-      repId: chosen ? chosen.id : null,
-      voucherCode: voucherOk ? voucher.code : undefined,
-    })
+    let id = makeOrderId()
     /* e-Transfer: copy the order number right away, ready to paste into the
        transfer message (the GENERATE click allows clipboard access). */
     if (method === 'emt') {
@@ -393,29 +392,49 @@ export default function Pay() {
 
     let finalAmount = gross
     let usedVoucher = null
-    if (voucherOk) {
-      /* With a voucher the order must be saved first: the discount is only
-         shown once the voucher has really been used for this order. */
-      setGenBusy(true)
-      try {
-        const r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
-        const j = await r.json().catch(() => ({}))
-        if (!r.ok) {
-          if (r.status === 409) { setVoucher(null); setVoucherMsg(L(T2.vFail)) } else { setGenMsg(L(T2.genFail)) }
-          return
+    let wire = null
+    setGenBusy(true)
+    try {
+      let saved = false
+      for (let attempt = 0; attempt < 3 && !saved; attempt++) {
+        if (attempt > 0) {
+          id = makeOrderId()
+          if (method === 'emt') copyText(id).then((ok) => setCopiedKey(ok ? 'autoEmt' : ''))
         }
-        finalAmount = Number(j.amount)
-        usedVoucher = j.voucher || null
-      } catch (e) {
-        setGenMsg(L(T2.genFail))
-        return
-      } finally { setGenBusy(false) }
-    } else {
-      /* Auto-record the order in the back office. Never blocks the client:
-         if this fails, they still get their payment details. */
-      try {
-        fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }).catch(() => {})
-      } catch (e) { /* ignore */ }
+        const body = JSON.stringify({
+          id,
+          service: service.name.en,
+          amount: gross,
+          currency,
+          method,
+          repId: chosen ? chosen.id : null,
+          voucherCode: voucherOk ? voucher.code : undefined,
+        })
+        let r
+        let j = {}
+        try {
+          r = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body })
+          j = await r.json().catch(() => ({}))
+        } catch (e) {
+          r = null
+        }
+        if (r && r.ok) {
+          saved = true
+          finalAmount = Number(j.amount) > 0 ? Number(j.amount) : gross
+          usedVoucher = j.voucher || null
+          wire = Array.isArray(j.wire) ? j.wire : null
+          break
+        }
+        if (r && r.status === 409 && j.error === 'duplicate order') continue
+        if (r && r.status === 409) { setVoucher(null); setVoucherMsg(L(T2.vFail)); return }
+        if (r && r.status === 451) { setGenMsg(L(T2.regionBlocked)); return }
+        // No connection or a server error.
+        if (voucherOk) { setGenMsg(L(T2.genFail)); return }
+        break
+      }
+      if (!saved && voucherOk) { setGenMsg(L(T2.genFail)); return }
+    } finally {
+      setGenBusy(false)
     }
 
     setOrder({
@@ -432,6 +451,7 @@ export default function Pay() {
       rep: csName,
       voucherCode: usedVoucher ? usedVoucher.code : '',
       voucherAmount: usedVoucher ? usedVoucher.amount : 0,
+      wire,
     })
     if (usedVoucher) removeVoucher()
     setPaid(false)
@@ -758,9 +778,9 @@ export default function Pay() {
               {order.method === 'wire' ? (
                 <section className={styles.section}>
                   <h2 className={styles.h2}>{L(T2.wireHead)}</h2>
-                  <p className={styles.body}>{L(T2.wireNote)}</p>
+                  <p className={styles.body}>{L(order.wire ? T2.wireNote : T2.wireAsk)}</p>
                   <div className={styles.detailCard}>
-                    {WIRE.map((r) => (
+                    {(order.wire || []).map((r) => (
                       <div key={r.k.en} className={styles.kvRow}>
                         <span className={styles.kvKey}>{L(r.k)}</span>
                         <span className={styles.kvVal}>

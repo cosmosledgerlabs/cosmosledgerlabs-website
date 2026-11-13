@@ -4,9 +4,8 @@ export default function Document() {
   return (
     <Html lang="en-CA">
       <Head>
-        {/* Preconnect to Google Fonts hosts to reduce font-load latency / layout shift */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* 2026-11-13: Google Fonts preconnect removed — all fonts are served
+            from this site (public/fonts), so no visitor data goes to Google. */}
         {/* Add-to-home-screen (PWA) */}
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="apple-mobile-web-app-title" content="COSMOS" />

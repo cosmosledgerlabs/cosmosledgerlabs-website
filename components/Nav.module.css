@@ -1,6 +1,8 @@
 .nav {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  /* 2026-11-13: --promo-h = height of the referral bar above the nav
+     (set in pages/_app.js; 0 on pages without the bar) */
+  top: var(--promo-h, 0px); left: 0; right: 0;
   z-index: 90;
   display: flex;
   align-items: center;
@@ -106,7 +108,7 @@
   .links {
     display: none;
     position: fixed;
-    top: 56px; left: 0; right: 0;
+    top: calc(56px + var(--promo-h, 0px)); left: 0; right: 0;
     flex-direction: column;
     flex-wrap: nowrap;   /* one column; scrolls instead of wrapping (2026-10-30) */
     gap: 0;
@@ -116,8 +118,8 @@
     padding: 6px 5% 14px;
     /* 2026-10-30: the menu (with the language buttons) scrolls on short
        screens instead of running off the bottom. */
-    max-height: calc(100vh - 56px);
-    max-height: calc(100dvh - 56px);
+    max-height: calc(100vh - 56px - var(--promo-h, 0px));
+    max-height: calc(100dvh - 56px - var(--promo-h, 0px));
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;

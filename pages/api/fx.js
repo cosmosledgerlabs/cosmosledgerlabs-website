@@ -5,10 +5,11 @@
 
 import { ensureTables, sql, isAdmin } from '../../lib/db'
 import { MONTH_RE } from '../../lib/payrollData'
+import { logAction } from '../../lib/managerAuth'
 
 export default async function handler(req, res) {
   try {
-    if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })
+    if (!(await isAdmin(req))) return res.status(401).json({ error: 'unauthorized' })
     await ensureTables()
 
     if (req.method === 'GET') {
@@ -26,6 +27,7 @@ export default async function handler(req, res) {
       if (!Number.isFinite(rate) || rate < 0.5 || rate > 3) return res.status(400).json({ error: 'Enter a rate such as 1.37.' })
       await sql`INSERT INTO fx_rates (month, usd_cad) VALUES (${month}, ${rate})
                 ON CONFLICT (month) DO UPDATE SET usd_cad = ${rate}, updated_at = NOW()`
+      await logAction({ role: 'owner' }, 'USD→CAD rate saved', month + ' = ' + rate)
       return res.status(200).json({ ok: true })
     }
 

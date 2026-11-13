@@ -19,7 +19,18 @@
 
    Who can run it:
      • the ADMIN passcode (the "CHECK E-TRANSFERS NOW" button in /admin);
-     • a scheduler calling  /api/emt-sync?key=<CRON_SECRET>  (every 10 min).
+     • a scheduler sending the header  Authorization: Bearer <CRON_SECRET>
+       (Vercel Cron sends exactly this), or — older setups — calling
+       /api/emt-sync?key=<CRON_SECRET>. The header is safer: a key in the
+       address ends up in server logs.
+
+   2026-11-13 — DKIM check hardened: only the TOP Authentication-Results
+   header is trusted. That is the one added by our own mail server when the
+   email arrived; any Authentication-Results lines further down were written
+   by whoever sent the email and could be faked. If EMT_AUTHSERV_ID is set
+   (the name our mail server writes at the start of that header, e.g.
+   mta-01.privateemail.com — copy it from a real Interac email's headers),
+   only a header from that server is trusted.
 
    Vercel environment variables (Settings → Environment Variables):
      EMT_IMAP_USER   the inbox address, e.g. info@cosmosledgerlabs.com
@@ -27,6 +38,7 @@
      EMT_IMAP_HOST   optional, default mail.privateemail.com (Namecheap)
      EMT_IMAP_PORT   optional, default 993
      CRON_SECRET     a long random text used by the scheduler
+     EMT_AUTHSERV_ID optional, recommended (see 2026-11-13 above)
      EMT_REQUIRE_DKIM optional; set to "false" ONLY if the log shows every real
                      Interac email as "REVIEW: no DKIM pass" (mail server does
                      not report DKIM) — then matches still need interac.ca
@@ -34,7 +46,9 @@
 
 import { ImapFlow } from 'imapflow'
 import { simpleParser } from 'mailparser'
+import crypto from 'crypto'
 import { ensureTables, sql, isAdmin } from '../../lib/db'
+import { logAction } from '../../lib/managerAuth'
 
 export const config = { maxDuration: 30 }
 
@@ -42,10 +56,21 @@ const ORDER_RE = /CLL-\d{6}-[A-Z0-9]{2,6}/i
 const LOOKBACK_DAYS = 14
 const MAX_PER_RUN = 40
 
-function authorised(req) {
-  if (isAdmin(req)) return true
-  const key = String((req.query && req.query.key) || '')
-  return !!process.env.CRON_SECRET && key.length >= 16 && key === process.env.CRON_SECRET
+function sameText(a, b) {
+  const x = crypto.createHash('sha256').update(String(a)).digest()
+  const y = crypto.createHash('sha256').update(String(b)).digest()
+  return crypto.timingSafeEqual(x, y)
+}
+
+/* 'owner', 'scheduler' or null */
+async function authorised(req) {
+  if (await isAdmin(req)) return 'owner'
+  const secret = process.env.CRON_SECRET
+  if (!secret || secret.length < 16) return null
+  const auth = String(req.headers.authorization || '')
+  const bearer = auth.startsWith('Bearer ') ? auth.slice(7).trim() : ''
+  const key = bearer || String((req.query && req.query.key) || '')
+  return key && sameText(key, secret) ? 'scheduler' : null
 }
 
 function firstAmount(text) {
@@ -58,15 +83,32 @@ function firstAmount(text) {
   return Number.isFinite(n) ? n : null
 }
 
-function dkimPassedForInterac(parsed) {
-  const raw = parsed.headers.get('authentication-results')
-  const list = Array.isArray(raw) ? raw : raw ? [raw] : []
-  const all = list.map((v) => (typeof v === 'string' ? v : JSON.stringify(v))).join(' ').toLowerCase()
-  return /dkim=pass[^;]*header\.(d|i)=@?[a-z0-9.-]*interac\.ca/.test(all)
+/* Every Authentication-Results header of the raw email, top first.
+   Read from the raw source (not the parser) so the order is exact. */
+function authResults(source) {
+  const text = Buffer.isBuffer(source) ? source.toString('latin1') : String(source || '')
+  const end = text.search(/\r?\n\r?\n/)
+  const head = (end >= 0 ? text.slice(0, end) : text).replace(/\r?\n[ \t]+/g, ' ') // unfold
+  return head.split(/\r?\n/)
+    .filter((line) => /^authentication-results\s*:/i.test(line))
+    .map((line) => line.replace(/^authentication-results\s*:/i, '').trim())
+}
+
+/* DKIM passed for interac.ca, according to OUR mail server only. */
+function dkimPassedForInterac(source) {
+  const list = authResults(source)
+  const want = String(process.env.EMT_AUTHSERV_ID || '').trim().toLowerCase()
+  const ours = want
+    ? list.find((h) => h.split(';')[0].trim().toLowerCase().split(/\s+/)[0] === want)
+    : list[0]
+  if (!ours) return false
+  return ours.toLowerCase().split(';').some((part) =>
+    /^\s*dkim=pass\b/.test(part) && /header\.(d|i)=@?([a-z0-9-]+\.)*interac\.ca\b/.test(part))
 }
 
 export default async function handler(req, res) {
-  if (!authorised(req)) return res.status(401).json({ error: 'unauthorized' })
+  const who = await authorised(req)
+  if (!who) return res.status(401).json({ error: 'unauthorized' })
   const user = process.env.EMT_IMAP_USER
   const pass = process.env.EMT_IMAP_PASS
   if (!user || !pass) return res.status(500).json({ error: 'EMT_IMAP_USER / EMT_IMAP_PASS not set in Vercel' })
@@ -119,7 +161,7 @@ export default async function handler(req, res) {
           else if (o.currency !== 'CAD') result = 'REVIEW: order is not in CAD'
           else if (amount === null) result = 'REVIEW: amount not found in the email'
           else if (Math.abs(Number(o.amount) - amount) > 0.005) result = 'REVIEW: amount ' + amount.toFixed(2) + ' ≠ order ' + Number(o.amount).toFixed(2)
-          else if (requireDkim && !dkimPassedForInterac(parsed)) result = 'REVIEW: no DKIM pass for interac.ca'
+          else if (requireDkim && !dkimPassedForInterac(msg.source)) result = 'REVIEW: no DKIM pass for interac.ca'
           else {
             await sql`UPDATE orders SET status = 'PAID', paid_via = 'e-Transfer auto', paid_at = NOW(),
                       amount_received = ${amount}
@@ -139,6 +181,10 @@ export default async function handler(req, res) {
       lock.release()
     }
     await client.logout()
+    if (summary.paid.length) {
+      await logAction({ role: 'manager', name: who === 'owner' ? 'Owner (e-Transfer check)' : 'e-Transfer auto' },
+        'orders auto-marked PAID', summary.paid.join(' '))
+    }
 
     /* last 30 log rows for the /admin panel */
     const { rows: log } = await sql`SELECT order_id, amount, sender, result,

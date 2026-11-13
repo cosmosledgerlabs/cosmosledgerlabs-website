@@ -17,10 +17,17 @@
    says the final amount: { ok, amount, voucher: { code, amount } }.
    If the voucher cannot be used the order is not saved (409) so the
    customer never sees a discount that was not given. Deleting an order
-   frees its voucher again.                                                 */
+   frees its voucher again.
+   2026-11-13: an order number that already exists is refused (409
+   { error: 'duplicate order' }) with or without a voucher, so /pay makes a
+   new number and tries again — two customers never share a number.      */
 
 import { ensureTables, sql, isAdmin } from '../../lib/db'
 import { normalizeCode } from '../../lib/vouchers'
+import { logAction } from '../../lib/managerAuth'
+import { WIRE } from '../../lib/payDetails'
+
+const OWNER = { role: 'owner', name: 'Owner' }
 
 const ID_RE = /^CLL-\d{6}-[A-Z0-9]{2,6}$/
 const METHODS = ['wire', 'emt', 'usdt']
@@ -65,12 +72,13 @@ export default async function handler(req, res) {
                         ${b.currency}, ${b.method}, ${rep}, ${repId},
                         ${voucher ? voucher.code : ''}, ${voucher ? voucher.amount : null})
                 ON CONFLICT (id) DO NOTHING RETURNING id`
-      if (!ins.rows.length && voucher) {
-        // Order number already existed — give the voucher back.
-        await sql`UPDATE vouchers SET used_order_id = NULL, used_at = NULL WHERE code = ${voucher.code} AND used_order_id = ${b.id}`
+      if (!ins.rows.length) {
+        // Order number already existed — give the voucher back (if any).
+        if (voucher) await sql`UPDATE vouchers SET used_order_id = NULL, used_at = NULL WHERE code = ${voucher.code} AND used_order_id = ${b.id}`
         return res.status(409).json({ error: 'duplicate order' })
       }
-      return res.status(200).json({ ok: true, amount: net, voucher })
+      // 2026-11-13: bank wire details are sent only with a saved wire order.
+      return res.status(200).json({ ok: true, amount: net, voucher, wire: b.method === 'wire' ? WIRE : undefined })
     }
 
     /* Public status check for one order — returns nothing else. */
@@ -82,7 +90,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ status: rows.length ? rows[0].status : 'UNKNOWN' })
     }
 
-    if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })
+    if (!(await isAdmin(req))) return res.status(401).json({ error: 'unauthorized' })
 
     if (req.method === 'GET') {
       const { rows } = await sql`SELECT id, service, amount, currency, method, rep, rep_id, status, paid_via, amount_received,
@@ -107,8 +115,10 @@ export default async function handler(req, res) {
         }
         await sql`UPDATE orders SET status = 'PAID', paid_via = 'manual', paid_at = NOW(),
                   amount_received = COALESCE(${got}::numeric, amount) WHERE id = ${id}`
+        await logAction(OWNER, 'order marked PAID', id + (got !== null ? ' — received ' + got.toFixed(2) : ''))
       } else {
         await sql`UPDATE orders SET status = 'UNPAID', paid_via = '', paid_at = NULL, amount_received = NULL WHERE id = ${id}`
+        await logAction(OWNER, 'order set back to UNPAID', id)
       }
       return res.status(200).json({ ok: true })
     }
@@ -118,6 +128,7 @@ export default async function handler(req, res) {
       if (!ID_RE.test(String(id))) return res.status(400).json({ error: 'invalid' })
       await sql`DELETE FROM orders WHERE id = ${id}`
       await sql`UPDATE vouchers SET used_order_id = NULL, used_at = NULL WHERE used_order_id = ${id}`
+      await logAction(OWNER, 'order deleted', id)
       return res.status(200).json({ ok: true })
     }
 

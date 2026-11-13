@@ -8,6 +8,7 @@
    DELETE (admin) — remove an entry: { id }                    */
 
 import { ensureTables, sql, isAdmin } from '../../lib/db'
+import { logAction } from '../../lib/managerAuth'
 
 export default async function handler(req, res) {
   try {
@@ -17,7 +18,7 @@ export default async function handler(req, res) {
       return res.status(410).json({ error: 'Hours are recorded by clocking in and out on the Team page.' })
     }
 
-    if (!isAdmin(req)) return res.status(401).json({ error: 'unauthorized' })
+    if (!(await isAdmin(req))) return res.status(401).json({ error: 'unauthorized' })
 
     if (req.method === 'GET') {
       const month = String(req.query.month || '')
@@ -32,7 +33,8 @@ export default async function handler(req, res) {
     if (req.method === 'DELETE') {
       const id = Number((req.body || {}).id)
       if (!Number.isInteger(id)) return res.status(400).json({ error: 'invalid' })
-      await sql`DELETE FROM hours WHERE id = ${id}`
+      const { rows } = await sql`DELETE FROM hours WHERE id = ${id} RETURNING rep, to_char(work_date, 'YYYY-MM-DD') AS d, hours`
+      if (rows.length) await logAction({ role: 'owner' }, 'old hours entry deleted', rows[0].rep + ' ' + rows[0].d + ' ' + rows[0].hours + ' h')
       return res.status(200).json({ ok: true })
     }
 

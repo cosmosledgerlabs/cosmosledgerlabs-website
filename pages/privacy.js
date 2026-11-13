@@ -32,7 +32,7 @@ function withMail(text, inline) {
 /* Backup date only. The date shown on the page is filled in automatically
    from GitHub (see lib/lastUpdated.js); this one is used only if GitHub
    cannot be reached when the site is built. */
-const UPDATED = '2026-10-28'
+const UPDATED = '2026-11-13'
 
 const SECTIONS = [
   {
@@ -95,8 +95,21 @@ const SECTIONS = [
     h: { en: 'PAYMENT ORDERS', zh: '付款訂單' },
     body: [
       {
-        en: 'When you generate an order on /pay, the order details (such as order number, selected service, amount, currency, payment method and any customer-service name you enter) are sent to and stored in our order database, used only to match payments and handle the engagement. The database is provided by Neon through Vercel, on servers in the United States. We do not collect your bank account or wallet keys through this site.',
-        zh: '當您在 /pay 頁面產生訂單時，訂單資料（如訂單編號、所選服務、金額、幣別、付款方式及您選填的客服姓名）會傳送並儲存於我們的訂單資料庫，僅用於核對款項與處理委託事宜。該資料庫由 Neon 經 Vercel 提供，伺服器位於美國。我們不會透過本網站收集您的銀行帳戶或錢包金鑰。',
+        en: 'When you generate an order on /pay, the order details (order number, selected service, amount, currency, payment method, the customer-service person you choose and any voucher code you use) are sent to and stored in our order database, used only to match payments and handle the engagement. The database is provided by Neon through Vercel, on servers in the United States. We do not collect your bank account or wallet keys through this site.',
+        zh: '當您在 /pay 頁面產生訂單時，訂單資料（訂單編號、所選服務、金額、幣別、付款方式、您選擇的客服人員及您使用的任何優惠券代碼）會傳送並儲存於我們的訂單資料庫，僅用於核對款項與處理委託事宜。該資料庫由 Neon 經 Vercel 提供，伺服器位於美國。我們不會透過本網站收集您的銀行帳戶或錢包金鑰。',
+      },
+      {
+        en: 'If you pay by Interac e-Transfer, our system reads the Interac notification email we receive for your payment to match it to your order automatically. We keep the sender email address shown in that notification, the amount, the order number and the date, in the same database.',
+        zh: '若您以 Interac e-Transfer 付款，我們的系統會讀取就您的款項收到的 Interac 通知電郵，以自動將其與您的訂單核對。我們會在同一資料庫中保存該通知所示的寄件人電郵地址、金額、訂單編號及日期。',
+      },
+    ],
+  },
+  {
+    h: { en: 'REFERRAL PROGRAM', zh: '推薦計劃' },
+    body: [
+      {
+        en: 'If you take part in our referral program, we keep your name and contact details, the clients you introduce, and the commission paid to you. Before the first payment we also ask for the identity, payment and tax details needed to pay you and to meet our record-keeping and tax-reporting obligations. We use these details only to run the program.',
+        zh: '若您參加我們的推薦計劃，我們會保存您的姓名與聯絡方式、您介紹的客戶，以及支付予您的佣金。首次付款前，我們亦會索取支付佣金及履行紀錄保存與稅務申報義務所需的身分、付款及稅務資料。這些資料僅用於運作本計劃。',
       },
     ],
   },
