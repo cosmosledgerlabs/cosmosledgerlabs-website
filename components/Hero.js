@@ -58,6 +58,12 @@ export default function Hero() {
         <div className={styles.subline}>{L(T.subline)}</div>
         <div className={styles.gl}></div>
         <p className={styles.bodyTxt}>{L(T.body)}</p>
+        {/* 2026-11-14: the two buttons are back (their text and styles were
+            still here, but nothing displayed them). */}
+        <div className={styles.btns}>
+          <Link href="/services" className={styles.bp}>{L(T.btnServices)}</Link>
+          <Link href="/#contact" className={styles.bs}>{L(T.btnQuote)}</Link>
+        </div>
       </div>
     </section>
   )

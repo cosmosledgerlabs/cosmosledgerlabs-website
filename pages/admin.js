@@ -113,7 +113,9 @@ export default function Admin() {
       const fx = await rfx.json()
       setFxInput(fx.usdCad ? String(fx.usdCad) : '')
       setManagers((await rmg.json()).managers || [])
-      setRefData(await rrf.json())
+      // 2026-11-14: if the referrer list fails to load, show nothing for it
+      // instead of breaking the whole page.
+      setRefData(rrf.ok ? await rrf.json().catch(() => null) : null)
       setVersion((v) => v + 1)
       setUnlocked(true)
     } catch (e) {

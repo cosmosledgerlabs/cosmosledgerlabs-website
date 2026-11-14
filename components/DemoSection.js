@@ -6,7 +6,7 @@ import styles from './Sections.module.css'
    pointing to the real /flow devnet demo. */
 
 const T = {
-  tag: { en: '// SECTION 04 — ENGINEERING SHOWCASE', zh: '// 第 04 節 — 工程實例' },
+  tag: { en: '// SECTION 03 — ENGINEERING SHOWCASE', zh: '// 第 03 節 — 工程實例' },
   title: { en: 'SEE HOW WE ENGINEER', zh: '見證我們的工程方式' },
   body: {
     en: 'Our public demo runs a three-step token workflow on Solana devnet — approval, vesting setup, distribution — with automatic on-chain compensation when a step fails. Every transaction is verifiable on-chain. It is a working sample of the engineering standard we bring to client delivery.',

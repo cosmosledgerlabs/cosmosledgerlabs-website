@@ -4,7 +4,7 @@ import styles from './Footer.module.css'
 
 /* Footer: canonical boilerplate + required disclaimer */
 export default function Footer() {
-  const { lang, isZh } = useLang()
+  const { lang, isZh, L } = useLang()
   /* The legal lines stay in English in every language except Chinese; on
      right-to-left (Arabic) pages they are still laid out left to right. */
   const legalDir = isZh ? undefined : 'ltr'
@@ -32,6 +32,9 @@ export default function Footer() {
         <Link href="/privacy" className={styles.footLink}>{t('footer', 'linkPrivacy', lang)}</Link>
         <span className={styles.sep}>·</span>
         <Link href="/terms" className={styles.footLink}>{t('footer', 'linkTerms', lang)}</Link>
+        <span className={styles.sep}>·</span>
+        {/* 2026-11-14: link to the referral program rules */}
+        <Link href="/referral" className={styles.footLink}>{L({ en: 'Referral program', zh: '推薦計劃' })}</Link>
         <span className={styles.sep}>·</span>
         <a className={styles.footLink} href="mailto:info@cosmosledgerlabs.com">{t('footer', 'linkContact', lang)}</a>
       </nav>

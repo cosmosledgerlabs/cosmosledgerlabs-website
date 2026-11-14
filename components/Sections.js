@@ -16,7 +16,7 @@ export function Problem() {
   ]
   return (
     <section className={styles.section} id="problem">
-      <div className="sec-tag">{L({ en: '// SECTION 02 — THE DELIVERY GAP', zh: '// 第 02 節 — 交付缺口' })} <div className="sec-tag-line"/></div>
+      <div className="sec-tag">{L({ en: '// SECTION 01 — THE DELIVERY GAP', zh: '// 第 01 節 — 交付缺口' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'THE DELIVERY GAP', zh: '交付缺口' })}</h2>
       <p className={`${styles.secBody} ${styles.gapProse}`}>{L({
         en: "Digital asset teams are strong on protocol design and community — and stretched thin on delivery. Launches stall on the unglamorous work. Generic agencies don't understand on-chain mechanics; protocol engineers don't want to build front-ends. That gap is where launches slip.",
@@ -37,7 +37,7 @@ export function Solution() {
   const L = L2(lang)
   return (
     <section className={styles.section} id="solution">
-      <div className="sec-tag">{L({ en: '// SECTION 03 — SOLUTION', zh: '// 第 03 節 — 解決方案' })} <div className="sec-tag-line"/></div>
+      <div className="sec-tag">{L({ en: '// SECTION 02 — SOLUTION', zh: '// 第 02 節 — 解決方案' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'COSMOS CLOSES THE DELIVERY GAP', zh: 'COSMOS 補上交付缺口' })}</h2>
       <div className={styles.steelCard}>
         <p className={styles.ecoText}>{L({
@@ -62,7 +62,7 @@ export function HowWeWork() {
   ]
   return (
     <section className={styles.section} id="how-we-work">
-      <div className="sec-tag">{L({ en: '// SECTION 05 — HOW WE WORK', zh: '// 第 05 節 — 合作方式' })} <div className="sec-tag-line"/></div>
+      <div className="sec-tag">{L({ en: '// SECTION 04 — HOW WE WORK', zh: '// 第 04 節 — 合作方式' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'HOW WE WORK', zh: '我們如何合作' })}</h2>
       <div className={styles.wfGrid}>
         {steps.map((s, i) => (
@@ -93,7 +93,7 @@ export function Security() {
   ]
   return (
     <section className={styles.section} id="security">
-      <div className="sec-tag">{L({ en: '// SECTION 06 — SECURITY', zh: '// 第 06 節 — 資安' })} <div className="sec-tag-line"/></div>
+      <div className="sec-tag">{L({ en: '// SECTION 05 — SECURITY', zh: '// 第 05 節 — 資安' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'SECURITY AS A DELIVERY PRACTICE', zh: '資安是交付的日常實踐' })}</h2>
       <p className={styles.secLead}>{L({
         en: 'Security on every engagement is procedural, not promotional.',
@@ -125,7 +125,7 @@ export function Technology() {
   const L = L2(lang)
   return (
     <section className={styles.section} id="technology">
-      <div className="sec-tag">{L({ en: '// SECTION 07 — TECHNOLOGY', zh: '// 第 07 節 — 技術' })} <div className="sec-tag-line"/></div>
+      <div className="sec-tag">{L({ en: '// SECTION 06 — TECHNOLOGY', zh: '// 第 06 節 — 技術' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'TECHNOLOGY WE BUILD WITH', zh: '我們使用的技術' })}</h2>
       <p className={`${styles.ecoText} ${styles.techCenter}`}>{L({
         en: 'Solana and EVM-compatible networks · React / Next.js · SPL and ERC-20 token standards · established ecosystem tooling including Streamflow, Squads, Magna, and Helius. We build against the tools our clients already use.',
@@ -146,7 +146,7 @@ export function WhereWeAre() {
   ]
   return (
     <section className={styles.section} id="where-we-are">
-      <div className="sec-tag">{L({ en: '// SECTION 08 — WHERE WE ARE', zh: '// 第 08 節 — 現況' })} <div className="sec-tag-line"/></div>
+      <div className="sec-tag">{L({ en: '// SECTION 07 — WHERE WE ARE', zh: '// 第 07 節 — 現況' })} <div className="sec-tag-line"/></div>
       <h2 className={styles.secTitle}>{L({ en: 'WHERE WE ARE', zh: '我們的現況' })}</h2>
       <div className={styles.cardGrid}>
         {items.map((item, i) => (

@@ -82,7 +82,8 @@ export default function Home() {
         <hr className="divider"/>
         <div className="fade-up"><WhereWeAre /></div>
         <hr className="divider"/>
-        <div className="fade-up"><Contact num="09" /></div>
+        {/* 2026-11-14: sections numbered 01–08 (they started at 02) */}
+        <div className="fade-up"><Contact num="08" /></div>
       </main>
       <Footer />
     </>
