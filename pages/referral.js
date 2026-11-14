@@ -3,6 +3,7 @@ import Nav from '../components/Nav'
 import Footer from '../components/Footer'
 import { useLang, t, isRtl } from '../lib/i18n'
 import { lastUpdated } from '../lib/lastUpdated'
+import { REFERRAL_RATE, REFERRAL_WINDOW_MONTHS, REFERRAL_PAYOUT_DAYS, REFERRAL_PRIOR_CONTACT_MONTHS } from '../lib/referral'
 import styles from '../styles/Legal.module.css'
 
 /* pages/referral.js — Referral Program terms (added 2026-11-13).
@@ -10,16 +11,16 @@ import styles from '../styles/Legal.module.css'
    (components/ReferralBanner.js).
 
    Legal page: kept in English for every language except Chinese, like
-   /terms. The program settings below (rate, window, payout days) are the
-   only numbers to change if the program changes — they appear in the
-   text automatically.
+   /terms. The program settings (rate, window, payout days) live in
+   lib/referral.js — the same numbers the /admin commission report uses —
+   and appear in the text automatically.
 
    DRAFT — have counsel review before relying on it. */
 
-const RATE = 10            // % of eligible fees
-const WINDOW_MONTHS = 12   // agreements signed within this many months of the introduction
-const PAYOUT_DAYS = 30     // days after the client's payment has cleared
-const PRIOR_CONTACT_MONTHS = 6
+const RATE = Math.round(REFERRAL_RATE * 100)   // % of eligible fees
+const WINDOW_MONTHS = REFERRAL_WINDOW_MONTHS
+const PAYOUT_DAYS = REFERRAL_PAYOUT_DAYS
+const PRIOR_CONTACT_MONTHS = REFERRAL_PRIOR_CONTACT_MONTHS
 
 /* Backup date only — the date shown is filled in from GitHub at build time
    (see lib/lastUpdated.js). */
@@ -56,8 +57,16 @@ const SECTIONS = [
     h: { en: 'HOW TO REGISTER A REFERRAL', zh: '如何登記推薦' },
     body: [
       {
-        en: 'Before the client signs an agreement with us, email info@cosmosledgerlabs.com with your name and contact details and the client\'s name and contact details, copying the client. A referral counts once we confirm it in writing and the client confirms in writing that you introduced them and that they know you will receive this commission.',
-        zh: '在客戶與我們簽訂協議之前，請以電子郵件寄至 info@cosmosledgerlabs.com，列明您的姓名與聯絡方式，以及客戶的名稱與聯絡方式，並副本抄送該客戶。經我們書面確認，且客戶書面確認由您介紹並知悉您將獲得此佣金後，推薦方屬有效。',
+        en: 'To join, email info@cosmosledgerlabs.com. Once we have confirmed your details, we give you a personal referral code and link (cosmosledgerlabs.com/pay?ref=YOUR-CODE).',
+        zh: '如欲參加，請電郵至 info@cosmosledgerlabs.com。確認您的資料後，我們會提供您專屬的推薦碼及連結（cosmosledgerlabs.com/pay?ref=您的推薦碼）。',
+      },
+      {
+        en: 'A referral is registered when the client enters your code, or opens your link, when generating a payment order on our Pay page. The Pay page tells the client that you receive a commission, and entering your code is their confirmation that you introduced them.',
+        zh: '客戶在我們的付款下單頁面產生付款訂單時輸入您的推薦碼或開啟您的連結，即完成推薦登記。付款下單頁面會告知客戶您將獲得佣金，客戶輸入您的推薦碼即表示確認由您介紹。',
+      },
+      {
+        en: 'You can also register a referral by email before the client signs an agreement with us: write to info@cosmosledgerlabs.com with your name and contact details and the client\'s name and contact details, copying the client. A referral registered this way counts once we confirm it in writing and the client confirms in writing that you introduced them and that they know you will receive this commission.',
+        zh: '您亦可在客戶與我們簽訂協議之前以電子郵件登記推薦：請寄至 info@cosmosledgerlabs.com，列明您的姓名與聯絡方式，以及客戶的名稱與聯絡方式，並副本抄送該客戶。以此方式登記的推薦，經我們書面確認，且客戶書面確認由您介紹並知悉您將獲得此佣金後，方屬有效。',
       },
       {
         en: `A referral does not count if the client was already in contact with us in the ${PRIOR_CONTACT_MONTHS} months before your introduction. If more than one person introduces the same client, the first referral we receive in writing counts.`,

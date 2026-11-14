@@ -105,6 +105,17 @@ const T2 = {
   genFail: { en: 'Could not create the order — check your connection and try again.', zh: '無法產生訂單——請檢查網路連線後重試。' },
   regionBlocked: { en: 'Payments and orders are not available in your country or region.', zh: '您所在的國家或地區無法使用付款及下單服務。' },
   orderVoucher: { en: 'Voucher', zh: '優惠券' },
+  /* 2026-11-13: referral codes (lib/referral.js, rules on /referral). The
+     hint tells the client the referrer is paid — required by the rules. */
+  refLabel: { en: 'Referral code (optional)', zh: '推薦碼（選填）' },
+  refHint: {
+    en: 'If someone referred you to us, enter their code. They receive a commission from COSMOS if you become our client — your price does not change.',
+    zh: '若有人向您推薦我們，請輸入其推薦碼。若您成為我們的客戶，對方將獲得 COSMOS 支付的佣金——您的價格不會因此改變。',
+  },
+  refOk: { en: 'Referral code accepted ✓', zh: '推薦碼已確認 ✓' },
+  refBad: { en: 'This referral code is not valid.', zh: '此推薦碼無效。' },
+  refCheckFail: { en: 'Could not check the referral code — check your connection and try again.', zh: '無法核對推薦碼——請檢查網路連線後重試。' },
+  orderRef: { en: 'Referral code', zh: '推薦碼' },
   wireHead: { en: 'PAY BY BANK WIRE', zh: '以銀行電匯付款' },
   wireNote: {
     en: 'Send the wire from your bank using the details below, and quote the order number in the wire reference / payment details field. Incoming international wires can take 1–5 business days.',
@@ -257,6 +268,10 @@ export default function Pay() {
   const [voucher, setVoucher] = useState(null)      // { code, amount, currency } once checked
   const [voucherMsg, setVoucherMsg] = useState('')
   const [voucherBusy, setVoucherBusy] = useState(false)
+  const [refInput, setRefInput] = useState('')
+  const [refCode, setRefCode] = useState('')        // checked, active referral code
+  const [refMsg, setRefMsg] = useState('')
+  const [refBusy, setRefBusy] = useState(false)
   const [genBusy, setGenBusy] = useState(false)
   const [genMsg, setGenMsg] = useState('')
 
@@ -365,6 +380,31 @@ export default function Pay() {
   }
   const removeVoucher = () => { setVoucher(null); setVoucherInput(''); setVoucherMsg('') }
 
+  /* Referral code (2026-11-13): checked like a voucher; a wrong code never
+     blocks the order. */
+  const applyRef = async (given) => {
+    const code = String(given === undefined ? refInput : given).trim()
+    if (!code) return
+    setRefMsg(''); setRefBusy(true)
+    try {
+      const r = await fetch('/api/referral-check?code=' + encodeURIComponent(code), { cache: 'no-store' })
+      const j = await r.json().catch(() => ({}))
+      if (!r.ok) { setRefMsg(L(T2.refCheckFail)); return }
+      if (j.ok) { setRefCode(j.code); setRefInput(j.code) } else { setRefCode(''); setRefMsg(L(T2.refBad)) }
+    } catch (e) {
+      setRefMsg(L(T2.refCheckFail))
+    } finally { setRefBusy(false) }
+  }
+  const removeRef = () => { setRefCode(''); setRefInput(''); setRefMsg('') }
+
+  /* A referrer's link — /pay?ref=CLR-XXXXXX — fills in and checks the code. */
+  useEffect(() => {
+    try {
+      const q = (new URLSearchParams(window.location.search).get('ref') || '').trim()
+      if (q) { setRefInput(q.toUpperCase()); applyRef(q) }
+    } catch (e) { /* ignore */ }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const canGenerate = payNow > 0 && !!method && staffLoaded && csOk && !genBusy
 
   /* 2026-11-13: every order is saved before its details are shown, and the
@@ -393,6 +433,7 @@ export default function Pay() {
     let finalAmount = gross
     let usedVoucher = null
     let wire = null
+    let referral = null
     setGenBusy(true)
     try {
       let saved = false
@@ -409,6 +450,7 @@ export default function Pay() {
           method,
           repId: chosen ? chosen.id : null,
           voucherCode: voucherOk ? voucher.code : undefined,
+          referralCode: refCode || undefined,
         })
         let r
         let j = {}
@@ -423,6 +465,7 @@ export default function Pay() {
           finalAmount = Number(j.amount) > 0 ? Number(j.amount) : gross
           usedVoucher = j.voucher || null
           wire = Array.isArray(j.wire) ? j.wire : null
+          referral = j.referral || null
           break
         }
         if (r && r.status === 409 && j.error === 'duplicate order') continue
@@ -452,6 +495,7 @@ export default function Pay() {
       voucherCode: usedVoucher ? usedVoucher.code : '',
       voucherAmount: usedVoucher ? usedVoucher.amount : 0,
       wire,
+      referral,
     })
     if (usedVoucher) removeVoucher()
     setPaid(false)
@@ -489,6 +533,7 @@ export default function Pay() {
       'Payment method: ' + (methodName ? methodName.en : order.method),
       order.rep ? 'Customer service: ' + order.rep : '',
       order.voucherCode ? 'Voucher: ' + order.voucherCode + ' (−' + fmtAmount(order.voucherAmount, order.currency) + ')' : '',
+      order.referral ? 'Referral code: ' + order.referral : '',
       'Sent from cosmosledgerlabs.com/pay',
     ].filter(Boolean).join('\n')
   }
@@ -516,9 +561,10 @@ export default function Pay() {
       'Payment method: ' + (methodName ? methodName.en : order.method),
       order.rep ? 'Customer service: ' + order.rep : '',
       order.voucherCode ? 'Voucher: ' + order.voucherCode + ' (−' + fmtAmount(order.voucherAmount, order.currency) + ')' : '',
+      order.referral ? 'Referral code: ' + order.referral : '',
       '',
       'Sent from cosmosledgerlabs.com/pay',
-    ].filter((line, i) => line !== '' || i === 7).join('\n')
+    ].filter((line, i, all) => line !== '' || i === all.length - 2).join('\n') // keep the blank line before "Sent from"
     return (
       'mailto:info@cosmosledgerlabs.com?subject=' +
       encodeURIComponent(subject) +
@@ -677,6 +723,34 @@ export default function Pay() {
                 ) : null}
                 {voucherMsg ? <div className={styles.hint} style={{ color: 'var(--cyan)' }}>{voucherMsg}</div> : null}
 
+                <label className={styles.label} style={{ marginTop: 14 }}>{L(T2.refLabel)}</label>
+                <div className={styles.row} style={{ alignItems: 'center' }}>
+                  <input
+                    className={styles.input}
+                    style={{ flex: '1 1 180px', textTransform: 'uppercase' }}
+                    value={refInput}
+                    placeholder="CLR-XXXXXX"
+                    maxLength={16}
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    spellCheck={false}
+                    disabled={!!refCode}
+                    aria-label={L(T2.refLabel)}
+                    onChange={(e) => { setRefInput(e.target.value); setRefMsg('') }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); applyRef() } }}
+                  />
+                  {refCode ? (
+                    <button type="button" className={styles.btnCopyMini} onClick={removeRef}>{L(T2.vRemove)}</button>
+                  ) : (
+                    <button type="button" className={styles.btnCopyMini} disabled={refBusy || !refInput.trim()} onClick={() => applyRef()}>
+                      {refBusy ? '…' : L(T2.vApply)}
+                    </button>
+                  )}
+                </div>
+                {refCode ? <div className={styles.hint} style={{ color: '#3dffa8' }}>{L(T2.refOk)}</div> : null}
+                {refMsg ? <div className={styles.hint} style={{ color: 'var(--cyan)' }}>{refMsg}</div> : null}
+                <div className={styles.hint}>{L(T2.refHint)}</div>
+
                 <div className={styles.totalCard}>
                   <span className={styles.totalLabel}>{L(T2.payNow)}</span>
                   <span className={styles.totalValue}>{payNow > 0 ? fmtAmount(due, currency) : '—'}</span>
@@ -755,6 +829,12 @@ export default function Pay() {
                     <div className={styles.kvRow}>
                       <span className={styles.kvKey}>{L(T2.orderVoucher)}</span>
                       <span className={styles.kvVal}>{order.voucherCode} (−{fmtAmount(order.voucherAmount, order.currency)})</span>
+                    </div>
+                  ) : null}
+                  {order.referral ? (
+                    <div className={styles.kvRow}>
+                      <span className={styles.kvKey}>{L(T2.orderRef)}</span>
+                      <span className={styles.kvVal}>{order.referral}</span>
                     </div>
                   ) : null}
                   <div className={styles.kvRow}>

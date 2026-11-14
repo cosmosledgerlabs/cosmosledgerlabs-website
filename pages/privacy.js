@@ -95,8 +95,8 @@ const SECTIONS = [
     h: { en: 'PAYMENT ORDERS', zh: '付款訂單' },
     body: [
       {
-        en: 'When you generate an order on /pay, the order details (order number, selected service, amount, currency, payment method, the customer-service person you choose and any voucher code you use) are sent to and stored in our order database, used only to match payments and handle the engagement. The database is provided by Neon through Vercel, on servers in the United States. We do not collect your bank account or wallet keys through this site.',
-        zh: '當您在 /pay 頁面產生訂單時，訂單資料（訂單編號、所選服務、金額、幣別、付款方式、您選擇的客服人員及您使用的任何優惠券代碼）會傳送並儲存於我們的訂單資料庫，僅用於核對款項與處理委託事宜。該資料庫由 Neon 經 Vercel 提供，伺服器位於美國。我們不會透過本網站收集您的銀行帳戶或錢包金鑰。',
+        en: 'When you generate an order on /pay, the order details (order number, selected service, amount, currency, payment method, the customer-service person you choose and any voucher or referral code you use) are sent to and stored in our order database, used only to match payments and handle the engagement. The database is provided by Neon through Vercel, on servers in the United States. We do not collect your bank account or wallet keys through this site.',
+        zh: '當您在 /pay 頁面產生訂單時，訂單資料（訂單編號、所選服務、金額、幣別、付款方式、您選擇的客服人員及您使用的任何優惠券代碼或推薦碼）會傳送並儲存於我們的訂單資料庫，僅用於核對款項與處理委託事宜。該資料庫由 Neon 經 Vercel 提供，伺服器位於美國。我們不會透過本網站收集您的銀行帳戶或錢包金鑰。',
       },
       {
         en: 'If you pay by Interac e-Transfer, our system reads the Interac notification email we receive for your payment to match it to your order automatically. We keep the sender email address shown in that notification, the amount, the order number and the date, in the same database.',

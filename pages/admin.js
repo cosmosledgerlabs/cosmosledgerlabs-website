@@ -13,6 +13,8 @@
      missed shift, or delete a wrong one.
    • MANAGERS (2026-11-02): personal logins for the management backend
      /manage (orders, complaints, vouchers, staff figures, activity log).
+   • REFERRERS (2026-11-13): add referrers, give them their code / link,
+     and see the commission owed on their PAID orders each month.
    • DAILY CHECK: for any day, totals every order and payment (overall, per
      customer service person, per payment channel) and checks that they
      agree — with the money received and with the bank / wallet figures
@@ -22,12 +24,14 @@ import { useState } from 'react'
 import Head from 'next/head'
 import Nav from '../components/Nav'
 import Footer from '../components/Footer'
-import DailyCheckPanel from '../components/DailyCheckPanel'
+import DailyCheckPanel, { todayToronto } from '../components/DailyCheckPanel'
 import styles from '../styles/Pay.module.css'
 
+/* 2026-11-13: the current month in Toronto (was this device's own clock,
+   which shows the wrong month late on the last day when you are in
+   another time zone). Same helper as the Daily Check and /manage. */
 function thisMonth() {
-  const d = new Date()
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')
+  return todayToronto().slice(0, 7)
 }
 
 const fmt = (n) => '$' + Number(n || 0).toLocaleString('en-CA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -58,6 +62,10 @@ export default function Admin() {
   const [mgrMsg, setMgrMsg] = useState('')
   const [version, setVersion] = useState(0)        // bumps after each reload → Daily Check refreshes
   const [recvInput, setRecvInput] = useState({})   // order id → amount received
+  const [refData, setRefData] = useState(null)     // referral program (2026-11-13)
+  const [newRef, setNewRef] = useState({ name: '', email: '', note: '' })
+  const [refMsg, setRefMsg] = useState('')
+  const [refCopied, setRefCopied] = useState('')
 
   const H = { 'Content-Type': 'application/json', 'x-passcode': code }
 
@@ -84,7 +92,7 @@ export default function Admin() {
   const loadAll = async () => {
     setMsg(''); setBusy(true)
     try {
-      const [ro, rs, rh, rst, rsh, rfx, rmg] = await Promise.all([
+      const [ro, rs, rh, rst, rsh, rfx, rmg, rrf] = await Promise.all([
         fetch('/api/orders', { headers: H }),
         fetch('/api/settle?month=' + month, { headers: H }),
         fetch('/api/hours?month=' + month, { headers: H }),
@@ -92,8 +100,9 @@ export default function Admin() {
         fetch('/api/attendance?month=' + month, { headers: H }),
         fetch('/api/fx?month=' + month, { headers: H }),
         fetch('/api/managers', { headers: H }),
+        fetch('/api/referrers?month=' + month, { headers: H }),
       ])
-      const all = [ro, rs, rh, rst, rsh, rfx, rmg]
+      const all = [ro, rs, rh, rst, rsh, rfx, rmg, rrf]
       if (all.some((r) => r.status === 401)) { setUnlocked(false); setMsg('Passcode no longer accepted — enter it again.'); return }
       if (all.some((r) => !r.ok)) { setMsg('Load failed — try again.'); return }
       setOrders((await ro.json()).orders || [])
@@ -104,6 +113,7 @@ export default function Admin() {
       const fx = await rfx.json()
       setFxInput(fx.usdCad ? String(fx.usdCad) : '')
       setManagers((await rmg.json()).managers || [])
+      setRefData(await rrf.json())
       setVersion((v) => v + 1)
       setUnlocked(true)
     } catch (e) {
@@ -199,6 +209,29 @@ export default function Admin() {
     if (ok) setNewMgr({ username: '', name: '', password: '' })
   }
   const patchManager = (body) => callApi('/api/managers', 'PATCH', body, setMgrMsg)
+
+  /* ---------- referrers (2026-11-13) ---------- */
+  const addReferrer = async () => {
+    const ok = await callApi('/api/referrers', 'POST', newRef, setRefMsg)
+    if (ok) setNewRef({ name: '', email: '', note: '' })
+  }
+  const patchReferrer = (body) => callApi('/api/referrers', 'PATCH', body, setRefMsg)
+  const refLink = (code) => 'https://cosmosledgerlabs.com/pay?ref=' + code
+  const copyRef = async (key, text) => {
+    try { await navigator.clipboard.writeText(text); setRefCopied(key); setTimeout(() => setRefCopied(''), 1800) } catch (e) { setRefMsg('Copy failed — select the text and copy it.') }
+  }
+  const downloadRefCsv = async () => {
+    try {
+      const r = await fetch('/api/referrers?format=csv&month=' + month, { headers: H })
+      if (!r.ok) { setRefMsg('Download failed.'); return }
+      const blob = await r.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url; a.download = 'cosmos-referrals-' + month + '.csv'
+      document.body.appendChild(a); a.click(); a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 2000)
+    } catch (e) { setRefMsg('Download failed.') }
+  }
 
   /* ---------- attendance ---------- */
   const setShiftField = (s, k, v) => setShiftEdit({
@@ -469,6 +502,86 @@ export default function Admin() {
                 <div className={styles.hint}>Managers log in at cosmosledgerlabs.com/manage. They can see all orders and figures, record and decide complaints, issue vouchers and mark orders paid. They cannot change pay rules, staff PINs or delete orders. Everything they change is in the activity log there.</div>
               </section>
 
+              {/* ---------- referrers (2026-11-13) ---------- */}
+              <section className={styles.section}>
+                <div className={styles.stepTag}>REFERRERS — referral program ({refData ? Math.round(refData.rate * 100) : 10}% commission; rules at /referral)</div>
+                {refData && refData.referrers.map((r) => (
+                  <div key={r.id} className={styles.detailCard} style={{ marginBottom: 10, opacity: r.active ? 1 : 0.55 }}>
+                    <p className={styles.itemStrong}>
+                      {r.name} — code {r.code}{r.active ? '' : ' — INACTIVE'}
+                    </p>
+                    <p className={styles.item}>
+                      {r.email || 'no email'} · added {r.created} · {r.orders} order{r.orders === 1 ? '' : 's'}, {r.paid_orders} paid{r.note ? ' · ' + r.note : ''}
+                    </p>
+                    <p className={styles.item}>Link to share: {refLink(r.code)}</p>
+                    <div className={styles.row}>
+                      <button type="button" className={styles.btnGhost} onClick={() => copyRef('c' + r.id, r.code)}>
+                        {refCopied === 'c' + r.id ? 'COPIED ✓' : 'COPY CODE'}
+                      </button>
+                      <button type="button" className={styles.btnGhost} onClick={() => copyRef('l' + r.id, refLink(r.code))}>
+                        {refCopied === 'l' + r.id ? 'COPIED ✓' : 'COPY LINK'}
+                      </button>
+                      <button type="button" className={styles.btnGhost} disabled={busy}
+                              onClick={() => {
+                                if (r.active && !confirm('Deactivate ' + r.name + '? Their code stops working on /pay. Orders already credited stay credited.')) return
+                                patchReferrer({ id: r.id, active: !r.active })
+                              }}>
+                        {r.active ? 'DEACTIVATE' : 'REACTIVATE'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {refData && refData.referrers.length === 0 ? <div className={styles.hint}>No referrers yet.</div> : null}
+
+                <div className={styles.detailCard} style={{ marginTop: 14 }}>
+                  <p className={styles.itemStrong}>COMMISSION FOR {month} — PAID orders credited to a referrer, by payment date</p>
+                  {refData && refData.orders.length ? refData.orders.map((o) => (
+                    <p key={o.id} className={styles.item}>
+                      {o.paid} · {o.referrer} ({o.code}) · {o.id} · received {o.currency} {fmt(o.received)} → commission {o.currency} {fmt(o.commission)}
+                    </p>
+                  )) : <p className={styles.item}>No referred orders were paid this month.</p>}
+                  {refData && refData.totals.map((t) => (
+                    <p key={t.code} className={styles.itemStrong}>
+                      TOTAL {t.referrer}: {t.CAD ? 'CAD ' + fmt(t.CAD) : ''}{t.CAD && t.USD ? ' + ' : ''}{t.USD ? 'USD ' + fmt(t.USD) : ''}{!t.CAD && !t.USD ? fmt(0) : ''} ({t.orders} order{t.orders === 1 ? '' : 's'})
+                    </p>
+                  ))}
+                  <div style={{ marginTop: 10 }}>
+                    <button type="button" className={styles.btnGhost} onClick={downloadRefCsv}>DOWNLOAD SPREADSHEET (CSV)</button>
+                  </div>
+                  <div className={styles.hint}>
+                    Before paying, check each order against the rules on /referral: agreement signed within 12 months of the introduction,
+                    client not already in contact with us, taxes and refunds excluded. Pay within 30 days of the client&apos;s payment clearing.
+                  </div>
+                </div>
+
+                <div className={styles.detailCard} style={{ marginTop: 14 }}>
+                  <p className={styles.itemStrong}>ADD A REFERRER</p>
+                  <div className={styles.row}>
+                    <div className={styles.field}>
+                      <label className={styles.label}>Name</label>
+                      <input className={styles.input} maxLength={80} value={newRef.name} placeholder="e.g. David Wong"
+                             onChange={(e) => setNewRef({ ...newRef, name: e.target.value })} />
+                    </div>
+                    <div className={styles.field}>
+                      <label className={styles.label}>Email</label>
+                      <input className={styles.input} maxLength={120} value={newRef.email} placeholder="name@example.com" autoCapitalize="none"
+                             onChange={(e) => setNewRef({ ...newRef, email: e.target.value })} />
+                    </div>
+                  </div>
+                  <label className={styles.label}>Note (optional — e.g. ID checked, how to pay them)</label>
+                  <input className={styles.input} maxLength={300} value={newRef.note}
+                         onChange={(e) => setNewRef({ ...newRef, note: e.target.value })} />
+                  <div style={{ marginTop: 14 }}>
+                    <button type="button" className={styles.btnBig} disabled={busy} onClick={addReferrer}>ADD REFERRER →</button>
+                  </div>
+                </div>
+                {refMsg ? <div className={styles.hint}>{refMsg}</div> : null}
+                <div className={styles.hint}>
+                  A code is made automatically. Give the referrer their code or link; the client enters the code on /pay (or opens the link).
+                  Do not add COSMOS staff or managers — they cannot take part.
+                </div>
+              </section>
+
               {/* ---------- attendance ---------- */}
               <section className={styles.section}>
                 <div className={styles.stepTag}>ATTENDANCE ({month}) — every clock in / out; times are Toronto time</div>
@@ -570,6 +683,7 @@ export default function Admin() {
                     <p className={styles.itemStrong}>{o.id} — {o.currency} {fmt(o.amount)} — {o.status}</p>
                     <p className={styles.item}>{o.created} · {o.method.toUpperCase()} · rep: {o.rep || '—'} · {o.service || 'custom'}</p>
                     {o.voucher_code ? <p className={styles.item}>Voucher {o.voucher_code}: −{o.currency} {fmt(o.voucher_amount)} (amount above is after the voucher)</p> : null}
+                    {o.referral_code ? <p className={styles.item}>Referred by code {o.referral_code}</p> : null}
                     {o.status === 'PAID' && o.paid_via ? <p className={styles.item}>Paid: {o.paid_via}{o.paid ? ' · ' + o.paid : ''}</p> : null}
                     {o.status === 'PAID' && o.amount_received !== null && o.amount_received !== undefined &&
                       Math.round(Number(o.amount_received) * 100) !== Math.round(Number(o.amount) * 100) ? (

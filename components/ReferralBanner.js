@@ -8,18 +8,22 @@
    A spacer of the same height pushes the page content down, so nothing
    is hidden under the bar.
 
-   To change the text: edit TEXT below. To switch the bar off everywhere:
+   To change the text: edit TEXT below (the % comes from lib/referral.js;
+   the other languages' text is in lib/locales/<code>.js, with {#} where
+   the number goes). To switch the bar off everywhere:
    set PROMO_ON to false in pages/_app.js. Languages other than English
    and Chinese show the English text. */
 
 import Link from 'next/link'
 import { useLang } from '../lib/i18n'
+import { REFERRAL_RATE } from '../lib/referral'
 import styles from './ReferralBanner.module.css'
 
 export const PROMO_HEIGHT = 34 // px — keep in step with ReferralBanner.module.css
 
+const PCT = Math.round(REFERRAL_RATE * 100) // from lib/referral.js
 const TEXT = {
-  main: { en: 'REFER A CLIENT — EARN 10% COMMISSION', zh: '推薦客戶 — 賺取 10% 佣金' },
+  main: { en: 'REFER A CLIENT — EARN ' + PCT + '% COMMISSION', zh: '推薦客戶 — 賺取 ' + PCT + '% 佣金' },
   link: { en: 'HOW IT WORKS →', zh: '了解詳情 →' },
 }
 

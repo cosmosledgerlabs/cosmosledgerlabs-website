@@ -375,6 +375,32 @@ export default function FlowPage() {
   const LF = (obj) => pick(obj, lang)
 
   const [wallet, setWallet] = useState(null)
+
+  /* Demo video: in full screen, turn the phone to landscape (Android
+     Chrome and others that allow it; iPhone rotates by itself when the
+     phone is turned). Back to normal when full screen ends. */
+  const videoRef = useRef(null)
+  useEffect(() => {
+    const onFullscreen = () => {
+      const fs = document.fullscreenElement || document.webkitFullscreenElement
+      try {
+        const o = window.screen && window.screen.orientation
+        if (!o) return
+        if (fs && fs === videoRef.current && typeof o.lock === 'function') {
+          const p = o.lock('landscape')
+          if (p && typeof p.catch === 'function') p.catch(() => {})
+        } else if (!fs && typeof o.unlock === 'function') {
+          o.unlock()
+        }
+      } catch (e) { /* not supported — fine */ }
+    }
+    document.addEventListener('fullscreenchange', onFullscreen)
+    document.addEventListener('webkitfullscreenchange', onFullscreen)
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreen)
+      document.removeEventListener('webkitfullscreenchange', onFullscreen)
+    }
+  }, [])
   const [busy, setBusy] = useState(false)
   const [steps, setSteps] = useState(initSteps(STEPS))
   const [flowState, setFlowState] = useState(FLOW_STATE.IDLE)
@@ -909,20 +935,19 @@ export default function FlowPage() {
           </header>
 
           {/* ---------- demo video ---------- */}
+          {/* 2026-11-14: on phones the video is shown much larger — full
+              screen width and square, zoomed on the demo panel in the middle
+              of the recording (Flow.module.css → .demoVideo). The full-screen
+              button shows the whole recording and turns the phone to
+              landscape where the browser allows it. */}
           {VIDEO_FILE ? (
             <video
+              ref={videoRef}
+              className={styles.demoVideo}
               src={VIDEO_FILE}
               controls
               playsInline
               preload="metadata"
-              style={{
-                display: 'block',
-                width: '100%',
-                maxWidth: '100%',
-                background: '#000',
-                border: '1px solid rgba(0, 190, 230, .4)',
-                borderRadius: '6px',
-              }}
             />
           ) : VIDEO_URL ? (
             <a

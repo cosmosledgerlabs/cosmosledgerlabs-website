@@ -536,6 +536,51 @@
 
 /* ===== HOW TO USE + VIDEO SLOT (2026-09-09) ===== */
 
+/* Demo video (2026-11-14). The recording is very wide (1980 × 960), so at
+   phone width it was only ~175 px tall. On phones it now runs the full
+   screen width and is square, zoomed on the middle of the recording —
+   where the demo panel is. The full-screen button shows the whole
+   recording (object-fit: contain), so nothing is lost. */
+.demoVideo {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  background: #000;
+  border: 1px solid rgba(0, 190, 230, .4);
+  border-radius: 6px;
+}
+
+@media (max-width: 767px) {
+  .demoVideo {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);   /* edge to edge, past the page margins */
+    height: 100vw;                   /* square */
+    max-height: 85vh;                /* phone turned sideways: still fits */
+    object-fit: cover;
+    object-position: 50% 50%;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
+}
+
+/* Full screen: always the whole recording, never cropped. */
+.demoVideo:fullscreen {
+  object-fit: contain;
+  width: 100%; max-width: 100%;
+  height: 100%; max-height: 100%;
+  margin: 0;
+  border: 0;
+}
+.demoVideo:-webkit-full-screen {
+  object-fit: contain;
+  width: 100%; max-width: 100%;
+  height: 100%; max-height: 100%;
+  margin: 0;
+  border: 0;
+}
+
 .videoPlaceholder,
 .videoLink {
   display: flex;

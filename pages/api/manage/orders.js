@@ -1,7 +1,7 @@
 /* pages/api/manage/orders.js (added 2026-11-02) — orders for managers
    GET ?day=YYYY-MM-DD        orders created that day (Toronto)
-   GET ?q=text                search by order number, customer service name
-                              or voucher code (latest 300)
+   GET ?q=text                search by order number, customer service name,
+                              voucher code or referral code (latest 300)
        &status=PAID|UNPAID    optional filter
    PATCH { id, status, received }  mark PAID (received = amount that arrived,
                               blank = the order amount) or back to UNPAID.
@@ -28,7 +28,7 @@ export default async function handler(req, res) {
       if (day) {
         if (!validDay(day)) return res.status(400).json({ error: 'invalid day' })
         rows = (await sql`SELECT id, service, amount, currency, method, rep, status, paid_via, amount_received,
-            voucher_code, voucher_amount,
+            voucher_code, voucher_amount, referral_code,
             to_char(created_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS created,
             to_char(paid_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS paid
           FROM orders
@@ -38,11 +38,11 @@ export default async function handler(req, res) {
       } else {
         const like = '%' + q.replace(/[%_\\]/g, '') + '%'
         rows = (await sql`SELECT id, service, amount, currency, method, rep, status, paid_via, amount_received,
-            voucher_code, voucher_amount,
+            voucher_code, voucher_amount, referral_code,
             to_char(created_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS created,
             to_char(paid_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS paid
           FROM orders
-          WHERE (${q} = '' OR id ILIKE ${like} OR rep ILIKE ${like} OR voucher_code ILIKE ${like})
+          WHERE (${q} = '' OR id ILIKE ${like} OR rep ILIKE ${like} OR voucher_code ILIKE ${like} OR referral_code ILIKE ${like})
             AND (${status} = '' OR status = ${status})
           ORDER BY created_at DESC LIMIT 300`).rows
       }

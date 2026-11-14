@@ -373,6 +373,7 @@ export default function Manage() {
               <p className={styles.itemStrong}>{o.id} — {o.currency} {fmt(o.amount)} — <span style={{ color: o.status === 'PAID' ? OK : undefined }}>{o.status}</span></p>
               <p className={styles.item}>{o.created} · {o.method.toUpperCase()} · customer service: {o.rep || '—'} · {o.service || 'custom'}</p>
               {o.voucher_code ? <p className={styles.item}>Voucher {o.voucher_code}: −{o.currency} {fmt(o.voucher_amount)} (amount above is after the voucher)</p> : null}
+              {o.referral_code ? <p className={styles.item}>Referred by code {o.referral_code}</p> : null}
               {o.status === 'PAID' ? <p className={styles.item}>Paid {o.paid} · {o.paid_via}</p> : null}
               {diff ? <p className={styles.item} style={{ color: WARN }}>⚠ Received {o.currency} {fmt(o.amount_received)} — order is {o.currency} {fmt(o.amount)}</p> : null}
               {o.status === 'UNPAID' ? (

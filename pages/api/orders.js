@@ -20,12 +20,17 @@
    frees its voucher again.
    2026-11-13: an order number that already exists is refused (409
    { error: 'duplicate order' }) with or without a voucher, so /pay makes a
-   new number and tries again — two customers never share a number.      */
+   new number and tries again — two customers never share a number.
+   2026-11-13: referral codes — POST may include referralCode (a code from
+   /admin → REFERRERS). If it is an active code the order is credited to
+   that referrer; a wrong code never stops the order (it is just not
+   credited). The response says { referral: code | null }.               */
 
 import { ensureTables, sql, isAdmin } from '../../lib/db'
 import { normalizeCode } from '../../lib/vouchers'
 import { logAction } from '../../lib/managerAuth'
 import { WIRE } from '../../lib/payDetails'
+import { normalizeReferral } from '../../lib/referral'
 
 const OWNER = { role: 'owner', name: 'Owner' }
 
@@ -67,10 +72,20 @@ export default async function handler(req, res) {
         net = Math.round((net - voucher.amount) * 100) / 100
       }
 
-      const ins = await sql`INSERT INTO orders (id, service, amount, currency, method, rep, rep_id, voucher_code, voucher_amount)
+      let referral = null
+      let referrerId = null
+      const refCode = normalizeReferral(b.referralCode)
+      if (refCode) {
+        const rf = await sql`SELECT id FROM referrers WHERE code = ${refCode} AND active = TRUE`
+        if (rf.rows.length) { referral = refCode; referrerId = rf.rows[0].id }
+      }
+
+      const ins = await sql`INSERT INTO orders (id, service, amount, currency, method, rep, rep_id, voucher_code, voucher_amount,
+                                                referral_code, referrer_id)
                 VALUES (${b.id}, ${String(b.service || '').slice(0, 80)}, ${net},
                         ${b.currency}, ${b.method}, ${rep}, ${repId},
-                        ${voucher ? voucher.code : ''}, ${voucher ? voucher.amount : null})
+                        ${voucher ? voucher.code : ''}, ${voucher ? voucher.amount : null},
+                        ${referral || ''}, ${referrerId})
                 ON CONFLICT (id) DO NOTHING RETURNING id`
       if (!ins.rows.length) {
         // Order number already existed — give the voucher back (if any).
@@ -78,7 +93,7 @@ export default async function handler(req, res) {
         return res.status(409).json({ error: 'duplicate order' })
       }
       // 2026-11-13: bank wire details are sent only with a saved wire order.
-      return res.status(200).json({ ok: true, amount: net, voucher, wire: b.method === 'wire' ? WIRE : undefined })
+      return res.status(200).json({ ok: true, amount: net, voucher, referral, wire: b.method === 'wire' ? WIRE : undefined })
     }
 
     /* Public status check for one order — returns nothing else. */
@@ -94,7 +109,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
       const { rows } = await sql`SELECT id, service, amount, currency, method, rep, rep_id, status, paid_via, amount_received,
-                voucher_code, voucher_amount,
+                voucher_code, voucher_amount, referral_code,
                 to_char(created_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS created,
                 to_char(paid_at AT TIME ZONE 'America/Toronto', 'YYYY-MM-DD HH24:MI') AS paid
                 FROM orders ORDER BY created_at DESC LIMIT 200`
