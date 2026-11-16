@@ -503,21 +503,31 @@
   .probText { text-align: left; }
 }
 
-/* 2026-11-16: Aladdin video under the Strategic Cooperation card (/about).
-   The video is portrait (3 : 4), so it is kept to a comfortable width and
-   centred instead of filling the page. */
+/* 2026-11-16: Aladdin video under the Strategic Cooperation card (/about),
+   full width. Computers get the wide copy (16:9, page width, never taller
+   than the screen); phones get the portrait copy at full screen width.
+   Only the copy for the current screen is shown (and can download). */
 .partnerVideoWrap {
-  margin: 22px auto 0;
-  max-width: 420px;
+  margin: 22px 0 0;
+  width: 100%;
 }
+.partnerVideoWide,
 .partnerVideo {
   display: block;
   width: 100%;
-  aspect-ratio: 3 / 4;
   background: #000;
   border: 1px solid rgba(0, 190, 230, .4);
   border-radius: 6px;
   object-fit: contain;
+}
+.partnerVideoWide {
+  aspect-ratio: 16 / 9;
+  max-height: 85vh;
+  margin: 0 auto;
+}
+.partnerVideo {
+  display: none;
+  aspect-ratio: 3 / 4;
 }
 .partnerCaption {
   margin-top: 8px;
@@ -528,5 +538,18 @@
   color: var(--text-muted);
 }
 @media (max-width: 767px) {
-  .partnerVideoWrap { max-width: 100%; }
+  .partnerVideoWide { display: none; }
+  .partnerVideo {
+    display: block;
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);   /* edge to edge, past the page margins */
+    max-height: 90vh;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
+  }
 }
+/* Full screen: always the whole picture. */
+.partnerVideoWide:fullscreen, .partnerVideo:fullscreen { object-fit: contain; max-height: none; border: 0; margin: 0; }
+.partnerVideoWide:-webkit-full-screen, .partnerVideo:-webkit-full-screen { object-fit: contain; max-height: none; border: 0; margin: 0; }

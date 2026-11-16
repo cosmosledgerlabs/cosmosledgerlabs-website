@@ -291,10 +291,24 @@ export function Partners({ num = '09' }) {
         })}</p>
         <p className={styles.ecoText}><em>{L({ en: 'Aladdin Cyber Security — strategic partner.', zh: 'Aladdin Cyber Security — 策略合作夥伴。' })}</em></p>
       </div>
-      {/* 2026-11-16: video of Aladdin Cyber Security's offices in Dubai.
-          public/aladdin-partner.mp4 (web copy, ~3 MB) with a still image
-          shown until it is played; nothing downloads until then. */}
+      {/* 2026-11-16: video of Aladdin Cyber Security in Dubai, full width.
+          Two copies of the same video (~3 MB each); the page shows one:
+            • computers: aladdin-partner-wide.mp4 — 16:9, the portrait video
+              in the middle with a blurred copy filling the sides, so it
+              fills the page width without cutting anything off;
+            • phones: aladdin-partner.mp4 — the original portrait video.
+          A still image shows until play is pressed, and nothing downloads
+          before that — the hidden copy never downloads. */}
       <figure className={styles.partnerVideoWrap}>
+        <video
+          className={styles.partnerVideoWide}
+          src="/aladdin-partner-wide.mp4"
+          poster="/aladdin-partner-wide-poster.jpg"
+          controls
+          playsInline
+          preload="none"
+          aria-label={L({ en: 'Aladdin Cyber Security — Dubai, UAE', zh: 'Aladdin Cyber Security — 阿聯杜拜' })}
+        />
         <video
           className={styles.partnerVideo}
           src="/aladdin-partner.mp4"
