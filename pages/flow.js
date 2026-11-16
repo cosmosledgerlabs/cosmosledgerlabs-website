@@ -1,1266 +1,753 @@
-import { useState, useEffect, useRef } from 'react'
-import Head from 'next/head'
-import Router from 'next/router'
-import Nav from '../components/Nav'
-import Footer from '../components/Footer'
-import { useLang, pick, tr } from '../lib/i18n'
-import { STEPS, newFlowId } from '../lib/steps'
-import { runFlow, initSteps, STATUS, FLOW_STATE, readableError } from '../lib/orchestrator'
-import { runSetup, readBalance, FLOW_AMOUNT, INITIAL_SUPPLY } from '../lib/spl'
-import styles from '../styles/Flow.module.css'
+/* Flow page — follows the site design system:
+   Rajdhani display type, Share Tech (proportional) for prose,
+   Share Tech Mono for hashes / balances / statuses,
+   steel cards with corner brackets, existing CSS variables.
+   2026-09-11: prose (subtitle, hints, step descriptions, how-to
+   list, notes, disclaimer) converted to the book-style typesetting
+   used site-wide — proportional font + justified, both edges flush,
+   whole words, hyphenation off. Numbers, hashes and status labels
+   stay in Share Tech Mono where fixed-width alignment is the point. */
 
-/* Demo video: paste the YouTube link between the quotes when the video is
-   ready (e.g. 'https://www.youtube.com/watch?v=XXXX'). While empty, the page
-   shows a "coming soon" placeholder instead. */
-const VIDEO_URL = ''
-
-/* Demo video hosted on this website: the video file sits in the repo's
-   public folder as cosmos-demo.mp4 and plays directly on the page.
-   Set to '' to hide the player again. */
-const VIDEO_FILE = '/cosmos-demo.mp4'
-
-/* Date shown under the demo ("Demo updated: ..."). Change it whenever the
-   demo's behaviour changes, to the date of that commit. */
-const DEMO_UPDATED = { en: '3 October 2026', zh: '2026 年 10 月 3 日' }
-
-/* Runs are saved in this browser (localStorage) under this key, so the run
-   history survives a page refresh. Nothing is sent anywhere. Changing the
-   key starts every visitor with an empty history. */
-const STORAGE_KEY = 'cosmos-flow-runs-v1'
-const MAX_SAVED_RUNS = 200
-
-const CLUSTER = 'devnet'
-const RPC = process.env.NEXT_PUBLIC_SOLANA_RPC || 'https://api.devnet.solana.com'
-const EXPLORER = 'https://solscan.io'
-
-const STATUS_LABEL = {
-  [STATUS.PENDING]: { en: 'PENDING', zh: '待執行' },
-  [STATUS.RUNNING]: { en: 'RUNNING', zh: '執行中' },
-  [STATUS.SUCCESS]: { en: 'SUCCESS', zh: '成功' },
-  [STATUS.FAILED]: { en: 'FAILED', zh: '失敗' },
-  [STATUS.COMPENSATING]: { en: 'COMPENSATING', zh: '補償中' },
-  [STATUS.COMPENSATED]: { en: 'COMPENSATED', zh: '已補償' },
-  [STATUS.SKIPPED]: { en: 'NOT RUN', zh: '未執行' },
+.page {
+  position: relative;
+  padding-top: 64px;
 }
 
-const STATUS_CLASS = {
-  [STATUS.PENDING]: 'pending',
-  [STATUS.RUNNING]: 'running',
-  [STATUS.SUCCESS]: 'success',
-  [STATUS.FAILED]: 'failed',
-  [STATUS.COMPENSATING]: 'running',
-  [STATUS.COMPENSATED]: 'compensated',
-  [STATUS.SKIPPED]: 'skipped',
+@media (max-width: 767px) {
+  .page { padding-top: 96px; }
 }
 
-const T3 = {
-  metaTitle: {
-    en: 'Cross-Transaction Consistency Demo — COSMOS Ledger Labs',
-    zh: '跨交易一致性演示 — COSMOS Ledger Labs',
-  },
-  metaDesc: {
-    en: 'A three-step token operation on Solana devnet with automatic on-chain compensation when a step fails. Every transaction is independently verifiable.',
-    zh: '在 Solana devnet 測試網上執行三步代幣操作，步驟失敗時自動執行鏈上補償交易。每筆交易均可獨立驗證。',
-  },
-  title: { en: 'CROSS-TRANSACTION CONSISTENCY', zh: '跨交易一致性' },
-  sub1: {
-    en: "Engineering demonstration on Solana devnet using test tokens. This page demonstrates COSMOS's workflow engineering approach — multi-step token operations with automatic on-chain compensation on failure. It is not a product, not an offer, and not connected to mainnet funds.",
-    zh: '本頁為在 Solana devnet 測試網上使用測試代幣進行的工程演示，展示 COSMOS 的工作流工程方法——多步代幣操作，失敗時自動執行鏈上補償。它不是產品、不構成要約，亦不涉及主網資金。',
-  },
-  sub2: {
-    en: 'A token operation is not one transaction. Approval, vesting setup and distribution are separate transactions. Solana is atomic within a transaction — not across a sequence. When a later step fails, the earlier ones stay on-chain.',
-    zh: '一次代幣操作並非單一交易。審批、歸屬設定與分發是各自獨立的交易。Solana 只在單筆交易內具原子性——跨交易序列則否。當後面的步驟失敗時，前面的步驟仍留在鏈上。',
-  },
-  sub3: {
-    en: 'This runs the sequence with real SPL token transfers, and on failure executes real on-chain compensating transactions for the steps already completed. Nothing is deleted — a chain cannot delete. Each compensation is a new, independently verifiable transaction, and the token balances return to where they started.',
-    zh: '本演示以真實 SPL 代幣轉帳執行該序列，並在失敗時為已完成的步驟執行真實的鏈上補償交易。沒有任何內容被刪除——區塊鏈無法刪除。每筆補償都是一筆新的、可獨立驗證的交易，代幣餘額回到起點。',
-  },
-  videoWatch: { en: 'WATCH THE DEMO VIDEO', zh: '觀看演示影片' },
-  videoOpens: { en: 'Opens on YouTube in a new tab', zh: '將在新分頁開啟 YouTube' },
-  videoSoon: { en: 'DEMO VIDEO — COMING SOON', zh: '演示影片——即將推出' },
-  videoSoonNote: { en: 'A guided walkthrough of this page will be posted here.', zh: '本頁的導覽影片將發佈於此。' },
-  btnFullExit: { en: 'EXIT FULL SCREEN', zh: '退出全螢幕' },
-  fullIphone: {
-    en: 'iPhone Safari cannot hide its bars for web pages. For full screen: tap Share, choose Add to Home Screen, then open this page from the new icon.',
-    zh: 'iPhone Safari 無法為網頁隱藏網址列。如需全螢幕：點「分享」，選「加入主畫面」，再從新圖示開啟本頁。',
-  },
-  howTitle: { en: 'HOW TO USE THIS DEMO', zh: '本演示使用說明' },
-  howT1: { en: 'INSTALL PHANTOM', zh: '安裝 PHANTOM' },
-  how1: {
-    en: 'Install the Phantom browser extension and create a wallet. The demo uses only the devnet test network — never real funds.',
-    zh: '安裝 Phantom 瀏覽器擴充功能並建立錢包。本演示僅使用 devnet 測試網，絕不涉及真實資金。',
-  },
-  howT2: { en: 'SWITCH TO DEVNET', zh: '切換至 DEVNET' },
-  how2: {
-    en: 'In Phantom: Settings \u2192 Developer Settings \u2192 set the network to Solana Devnet.',
-    zh: '在 Phantom 中：Settings \u2192 Developer Settings \u2192 將網路設為 Solana Devnet。',
-  },
-  howT3: { en: 'GET TEST SOL', zh: '領取測試 SOL' },
-  how3: {
-    en: 'Get free devnet SOL from any faucet, e.g. faucet.solana.com. It has no monetary value.',
-    zh: '從任一水龍頭（如 faucet.solana.com）領取免費 devnet SOL，其不具任何金錢價值。',
-  },
-  howT4: { en: 'CONNECT WALLET', zh: '連接錢包' },
-  how4: {
-    en: 'Click CONNECT in the wallet panel below and approve in Phantom.',
-    zh: '點擊下方錢包面板中的「連接錢包」，並在 Phantom 中核准連接。',
-  },
-  howT5: { en: 'RUN SETUP', zh: '執行初始設定' },
-  how5: {
-    en: 'Click RUN SETUP to mint a test token and open the accounts. Approve both Phantom prompts. Costs about 0.02 devnet SOL.',
-    zh: '點擊「執行初始設定」鑄造測試代幣並開立帳戶，兩次彈窗均需核准。約需 0.02 devnet SOL。',
-  },
-  howT6: { en: 'CHOOSE FAILURE MODE', zh: '選擇故障注入' },
-  how6: {
-    en: 'Choose NONE to run all three steps, or FAIL AT 2 / 3 to force a failure and watch the completed steps get compensated on-chain. FAIL AT 1 fails before any transaction is sent, so there is nothing to compensate. Then click EXECUTE FLOW.',
-    zh: '選「無」完整執行三步，或選「第 2／3 步失敗」強制失敗並觀察已完成步驟的鏈上補償。「第 1 步失敗」在任何交易送出前即失敗，因此沒有需要補償的內容。然後點擊「執行流程」。',
-  },
-  howT7: { en: 'WATCH & VERIFY', zh: '觀察與驗證' },
-  how7: {
-    en: 'Watch the step panel and the TOKEN ACCOUNTS balances. Every signature links to Solscan for independent verification.',
-    zh: '觀察步驟面板與「代幣帳戶」餘額，每筆簽名均可在 Solscan 獨立驗證。',
-  },
-  howT8: { en: 'DOWNLOAD THE LOG', zh: '下載執行紀錄' },
-  how8: {
-    en: 'Every run is saved in this browser and survives a refresh. Click DOWNLOAD LOG for a text record or DOWNLOAD CSV for a spreadsheet; CLEAR removes the saved runs.',
-    zh: '每次執行都會保存在本瀏覽器中，重新整理也不會消失。點擊「下載紀錄」取得文字紀錄，或「下載 CSV」取得試算表；「清除」會刪除已保存的執行紀錄。',
-  },
-  howNote: {
-    en: 'If a step shows a retry or waiting message, do not click or refresh — the engine checks transaction status and recovers on its own. Keep the Phantom panel open during a run; Phantom locks itself after about 15 minutes of inactivity.',
-    zh: '若某步驟顯示重試或等待訊息，請勿點擊或重新整理——引擎會自行查核交易狀態並恢復。執行期間請保持 Phantom 面板開啟；Phantom 閒置約 15 分鐘後會自動鎖定。',
-  },
-  ctlWallet: { en: 'WALLET', zh: '錢包' },
-  ctlSetup: { en: 'SETUP', zh: '初始設定' },
-  ctlInjection: { en: 'FAILURE INJECTION', zh: '故障注入' },
-  ctlRun: { en: 'RUN', zh: '執行' },
-  ctlLog: { en: 'RUN LOG', zh: '執行紀錄' },
-  btnConnect: { en: 'CONNECT', zh: '連接錢包' },
-  btnSetup: { en: 'RUN SETUP', zh: '執行初始設定' },
-  btnResetup: { en: 'RE-RUN SETUP', zh: '重新執行設定' },
-  btnExecute: { en: 'EXECUTE FLOW', zh: '執行流程' },
-  btnRunning: { en: 'RUNNING…', zh: '執行中…' },
-  btnLog: { en: 'DOWNLOAD LOG', zh: '下載紀錄' },
-  btnCsv: { en: 'DOWNLOAD CSV', zh: '下載 CSV' },
-  btnClear: { en: 'CLEAR', zh: '清除' },
-  confirmClear: {
-    en: 'Remove all saved runs from this browser? Download them first if you need a copy.',
-    zh: '要從本瀏覽器刪除所有已保存的執行紀錄嗎？如需保留，請先下載。',
-  },
-  sumRun: { en: 'RUN', zh: '第' },
-  sumExec: { en: 'executed', zh: '已執行' },
-  sumComp: { en: 'compensated', zh: '已補償' },
-  sumTx: { en: 'tx', zh: '筆交易' },
-  sumPass: { en: 'BALANCE CHECK: PASS', zh: '餘額核對：通過' },
-  sumFail: { en: 'BALANCE CHECK: FAIL', zh: '餘額核對：未通過' },
-  sumNA: { en: 'BALANCE CHECK: N/A', zh: '餘額核對：無法核對' },
-  sumOlder: {
-    en: (n) => '+ ' + n + ' earlier run(s) in the downloads',
-    zh: (n) => '另有 ' + n + ' 次較早的執行，見下載檔',
-  },
-  updated: { en: 'Demo updated: ', zh: '演示更新日期：' },
-  updatedWhat: {
-    en: ' — run history saved in the browser, CSV export, and a per-run balance check.',
-    zh: '——執行紀錄保存在瀏覽器中、CSV 匯出，以及每次執行的餘額核對。',
-  },
-  setupHint: {
-    en: (supply) => 'Creates a test SPL token, mints ' + supply + ' to your account, and opens an escrow and a recipient account. Two wallet prompts. Needed once before running the flow.',
-    zh: (supply) => '建立測試 SPL 代幣，鑄造 ' + supply + ' 枚到您的帳戶，並開立託管與接收帳戶。錢包會提示兩次。執行流程前需先完成一次。',
-  },
-  injNone: { en: 'NONE', zh: '無' },
-  injAt: {
-    en: (n) => 'FAIL AT ' + n,
-    zh: (n) => '第 ' + n + ' 步失敗',
-  },
-  injHint: { en: 'Force a step to fail, to demonstrate compensation.', zh: '強制某一步驟失敗，以展示補償機制。' },
-  flowIdLabel: { en: 'Flow ID: ', zh: '流程編號: ' },
-  logHint: {
-    en: 'Every saved run, with signatures, balances and a balance check. Saved in this browser only and kept after a refresh. Downloads are in English: a text log or a CSV spreadsheet.',
-    zh: '所有已保存的執行，含簽名、餘額與餘額核對。僅保存在本瀏覽器中，重新整理後仍保留。下載檔為英文：文字紀錄或 CSV 試算表。',
-  },
-  msgNoPhantom: {
-    en: 'No Phantom wallet detected. Install the Phantom extension and switch it to Devnet.',
-    zh: '未偵測到 Phantom 錢包。請安裝 Phantom 擴充功能並將其切換至 Devnet。',
-  },
-  msgConnected: {
-    en: 'Wallet connected. Make sure Phantom is set to Devnet.',
-    zh: '錢包已連接。請確認 Phantom 已設定為 Devnet。',
-  },
-  msgCancelled: { en: 'Connection cancelled.', zh: '已取消連接。' },
-  msgConnectFirst: { en: 'Connect a wallet first.', zh: '請先連接錢包。' },
-  msgSetupFirst: {
-    en: 'Run SETUP first — the flow moves real SPL tokens.',
-    zh: '請先執行初始設定——流程會移動真實的 SPL 代幣。',
-  },
-  msgCreating: {
-    en: 'Creating token and accounts — the wallet will prompt twice…',
-    zh: '正在建立代幣與帳戶——錢包將提示兩次…',
-  },
-  msgNoSolSetup: {
-    en: 'Not enough Devnet SOL for setup. Request more at faucet.solana.com (setup needs about 0.02 SOL).',
-    zh: 'Devnet SOL 不足，無法完成初始設定。請至 faucet.solana.com 領取（初始設定約需 0.02 SOL）。',
-  },
-  msgSetupDone: {
-    en: (supply) => 'Setup complete. ' + supply + ' test tokens minted to your account.',
-    zh: (supply) => '初始設定完成。已鑄造 ' + supply + ' 枚測試代幣到您的帳戶。',
-  },
-  msgSetupFailed: { en: 'Setup failed: ', zh: '初始設定失敗：' },
-  msgRunning: { en: 'Running…', zh: '執行中…' },
-  msgNoSolFees: {
-    en: 'Not enough Devnet SOL for fees. Request more at faucet.solana.com and try again.',
-    zh: 'Devnet SOL 不足以支付手續費。請至 faucet.solana.com 領取後再試。',
-  },
-  msgLowTokens: {
-    en: (owner, amount) => 'Your token account holds ' + owner + ', and this flow moves ' + amount + '. Run SETUP again to mint a fresh allocation.',
-    zh: (owner, amount) => '您的代幣帳戶餘額為 ' + owner + '，本流程需移動 ' + amount + '。請重新執行初始設定以鑄造新的配額。',
-  },
-  msgDone: {
-    en: 'All three steps completed. Every transaction is verifiable on Solscan.',
-    zh: '三個步驟全部完成。每筆交易皆可在 Solscan 驗證。',
-  },
-  msgComp: {
-    en: 'A step failed. Completed steps were compensated automatically — each compensation is a real on-chain transaction.',
-    zh: '有步驟失敗。已完成的步驟已自動補償——每筆補償都是真實的鏈上交易。',
-  },
-  msgBad: {
-    en: 'A step failed and compensation did not complete. Manual intervention required.',
-    zh: '有步驟失敗且補償未完成。需要人工介入。',
-  },
-  msgUnexpected: { en: 'Unexpected error: ', zh: '未預期的錯誤：' },
-  vTitle: { en: 'TOKEN ACCOUNTS', zh: '代幣帳戶' },
-  vIntro: {
-    en: (amount) => 'Real SPL token accounts on Solana devnet. Balances update after every run. Each flow moves ' + amount + ' tokens.',
-    zh: (amount) => 'Solana devnet 上的真實 SPL 代幣帳戶。每次執行後餘額都會更新。每次流程移動 ' + amount + ' 枚代幣。',
-  },
-  vMint: { en: 'Mint', zh: 'Mint' },
-  vOwner: { en: 'Your account', zh: '您的帳戶' },
-  vEscrow: { en: 'Escrow', zh: '託管帳戶' },
-  vRecipient: { en: 'Recipient', zh: '接收帳戶' },
-  vView: { en: 'VIEW', zh: '查看' },
-  txExecuted: { en: 'EXECUTED', zh: '已執行' },
-  txCompensated: { en: 'COMPENSATED', zh: '已補償' },
-  txVerify: { en: 'VERIFY', zh: '驗證' },
-  outOkStrong: { en: 'FLOW COMPLETED', zh: '流程完成' },
-  outOk: { en: ' — all three steps executed successfully.', zh: '——三個步驟全部成功執行。' },
-  outCompStrong: { en: 'FAILED AND COMPENSATED', zh: '失敗並已補償' },
-  outComp: {
-    en: ' — a step failed; every completed step was compensated by a real on-chain transaction, in reverse order. The final state matches the starting state. The transaction history does not disappear, and it should not: it is the audit trail.',
-    zh: '——有步驟失敗；每個已完成的步驟都以真實的鏈上交易逆序補償。最終狀態與起始狀態一致。交易歷史不會消失，也不應消失：它就是稽核軌跡。',
-  },
-  outBadStrong: { en: 'COMPENSATION INCOMPLETE', zh: '補償未完成' },
-  outBad: {
-    en: ' — a compensating transaction did not confirm. Manual intervention is required. This state is surfaced rather than hidden.',
-    zh: '——某筆補償交易未確認。需要人工介入。此狀態被如實呈現，而非隱藏。',
-  },
-  disclaimer: {
-    en: 'Devnet is a public test network. Tokens on Devnet have no monetary value. The escrow account in this demonstration is held by a keypair generated in the browser — sufficient to show funds genuinely leaving and returning, but not a trustless escrow. A production version would use a program-derived address. This demonstration does not constitute an offer to sell or a solicitation to buy any security or digital asset.',
-    zh: 'Devnet 為公開測試網路，其上代幣不具任何金錢價值。本演示中的託管帳戶由瀏覽器內產生的金鑰對持有——足以展示資金真實地離開與返回，但並非無需信任（trustless）的託管。正式版本將使用程式衍生地址（PDA）。本演示不構成出售任何證券或數位資產的要約，亦不構成購買的要約邀請。',
-  },
+.container {
+  width: 100%;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: var(--sp8) var(--side) var(--sp8);
 }
 
-/* 2026-09-24: message box under the controls (e.g. "No Phantom wallet
-   detected…"). Both edges straight with small gaps: the text size is nudged
-   down a little (13px → no smaller than 11.5px) to the size at which every
-   full line comes closest to the right edge, and the browser's own
-   justification closes the last few pixels. Words are never split and the
-   last line stays left. Only this box is affected. */
-function fitMessage(el) {
-  if (!el) return
-  el.style.fontSize = ''
-  el.style.textAlign = ''
-  el.style.textAlignLast = ''
-  const text = (el.textContent || '').replace(/\s+/g, ' ').trim()
-  const words = text ? text.split(' ') : []
-  if (words.length < 3) return
-  const cs = getComputedStyle(el)
-  const avail = el.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)
-  if (!(avail > 0)) return
-  const canvas = fitMessage.c || (fitMessage.c = document.createElement('canvas'))
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-  const family = cs.fontFamily
-  const weight = cs.fontWeight
-  const base = parseFloat(cs.fontSize)
-  let best = null
-  for (let fs = base; fs >= 11.5 - 0.001; fs -= 0.1) {
-    ctx.font = weight + ' ' + fs.toFixed(1) + 'px ' + family
-    const space = ctx.measureText(' ').width
-    const lines = []
-    let cur = 0
-    words.forEach((w) => {
-      const ww = ctx.measureText(w).width
-      if (cur === 0) cur = ww
-      else if (cur + space + ww <= avail) cur += space + ww
-      else { lines.push(cur); cur = ww }
-    })
-    if (lines.length === 0) { best = { fs, slack: 0 }; break }
-    const slack = Math.max(...lines.map((l) => avail - l))
-    if (!best || slack < best.slack - 0.5) best = { fs, slack }
-    if (slack <= avail * 0.03) break
-  }
-  if (!best) return
-  el.style.fontSize = best.fs.toFixed(1) + 'px'
-  el.style.textAlign = 'justify'
-  el.style.textAlignLast = 'left'
+/* ===== HEADER ===== */
+
+.header {
+  text-align: center;
+  margin-bottom: var(--sp6);
 }
 
-/* Balance check for one run (2026-10-03). Compares the balances after the run
-   with what they SHOULD be:
-   - flow completed: owner down by the amount, escrow unchanged, recipient up
-     by the amount;
-   - failed and compensated: every balance back exactly where it started;
-   - compensation incomplete: always FAIL (manual intervention needed).
-   Returns true (pass), false (fail) or null (balances could not be read). */
-function checkBalances(outcome, before, after, amount) {
-  if (!before || !after) return null
-  const n = (v) => Number(v)
-  const same = (a, b) => Math.abs(n(a) - n(b)) < 1e-9
-  if (outcome === FLOW_STATE.COMPLETED) {
-    return same(n(after.owner), n(before.owner) - amount) &&
-      same(after.escrow, before.escrow) &&
-      same(n(after.recipient), n(before.recipient) + amount)
-  }
-  if (outcome === FLOW_STATE.FAILED_COMPENSATED) {
-    return same(after.owner, before.owner) &&
-      same(after.escrow, before.escrow) &&
-      same(after.recipient, before.recipient)
-  }
-  return false
+.badge {
+  display: inline-block;
+  padding: 8px 18px;
+  background: rgba(0, 150, 255, .08);
+  border: 1px solid rgba(0, 220, 255, .38);
+  border-radius: 4px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  color: var(--cyan);
+  margin-bottom: var(--sp3);
 }
 
-/* Counts for one run: steps executed, steps compensated, on-chain transactions. */
-function runCounts(r) {
-  const executed = r.steps.filter((st) => st.executed).length
-  const compensated = r.steps.filter((st) => st.compensated).length
-  return { executed, compensated, tx: executed + compensated }
+.title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 24px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(24px, 4.6vw, 44px);
+  font-weight: 700;
+  letter-spacing: .05em;
+  line-height: 1.2;
+  margin: 0 0 var(--sp3);
+  color: var(--text);
 }
 
-/* Older saved runs (before 2026-10-03) have no balanceCheck field: work it out. */
-function runCheck(r) {
-  if (r.balanceCheck === true || r.balanceCheck === false) return r.balanceCheck
-  return checkBalances(r.outcome, r.balancesBefore, r.balancesAfter, r.amount || FLOW_AMOUNT)
+.subtitle {
+  max-width: 720px;
+  margin: 0 auto 14px;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 13px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(13px, 1.5vw, 15px);
+  line-height: 1.8;
+  color: var(--text-muted);
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
 }
 
-function saveFile(text, name, type) {
-  const blob = new Blob([text], { type })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = name
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
+/* ===== CONTROL PANEL ===== */
+
+.panel {
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-radius: 6px;
+  padding: 6px 28px 24px;
+  position: relative;
+  margin-bottom: var(--sp4);
 }
 
-export default function FlowPage() {
-  const { lang, isZh } = useLang()
-  const L = (obj) => { const v = pick(obj, lang); return v == null ? '' : v }
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 14px; height: 14px;
+  border-top: 2px solid rgba(0, 220, 255, .65);
+  border-left: 2px solid rgba(0, 220, 255, .65);
+}
 
-  // Chinese overlay for step names/descriptions coming from lib/steps.js.
-  // Keyed on the English strings so no lib file needs to change.
-  // Unknown strings fall back to English automatically.
-  const STEP_LABEL_ZH = {
-    'APPROVE': '審批',
-    'VESTING SETUP': '歸屬設定',
-    'DISTRIBUTION': '分發',
+.panel::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 14px; height: 14px;
+  border-bottom: 2px solid rgba(0, 220, 255, .65);
+  border-right: 2px solid rgba(0, 220, 255, .65);
+}
+
+.controlRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 22px;
+  padding: 22px 0;
+}
+
+.controlLabel {
+  flex: 0 0 150px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--cyan-soft);
+  padding-top: 10px;
+}
+
+.controlBody {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.controlHint {
+  margin-top: 10px;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
+  text-wrap: pretty;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(0, 190, 230, .18);
+}
+
+/* ===== BUTTONS ===== */
+
+.btn, .btnGhost {
+  padding: 12px 26px;
+  min-width: 150px;
+  border-radius: 4px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.btn {
+  background: rgba(0, 150, 255, .12);
+  border: 1.5px solid var(--cyan);
+  color: var(--cyan);
+}
+
+.btn:hover:not(:disabled) { background: var(--cyan); color: var(--bg-deep); }
+.btn:disabled { opacity: .3; cursor: not-allowed; }
+
+.btnGhost {
+  background: transparent;
+  border: 1.5px solid rgba(0, 220, 255, .34);
+  color: var(--text-muted);
+}
+
+.btnGhost:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ===== SEGMENTED CONTROL ===== */
+
+.segmented {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.segOn, .segOff {
+  padding: 9px 15px;
+  border-radius: 3px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+
+.segOn {
+  background: var(--cyan);
+  border: 1px solid var(--cyan);
+  color: var(--bg-deep);
+}
+
+.segOff {
+  background: transparent;
+  border: 1px solid rgba(0, 220, 255, .28);
+  color: var(--text-muted);
+}
+
+.segOff:hover:not(:disabled) { border-color: var(--cyan); color: var(--cyan); }
+.segOn:disabled, .segOff:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ===== MESSAGES ===== */
+/* Dynamic status text with signatures — stays Share Tech Mono. */
+
+.msgOk, .msgError {
+  margin: 4px 0 0;
+  padding: 14px 16px;
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.msgOk {
+  border-left: 2px solid var(--cyan);
+  background: rgba(0, 150, 255, .07);
+  color: var(--text);
+}
+
+.msgError {
+  border-left: 2px solid #ff5f6d;
+  background: rgba(255, 95, 109, .07);
+  color: #ffb3ba;
+}
+
+/* ===== STEPS ===== */
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: var(--sp4);
+}
+
+.step {
+  border: 1px solid rgba(0, 190, 230, .18);
+  border-left-width: 3px;
+  border-left-color: rgba(0, 190, 230, .25);
+  border-radius: 5px;
+  background: rgba(0, 10, 28, .7);
+  padding: 20px 22px;
+  transition: border-color .25s ease;
+}
+
+.pending { border-left-color: rgba(120, 140, 155, .4); }
+.running { border-left-color: var(--cyan); background: rgba(0, 150, 255, .06); }
+.success { border-left-color: #2fd47a; }
+.compensated { border-left-color: #f0a500; }
+.failed { border-left-color: #ff5f6d; }
+.skipped { border-left-color: rgba(120, 140, 155, .25); opacity: .55; }
+
+.stepHead {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.stepIndex {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--cyan);
+}
+
+.stepName {
+  flex: 1 1 auto;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(14px, 1.8vw, 17px);
+  font-weight: 700;
+  letter-spacing: .07em;
+  color: var(--text);
+}
+
+.stepStatus {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  color: var(--cyan-soft);
+}
+
+.stepDesc {
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
+  text-wrap: pretty;
+}
+
+/* ===== TRANSACTION ROWS ===== */
+
+.txRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(0, 190, 230, .14);
+  flex-wrap: wrap;
+}
+
+.txLabel, .txLabelComp {
+  flex: 0 0 auto;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  padding: 3px 9px;
+  border-radius: 3px;
+}
+
+.txLabel {
+  color: #2fd47a;
+  border: 1px solid rgba(47, 212, 122, .4);
+}
+
+.txLabelComp {
+  color: #f0a500;
+  border: 1px solid rgba(240, 165, 0, .4);
+}
+
+.txHash {
+  flex: 1 1 220px;
+  min-width: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text);
+  word-break: break-all;
+  opacity: .85;
+}
+
+.txLink {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border: 1px solid rgba(0, 220, 255, .4);
+  border-radius: 3px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--cyan);
+  text-decoration: none;
+}
+
+.txLink:hover { background: var(--cyan); color: var(--bg-deep); }
+
+.stepError {
+  margin-top: 10px;
+  padding: 10px 13px;
+  border-left: 2px solid #ff5f6d;
+  background: rgba(255, 95, 109, .07);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #ffb3ba;
+}
+
+/* ===== OUTCOME ===== */
+/* Contains flow IDs and dynamic content — stays Share Tech Mono. */
+
+.outcomeOk, .outcomeComp, .outcomeBad {
+  padding: 20px 22px;
+  border-radius: 5px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  line-height: 1.75;
+  margin-bottom: var(--sp3);
+}
+
+.outcomeOk {
+  border: 1px solid rgba(47, 212, 122, .4);
+  background: rgba(47, 212, 122, .07);
+  color: var(--text);
+}
+
+.outcomeComp {
+  border: 1px solid rgba(240, 165, 0, .4);
+  background: rgba(240, 165, 0, .07);
+  color: var(--text);
+}
+
+.outcomeBad {
+  border: 1px solid rgba(255, 95, 109, .4);
+  background: rgba(255, 95, 109, .07);
+  color: #ffb3ba;
+}
+
+.outcomeOk strong, .outcomeComp strong, .outcomeBad strong {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  letter-spacing: .1em;
+}
+
+/* ===== DISCLAIMER ===== */
+
+.disclaimer {
+  margin: var(--sp4) 0 0;
+  padding-top: 22px;
+  border-top: 1px solid rgba(0, 190, 230, .16);
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--cyan-soft);
+  max-width: 76ch;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
+  text-wrap: pretty;
+}
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 640px) {
+  .container { padding: var(--sp6) var(--side); }
+  .panel { padding: 4px 18px 20px; }
+  .controlRow { flex-direction: column; gap: 10px; }
+  .controlLabel { flex: 1 1 auto; padding-top: 0; }
+  .btn, .btnGhost { width: 100%; }
+  .segmented { width: 100%; }
+  .segOn, .segOff { flex: 1 1 calc(50% - 3px); }
+  .step { padding: 18px 16px; }
+  .txRow { flex-direction: column; align-items: flex-start; }
+  .txLink { width: 100%; text-align: center; }
+}
+
+/* ===== TOKEN ACCOUNTS (v2) ===== */
+
+.verify {
+  background: rgba(0, 10, 28, .88);
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-radius: 6px;
+  padding: 22px 28px 16px;
+  position: relative;
+  margin-bottom: var(--sp4);
+}
+
+.verify::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 14px; height: 14px;
+  border-top: 2px solid rgba(0, 220, 255, .65);
+  border-left: 2px solid rgba(0, 220, 255, .65);
+}
+
+.verify::after {
+  content: '';
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 14px; height: 14px;
+  border-bottom: 2px solid rgba(0, 220, 255, .65);
+  border-right: 2px solid rgba(0, 220, 255, .65);
+}
+
+.verifyTitle {
+  margin: 0 0 6px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .18em;
+  color: var(--cyan-soft);
+}
+
+.verifyIntro {
+  margin: 0 0 12px;
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
+  text-wrap: pretty;
+}
+
+.verifyRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(0, 190, 230, .14);
+  flex-wrap: wrap;
+}
+
+.verifyKey {
+  flex: 0 0 190px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--cyan);
+}
+
+.verifyVal {
+  flex: 1 1 220px;
+  min-width: 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11.5px;
+  color: var(--text);
+  word-break: break-all;
+  opacity: .85;
+}
+
+.verifyBtn {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border: 1px solid rgba(0, 220, 255, .4);
+  border-radius: 3px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  color: var(--cyan);
+  text-decoration: none;
+}
+
+.verifyBtn:hover { background: var(--cyan); color: var(--bg-deep); }
+
+@media (max-width: 767px) {
+  .verify { padding: 18px 16px 12px; }
+  .verifyRow { flex-direction: column; align-items: flex-start; }
+  .verifyKey { flex: 0 0 auto; }
+}
+
+/* ===== HOW TO USE + VIDEO SLOT (2026-09-09) ===== */
+
+/* Demo video (2026-11-14). The recording is very wide (1980 × 960), so at
+   phone width it was only ~175 px tall. On phones it now runs the full
+   screen width and is zoomed on the middle of the recording, where the
+   demo panel is (2026-11-16: zoomed out a little so the whole panel fits). The full-screen button shows the whole
+   recording (object-fit: contain), so nothing is lost. */
+.demoVideo {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  background: #000;
+  border: 1px solid rgba(0, 190, 230, .4);
+  border-radius: 6px;
+}
+
+@media (max-width: 767px) {
+  .demoVideo {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);   /* edge to edge, past the page margins */
+    /* 2026-11-16: less zoom than the first (square) version, which cut
+       off the left edge of the demo panel — now the whole panel fits,
+       with a small margin on each side. */
+    height: 78vw;
+    max-height: 85vh;                /* phone turned sideways: still fits */
+    object-fit: cover;
+    object-position: 50% 50%;
+    border-left: 0;
+    border-right: 0;
+    border-radius: 0;
   }
-  const STEP_DESC_ZH = {
-    'RECORD AN ON-CHAIN APPROVAL FOR THIS OPERATION.': '為本次操作在鏈上記錄一筆審批。',
-    'MOVE THE ALLOCATION INTO THE ESCROW ACCOUNT. REAL SPL TOKEN TRANSFER.': '將分配額移入託管帳戶。真實的 SPL 代幣轉帳。',
-    'RELEASE THE ALLOCATION TO THE RECIPIENT. REAL SPL TOKEN TRANSFER.': '將分配額釋出給接收方。真實的 SPL 代幣轉帳。',
+}
+
+/* Full screen: always the whole recording, never cropped. */
+.demoVideo:fullscreen {
+  object-fit: contain;
+  width: 100%; max-width: 100%;
+  height: 100%; max-height: 100%;
+  margin: 0;
+  border: 0;
+}
+.demoVideo:-webkit-full-screen {
+  object-fit: contain;
+  width: 100%; max-width: 100%;
+  height: 100%; max-height: 100%;
+  margin: 0;
+  border: 0;
+}
+
+.videoPlaceholder,
+.videoLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 10, 28, .88);
+  border: 1px dashed rgba(0, 190, 230, .4);
+  border-radius: 6px;
+  padding: 32px 20px;
+  margin-bottom: var(--sp4);
+  text-align: center;
+  text-decoration: none;
+}
+
+.videoLink {
+  border-style: solid;
+  cursor: pointer;
+  transition: border-color .2s ease;
+}
+
+.videoLink:hover {
+  border-color: rgba(0, 220, 255, .8);
+}
+
+.videoPlay {
+  font-size: 28px;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.videoLabel {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(15px, 2vw, 19px);
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--text);
+}
+
+.videoNote {
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.howTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 16px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(16px, 2.2vw, 22px);
+  font-weight: 700;
+  letter-spacing: .08em;
+  color: var(--text);
+  margin: 18px 0 12px;
+}
+
+.howSteps {
+  margin: 4px 0 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 767px) {
+  .howSteps { grid-template-columns: 1fr; }
+}
+
+.howCard {
+  border: 1px solid rgba(0, 190, 230, .3);
+  border-left: 3px solid rgba(0, 220, 255, .65);
+  border-radius: 5px;
+  background: rgba(0, 10, 28, .75);
+  padding: 13px 14px;
+}
+
+.howCardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 25, 50, .9);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 9px;
+}
+
+.howCardNum {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .1em;
+  color: var(--cyan);
+}
+
+.howCardTitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 14px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(14px, 1.7vw, 15.5px);
+  letter-spacing: .06em;
+  color: var(--text);
+}
+
+.howCardText {
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 14px; /* fallback: old WeChat X5, no clamp() */
+  font-size: clamp(14px, 1.5vw, 15px);
+  line-height: 1.55;
+  color: var(--text-muted);
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
+  -webkit-hyphens: none;
+  hyphens: none;
+  overflow-wrap: break-word;
+  text-wrap: pretty;
+}
+
+.howNote {
+  font-family: 'Saira Condensed', 'Share Tech', sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  border-left: 2px solid rgba(0, 220, 255, .38);
+  padding-left: 12px;
+  margin-bottom: 14px;
+  text-align: var(--para-align, justify);
+  text-justify: var(--para-justify, inter-word);
+  text-wrap: pretty;
+}
+
+/* ===== PHONES: flush edges, whole words, no hyphenation (2026-09-12 addendum 37 — step cards, justified card text) =====
+   Justified text on a phone-width column needs hyphenation to keep word gaps
+   small: the browser splits a long word at the line end with a hyphen, so both
+   edges stay flush. Requires the html lang attribute — already set to en-CA
+   in pages/_document.js. word-spacing pulls the base gap in slightly and the
+   hyphenate limits allow more break points, so stretched lines are rarer and
+   tighter. Old in-app browsers that cannot hyphenate fall back to justified
+   text with larger gaps. */
+@media (max-width: 767px) {
+  .subtitle,
+  .controlHint,
+  .stepDesc,
+  .verifyIntro,
+  .howNote,
+  .disclaimer {
+    text-align: var(--para-align, justify);
+    text-justify: var(--para-justify, inter-word);
+    -webkit-hyphens: none;
+    hyphens: none;
+    overflow-wrap: break-word;
+    word-spacing: -0.04em;
   }
-  // Other languages (2026-10-28): looked up in lib/locales by the English text.
-  const zhStepLabel = (t) => (isZh ? (t && STEP_LABEL_ZH[String(t).trim().toUpperCase()]) || t : tr(t, lang))
-  const zhStepDesc = (t) => (isZh ? (t && STEP_DESC_ZH[String(t).trim().toUpperCase()]) || t : tr(t, lang))
-  const LF = (obj) => pick(obj, lang)
+}
 
-  const [wallet, setWallet] = useState(null)
 
-  /* Demo video: in full screen, turn the phone to landscape (Android
-     Chrome and others that allow it; iPhone rotates by itself when the
-     phone is turned). Back to normal when full screen ends. */
-  const videoRef = useRef(null)
-  useEffect(() => {
-    const onFullscreen = () => {
-      const fs = document.fullscreenElement || document.webkitFullscreenElement
-      try {
-        const o = window.screen && window.screen.orientation
-        if (!o) return
-        if (fs && fs === videoRef.current && typeof o.lock === 'function') {
-          const p = o.lock('landscape')
-          if (p && typeof p.catch === 'function') p.catch(() => {})
-        } else if (!fs && typeof o.unlock === 'function') {
-          o.unlock()
-        }
-      } catch (e) { /* not supported — fine */ }
-    }
-    document.addEventListener('fullscreenchange', onFullscreen)
-    document.addEventListener('webkitfullscreenchange', onFullscreen)
-    return () => {
-      document.removeEventListener('fullscreenchange', onFullscreen)
-      document.removeEventListener('webkitfullscreenchange', onFullscreen)
-    }
-  }, [])
-  const [busy, setBusy] = useState(false)
-  const [steps, setSteps] = useState(initSteps(STEPS))
-  const [flowState, setFlowState] = useState(FLOW_STATE.IDLE)
-  const [flowId, setFlowId] = useState(null)
-  const [failAt, setFailAt] = useState(0)
-  const [message, setMessage] = useState('')
-  const [isError, setIsError] = useState(false)
-  const [accounts, setAccounts] = useState(null)
-  const [setupSigs, setSetupSigs] = useState([])
-  const [balances, setBalances] = useState(null)
-  const [runHistory, setRunHistory] = useState([])
-
-  // Saved runs: load once from this browser, then save after every change.
-  // (Loaded after the page appears, so the server-built page and the browser
-  // page always match.)
-  const historyLoaded = useRef(false)
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY)
-      const saved = raw ? JSON.parse(raw) : []
-      if (Array.isArray(saved) && saved.length) setRunHistory(saved)
-    } catch (e) { /* storage blocked or unreadable: start empty */ }
-    historyLoaded.current = true
-  }, [])
-  useEffect(() => {
-    if (!historyLoaded.current) return
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(runHistory.slice(-MAX_SAVED_RUNS)))
-    } catch (e) { /* storage full or blocked: the page keeps working */ }
-  }, [runHistory])
-
-  function clearRuns() {
-    if (typeof window !== 'undefined' && !window.confirm(L(T3.confirmClear))) return
-    setRunHistory([])
-    try { window.localStorage.removeItem(STORAGE_KEY) } catch (e) {}
+/* Chinese, tablet and desktop: remove the narrow width cap so short
+   intro text runs on one line instead of leaving a few characters on a
+   second line. (The cap was sized for English; Chinese characters are
+   twice as wide as the "ch" unit, so it cut Chinese lines too early.) */
+@media (min-width: 768px) {
+  :global(html[lang^="zh"]) .subtitle,
+  :global(html[lang^="zh"]) .disclaimer {
+    max-width: none;
   }
-
-  function getProvider() {
-    if (typeof window === 'undefined') return null
-    if (window.phantom && window.phantom.solana && window.phantom.solana.isPhantom) {
-      return window.phantom.solana
-    }
-    if (window.solana && window.solana.isPhantom) return window.solana
-    return null
-  }
-
-  function say(text, error) {
-    setMessage(text)
-    setIsError(Boolean(error))
-  }
-
-  async function connect() {
-    goFull()
-    const provider = getProvider()
-    if (!provider) {
-      say(L(T3.msgNoPhantom), true)
-      return
-    }
-    try {
-      const res = await provider.connect()
-      setWallet(res.publicKey.toString())
-      say(L(T3.msgConnected), false)
-    } catch (e) {
-      say(L(T3.msgCancelled), true)
-    }
-  }
-
-  async function disconnect() {
-    const provider = getProvider()
-    if (provider) { try { await provider.disconnect() } catch (e) {} }
-    setWallet(null)
-    setAccounts(null)
-    setSetupSigs([])
-    setBalances(null)
-    reset()
-  }
-
-  // Read all three account balances and return a snapshot
-  async function snapshotBalances(acc) {
-    if (!acc) return null
-    try {
-      const web3 = await import('@solana/web3.js')
-      const connection = new web3.Connection(RPC, 'confirmed')
-      const [a, b, c] = await Promise.all([
-        readBalance(web3, connection, acc.ownerAta),
-        readBalance(web3, connection, acc.escrowAta),
-        readBalance(web3, connection, acc.recipientAta),
-      ])
-      return { owner: a, escrow: b, recipient: c }
-    } catch (e) {
-      return null
-    }
-  }
-
-  // Export every run in this session as a text file - no copying signatures by hand.
-  // The log itself stays in English: it is a technical verification artifact
-  // (signatures, Solscan, step IDs) shared with developers and reviewers.
-  function exportLog() {
-    if (runHistory.length === 0) return
-
-    const L2 = []
-    L2.push('COSMOS Flow v2 — Run Log')
-    L2.push('Network: Solana devnet')
-    L2.push('Wallet: ' + (wallet || (runHistory[runHistory.length - 1] || {}).wallet || 'not connected'))
-    if (accounts) {
-      L2.push('Mint: ' + accounts.mint)
-      L2.push('Owner account: ' + accounts.ownerAta)
-      L2.push('Escrow account: ' + accounts.escrowAta)
-      L2.push('Recipient account: ' + accounts.recipientAta)
-    }
-    L2.push('Exported: ' + new Date().toISOString())
-    L2.push('')
-
-    runHistory.forEach((r) => {
-      L2.push('---')
-      L2.push('Run ' + String(r.run).padStart(2, '0') + ' | ' + r.time + ' | ' + r.injection)
-      L2.push('Flow ID: ' + r.flowId)
-      if (r.wallet) L2.push('Wallet: ' + r.wallet)
-      if (r.mint) L2.push('Mint: ' + r.mint)
-      L2.push('Result: ' + r.outcome)
-      if (r.balancesBefore) {
-        L2.push('Before: owner ' + r.balancesBefore.owner +
-               ' / escrow ' + r.balancesBefore.escrow +
-               ' / recipient ' + r.balancesBefore.recipient)
-      }
-      if (r.balancesAfter) {
-        L2.push('After:  owner ' + r.balancesAfter.owner +
-               ' / escrow ' + r.balancesAfter.escrow +
-               ' / recipient ' + r.balancesAfter.recipient +
-               (r.balanceReturned ? '   <- returned to start' : ''))
-      }
-      const c = runCounts(r)
-      const chk = runCheck(r)
-      L2.push('Check:  ' + c.executed + ' executed, ' + c.compensated + ' compensated, ' +
-              c.tx + ' transactions, balance check ' +
-              (chk === true ? 'PASS' : chk === false ? 'FAIL' : 'N/A'))
-      r.steps.forEach((st, i) => {
-        if (st.executed) L2.push('  Step ' + (i + 1) + ' executed:    ' + st.executed)
-        if (st.compensated) L2.push('  Step ' + (i + 1) + ' compensated: ' + st.compensated)
-        if (!st.executed && !st.compensated) L2.push('  Step ' + (i + 1) + ': ' + st.status)
-      })
-      L2.push('')
-    })
-
-    const total = runHistory.length
-    const done = runHistory.filter((r) => r.outcome === FLOW_STATE.COMPLETED).length
-    const comp = runHistory.filter((r) => r.outcome === FLOW_STATE.FAILED_COMPENSATED).length
-    const bad = runHistory.filter((r) => r.outcome === FLOW_STATE.FAILED_INCOMPLETE).length
-    const txs = runHistory.reduce((n, r) =>
-      n + r.steps.filter((st) => st.executed).length +
-          r.steps.filter((st) => st.compensated).length, 0)
-    const kept = runHistory.filter((r) => runCheck(r) === true).length
-    const checked = runHistory.filter((r) => runCheck(r) !== null).length
-
-    L2.push('========================================')
-    L2.push('SUMMARY')
-    L2.push('Total runs:                  ' + total)
-    L2.push('Completed successfully:      ' + done)
-    L2.push('Failed and compensated:      ' + comp)
-    L2.push('Compensation failures:       ' + bad)
-    L2.push('Total on-chain transactions: ' + txs)
-    L2.push('Balance integrity:           ' + kept + '/' + checked + ' runs matched the expected state')
-    L2.push('========================================')
-
-    saveFile(L2.join('\n'), 'cosmos-flow-run-log-' + new Date().toISOString().slice(0, 10) + '.txt',
-      'text/plain;charset=utf-8')
-  }
-
-  // Every saved run as a CSV spreadsheet (2026-10-03): one row per run,
-  // opens in Excel, Google Sheets or Numbers.
-  function exportCsv() {
-    if (runHistory.length === 0) return
-    const q = (v) => {
-      const t = v === null || v === undefined ? '' : String(v)
-      return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t
-    }
-    const head = [
-      'run', 'time_utc', 'flow_id', 'wallet', 'mint', 'failure_injected', 'result',
-      'steps_executed', 'steps_compensated', 'onchain_transactions',
-      'owner_before', 'escrow_before', 'recipient_before',
-      'owner_after', 'escrow_after', 'recipient_after', 'balance_check',
-      'step1_executed_sig', 'step1_compensated_sig',
-      'step2_executed_sig', 'step2_compensated_sig',
-      'step3_executed_sig', 'step3_compensated_sig',
-    ]
-    const rows = runHistory.map((r) => {
-      const c = runCounts(r)
-      const chk = runCheck(r)
-      const b = r.balancesBefore || {}
-      const a = r.balancesAfter || {}
-      const sig = (i, k) => (r.steps[i] && r.steps[i][k]) || ''
-      return [
-        r.run, r.time, r.flowId, r.wallet || '', r.mint || '', r.injection, r.outcome,
-        c.executed, c.compensated, c.tx,
-        b.owner, b.escrow, b.recipient, a.owner, a.escrow, a.recipient,
-        chk === true ? 'PASS' : chk === false ? 'FAIL' : 'N/A',
-        sig(0, 'executed'), sig(0, 'compensated'),
-        sig(1, 'executed'), sig(1, 'compensated'),
-        sig(2, 'executed'), sig(2, 'compensated'),
-      ].map(q).join(',')
-    })
-    saveFile('\uFEFF' + [head.join(',')].concat(rows).join('\r\n'),
-      'cosmos-flow-runs-' + new Date().toISOString().slice(0, 10) + '.csv',
-      'text/csv;charset=utf-8')
-  }
-
-  async function refreshBalances(acc) {
-    if (!acc) return
-    try {
-      const web3 = await import('@solana/web3.js')
-      const connection = new web3.Connection(RPC, 'confirmed')
-      const [a, b, c] = await Promise.all([
-        readBalance(web3, connection, acc.ownerAta),
-        readBalance(web3, connection, acc.escrowAta),
-        readBalance(web3, connection, acc.recipientAta),
-      ])
-      setBalances({ owner: a, escrow: b, recipient: c })
-    } catch (e) {
-      setBalances(null)
-    }
-  }
-
-  async function doSetup() {
-    const provider = getProvider()
-    if (!provider || !wallet) { say(L(T3.msgConnectFirst), true); return }
-
-    setBusy(true)
-    say(L(T3.msgCreating), false)
-
-    try {
-      const web3 = await import('@solana/web3.js')
-      const spl = await import('@solana/spl-token')
-      const connection = new web3.Connection(RPC, 'confirmed')
-      const owner = new web3.PublicKey(wallet)
-
-      const balance = await connection.getBalance(owner)
-      if (balance < 20000000) {
-        say(L(T3.msgNoSolSetup), true)
-        setBusy(false)
-        return
-      }
-
-      const acc = await runSetup({
-        web3, spl, connection, provider, owner,
-        onNotice: (m) => say(m, false),
-      })
-      setAccounts(acc)
-      setSetupSigs(acc.signatures)
-      await refreshBalances(acc)
-      say(LF(T3.msgSetupDone)(INITIAL_SUPPLY), false)
-    } catch (e) {
-      console.error('SETUP ERROR — full object:', e)
-      console.error('SETUP ERROR — message:', e && e.message)
-      console.error('SETUP ERROR — logs:', e && e.logs)
-      say(L(T3.msgSetupFailed) + (e && e.message ? e.message : readableError(e)), true)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  function reset() {
-    setSteps(initSteps(STEPS))
-    setFlowState(FLOW_STATE.IDLE)
-    setFlowId(null)
-    say('', false)
-  }
-
-  async function start() {
-    const provider = getProvider()
-    if (!provider || !wallet) { say(L(T3.msgConnectFirst), true); return }
-    if (!accounts) { say(L(T3.msgSetupFirst), true); return }
-
-    setBusy(true)
-    reset()
-
-    const id = newFlowId()
-    setFlowId(id)
-    say(L(T3.msgRunning), false)
-
-    try {
-      const web3 = await import('@solana/web3.js')
-      const spl = await import('@solana/spl-token')
-      const connection = new web3.Connection(RPC, 'confirmed')
-      const pubkey = new web3.PublicKey(wallet)
-
-      const balance = await connection.getBalance(pubkey)
-      if (balance < 5000000) {
-        say(L(T3.msgNoSolFees), true)
-        setBusy(false)
-        return
-      }
-
-      // Check the token balance before transferring: stop early rather than
-      // failing at step two and wasting fees
-      const before = await snapshotBalances(accounts)
-      if (before && Number(before.owner) < FLOW_AMOUNT) {
-        say(LF(T3.msgLowTokens)(before.owner, FLOW_AMOUNT), true)
-        setBusy(false)
-        return
-      }
-
-      const result = await runFlow({
-        web3,
-        connection,
-        provider,
-        pubkey,
-        stepDefs: STEPS,
-        ctx: { flowId: id, amount: FLOW_AMOUNT, accounts, spl },
-        onNotice: (m) => say(m, false),
-        failAt,
-        onUpdate: (s, fs) => { setSteps(s); setFlowState(fs) },
-      })
-
-      const after = await snapshotBalances(accounts)
-      setBalances(after)
-
-      setRunHistory((h) => h.concat([{
-        run: h.length ? Number(h[h.length - 1].run || h.length) + 1 : 1,
-        flowId: id,
-        time: new Date().toISOString(),
-        injection: failAt === 0 ? 'NONE' : 'FAIL AT ' + failAt,
-        outcome: result.flowState,
-        balancesBefore: before,
-        balancesAfter: after,
-        balanceReturned: before && after
-          ? (before.owner === after.owner &&
-             before.escrow === after.escrow &&
-             before.recipient === after.recipient)
-          : null,
-        balanceCheck: checkBalances(result.flowState, before, after, FLOW_AMOUNT),
-        amount: FLOW_AMOUNT,
-        wallet: wallet,
-        mint: accounts ? accounts.mint : null,
-        steps: result.steps.map((st) => ({
-          id: st.id,
-          label: st.label,
-          status: st.status,
-          executed: st.signature || null,
-          compensated: st.compensationSignature || null,
-        })),
-      }]))
-
-      if (result.flowState === FLOW_STATE.COMPLETED) {
-        say(L(T3.msgDone), false)
-      } else if (result.flowState === FLOW_STATE.FAILED_COMPENSATED) {
-        say(L(T3.msgComp), false)
-      } else {
-        say(L(T3.msgBad), true)
-      }
-    } catch (e) {
-      say(L(T3.msgUnexpected) + readableError(e), true)
-      setFlowState(FLOW_STATE.IDLE)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  // ---------- full screen (the whole website page, nav included) ----------
-  const [isFull, setIsFull] = useState(false)
-  const [fullOk, setFullOk] = useState(true)
-  const fsElement = () =>
-    typeof document !== 'undefined' && (document.fullscreenElement || document.webkitFullscreenElement)
-
-  useEffect(() => {
-    const standalone = window.navigator.standalone === true ||
-      window.matchMedia('(display-mode: standalone)').matches ||
-      window.matchMedia('(display-mode: fullscreen)').matches
-    // Already running full screen from a home-screen icon: no button needed.
-    if (standalone) setFullOk(false)
-    const sync = () => setIsFull(!!fsElement())
-    document.addEventListener('fullscreenchange', sync)
-    document.addEventListener('webkitfullscreenchange', sync)
-    return () => {
-      document.removeEventListener('fullscreenchange', sync)
-      document.removeEventListener('webkitfullscreenchange', sync)
-    }
-  }, [])
-
-  // When CONNECT starts full screen, bring the wallet / test panel to the top
-  // of the screen. Automatic full screen (first tap anywhere) keeps the
-  // visitor where they are.
-  const scrollToPanel = useRef(false)
-  useEffect(() => {
-    if (!isFull || !scrollToPanel.current) return
-    scrollToPanel.current = false
-    const t = setTimeout(() => {
-      const el = runRef.current
-      if (!el) return
-      const top = el.getBoundingClientRect().top + window.scrollY - 90
-      window.scrollTo({ top: Math.max(0, top), behavior: 'instant' })
-    }, 250)
-    return () => clearTimeout(t)
-  }, [isFull])
-
-  // Full screen belongs to the demo page only: when the visitor leaves /flow
-  // (menu link, logo, back button), full screen is switched off so the other
-  // pages open normally.
-  useEffect(() => {
-    const leave = () => {
-      const el = document.fullscreenElement || document.webkitFullscreenElement
-      const exit = document.exitFullscreen || document.webkitExitFullscreen
-      if (el && exit) { try { exit.call(document) } catch (e) { /* ignore */ } }
-    }
-    /* If a full-screen request is still finishing while the visitor leaves,
-       switch it off as soon as it lands. */
-    let leaving = false
-    const start = () => { leaving = true; leave() }
-    const late = () => { if (leaving) leave() }
-    Router.events.on('routeChangeStart', start)
-    document.addEventListener('fullscreenchange', late)
-    document.addEventListener('webkitfullscreenchange', late)
-    return () => {
-      Router.events.off('routeChangeStart', start)
-      leave()
-      setTimeout(() => {
-        leave()
-        document.removeEventListener('fullscreenchange', late)
-        document.removeEventListener('webkitfullscreenchange', late)
-      }, 1500)
-    }
-  }, [])
-
-  // First click / tap / key press anywhere on the page -> full screen.
-  useEffect(() => {
-    if (!fullOk) return
-    let done = false
-    const events = ['pointerup', 'touchend', 'keydown', 'click']
-    const first = (e) => {
-      if (done) return
-      /* Clicking a link (menu, logo, footer) leaves the page — no full screen. */
-      const t = e && e.target
-      if (t && t.closest && t.closest('a, nav, header, footer')) return
-      done = true
-      events.forEach((ev) => window.removeEventListener(ev, first, true))
-      if (e && e.type === 'keydown' && e.key === 'Escape') return
-      if (!fsElement()) requestFull(false)
-    }
-    events.forEach((ev) => window.addEventListener(ev, first, true))
-    return () => events.forEach((ev) => window.removeEventListener(ev, first, true))
-  }, [fullOk])
-
-  // Keep the screen awake while in full screen (booths, recordings).
-  useEffect(() => {
-    if (!isFull || !('wakeLock' in navigator)) return
-    let lock = null
-    navigator.wakeLock.request('screen').then((l) => { lock = l }).catch(() => {})
-    return () => { try { if (lock) lock.release() } catch (e) {} }
-  }, [isFull])
-
-  // Full screen covers the WHOLE page (menu included, 2026-09-24).
-  // Automatic: browsers only allow full screen after the visitor's first
-  // action, so the page goes full screen on the first click, tap or key
-  // press anywhere on it (no button needed). CONNECT also switches it on.
-  // If the visitor leaves full screen (Esc, or the phone's back gesture), it is not
-  // forced back on until they click CONNECT. The page is always shown
-  // larger and bolder (style block at the end of the page).
-  const runRef = useRef(null)
-
-  const msgRef = useRef(null)
-  useEffect(() => {
-    const run = () => { try { fitMessage(msgRef.current) } catch (e) {} }
-    run()
-    let timer
-    const onResize = () => { clearTimeout(timer); timer = setTimeout(run, 150) }
-    window.addEventListener('resize', onResize)
-    const fonts = document.fonts
-    if (fonts) {
-      if (fonts.ready) fonts.ready.then(run)
-      if (fonts.load) fonts.load("400 13px 'Share Tech Mono'").then(run).catch(() => {})
-      if (fonts.addEventListener) fonts.addEventListener('loadingdone', onResize)
-    }
-    return () => {
-      window.removeEventListener('resize', onResize)
-      clearTimeout(timer)
-      if (fonts && fonts.removeEventListener) fonts.removeEventListener('loadingdone', onResize)
-    }
-  }, [message])
-
-  const requestFull = (showHint) => {
-    const el = document.documentElement
-    const req = el.requestFullscreen || el.webkitRequestFullscreen
-    if (!req) { if (showHint) say(L(T3.fullIphone), false); return }
-    try {
-      const p = req.call(el, { navigationUI: 'hide' })
-      if (p && p.catch) p.catch(() => { if (showHint) say(L(T3.fullIphone), false) })
-    } catch (e) {
-      if (showHint) say(L(T3.fullIphone), false)
-    }
-  }
-
-  // Called at the very start of CONNECT / RUN SETUP / EXECUTE FLOW clicks.
-  const goFull = () => {
-    if (!fullOk) return
-    if (fsElement()) return
-    scrollToPanel.current = true
-    requestFull(false)
-  }
-
-  const exitFull = () => {
-    const exit = document.exitFullscreen || document.webkitExitFullscreen
-    if (exit && fsElement()) exit.call(document)
-  }
-
-  const short = wallet ? wallet.slice(0, 4) + '...' + wallet.slice(-4) : ''
-  const txUrl = (sig) => EXPLORER + '/tx/' + sig + '?cluster=' + CLUSTER
-
-  return (
-    <>
-      <Head>
-        <title>{L(T3.metaTitle)}</title>
-        <meta name="description" content={L(T3.metaDesc)} />
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-        <meta name="robots" content="index, follow" />
-        <meta name="theme-color" content="#000005" />
-        <link rel="canonical" href="https://cosmosledgerlabs.com/flow" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      </Head>
-
-      <Nav />
-
-      <main className={styles.page} data-full="1">
-        <div className={styles.container}>
-
-          <header className={styles.header}>
-            <div className={styles.badge}>SOLANA DEVNET</div>
-            <h1 className={styles.title}>{L(T3.title)}</h1>
-            <p className={styles.subtitle}>{L(T3.sub1)}</p>
-            <p className={styles.subtitle}>{L(T3.sub2)}</p>
-            <p className={styles.subtitle}>{L(T3.sub3)}</p>
-          </header>
-
-          {/* ---------- demo video ---------- */}
-          {/* 2026-11-14: on phones the video is shown much larger — full
-              screen width and square, zoomed on the demo panel in the middle
-              of the recording (Flow.module.css → .demoVideo). The full-screen
-              button shows the whole recording and turns the phone to
-              landscape where the browser allows it. */}
-          {VIDEO_FILE ? (
-            <video
-              ref={videoRef}
-              className={styles.demoVideo}
-              src={VIDEO_FILE}
-              controls
-              playsInline
-              preload="metadata"
-            />
-          ) : VIDEO_URL ? (
-            <a
-              className={styles.videoLink}
-              href={VIDEO_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <span className={styles.videoPlay}>▶</span>
-              <span className={styles.videoLabel}>{L(T3.videoWatch)}</span>
-              <span className={styles.videoNote}>{L(T3.videoOpens)}</span>
-            </a>
-          ) : (
-            <div className={styles.videoPlaceholder}>
-              <span className={styles.videoPlay}>▶</span>
-              <span className={styles.videoLabel}>{L(T3.videoSoon)}</span>
-              <span className={styles.videoNote}>{L(T3.videoSoonNote)}</span>
-            </div>
-          )}
-
-          {/* ---------- how to use ---------- */}
-          <section className={styles.panel}>
-            <div className={styles.howTitle}>{L(T3.howTitle)}</div>
-            <div className={styles.howSteps}>
-              {[
-                [T3.howT1, T3.how1], [T3.howT2, T3.how2], [T3.howT3, T3.how3], [T3.howT4, T3.how4],
-                [T3.howT5, T3.how5], [T3.howT6, T3.how6], [T3.howT7, T3.how7], [T3.howT8, T3.how8],
-              ].map(([t, d], i) => (
-                <div className={styles.howCard} key={i}>
-                  <div className={styles.howCardHead}>
-                    <span className={styles.howCardNum}>{String(i + 1).padStart(2, '0')}</span>
-                    <span className={styles.howCardTitle}>{L(t)}</span>
-                  </div>
-                  <div className={styles.howCardText}>{L(d)}</div>
-                </div>
-              ))}
-            </div>
-            <div className={styles.howNote}>{L(T3.howNote)}</div>
-          </section>
-
-          {/* ---------- demo area: controls -> steps -> result ---------- */}
-          <div
-            ref={runRef}
-          >
-          <div>
-
-          {/* ---------- controls ---------- */}
-          <section className={styles.panel}>
-            <div className={styles.controlRow}>
-              <div className={styles.controlLabel}>{L(T3.ctlWallet)}</div>
-              <div className={styles.controlBody}>
-                {wallet ? (
-                  <button className={styles.btnGhost} onClick={disconnect}>{short}</button>
-                ) : (
-                  <button className={styles.btn} onClick={connect}>{L(T3.btnConnect)}</button>
-                )}
-              </div>
-            </div>
-
-            <div className={styles.divider} />
-
-            <div className={styles.controlRow}>
-              <div className={styles.controlLabel}>{L(T3.ctlSetup)}</div>
-              <div className={styles.controlBody}>
-                {accounts ? (
-                  <button className={styles.btnGhost} onClick={doSetup} disabled={busy}>
-                    {L(T3.btnResetup)}
-                  </button>
-                ) : (
-                  <button className={styles.btn} onClick={doSetup} disabled={!wallet || busy}>
-                    {L(T3.btnSetup)}
-                  </button>
-                )}
-                <div className={styles.controlHint}>
-                  {LF(T3.setupHint)(INITIAL_SUPPLY)}
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.divider} />
-
-            <div className={styles.controlRow}>
-              <div className={styles.controlLabel}>{L(T3.ctlInjection)}</div>
-              <div className={styles.controlBody}>
-                <div className={styles.segmented}>
-                  {[0, 1, 2, 3].map((v) => (
-                    <button
-                      key={v}
-                      className={failAt === v ? styles.segOn : styles.segOff}
-                      onClick={() => setFailAt(v)}
-                      disabled={busy}
-                    >
-                      {v === 0 ? L(T3.injNone) : LF(T3.injAt)(v)}
-                    </button>
-                  ))}
-                </div>
-                <div className={styles.controlHint}>{L(T3.injHint)}</div>
-              </div>
-            </div>
-
-            <div className={styles.divider} />
-
-            <div className={styles.controlRow}>
-              <div className={styles.controlLabel}>{L(T3.ctlRun)}</div>
-              <div className={styles.controlBody}>
-                <button
-                  className={styles.btn}
-                  onClick={start}
-                  disabled={!wallet || busy}
-                >
-                  {busy ? L(T3.btnRunning) : L(T3.btnExecute)}
-                </button>
-                {flowId ? (
-                  <div className={styles.controlHint}>{L(T3.flowIdLabel)}{flowId}</div>
-                ) : null}
-              </div>
-            </div>
-
-            {runHistory.length > 0 ? (
-              <>
-                <div className={styles.divider} />
-                <div className={styles.controlRow}>
-                  <div className={styles.controlLabel}>{L(T3.ctlLog)}</div>
-                  <div className={styles.controlBody}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      <button className={styles.btnGhost} onClick={exportLog} disabled={busy}>
-                        {L(T3.btnLog)} ({runHistory.length})
-                      </button>
-                      <button className={styles.btnGhost} onClick={exportCsv} disabled={busy}>
-                        {L(T3.btnCsv)}
-                      </button>
-                      <button className={styles.btnGhost} onClick={clearRuns} disabled={busy}>
-                        {L(T3.btnClear)}
-                      </button>
-                    </div>
-                    {runHistory.slice(-5).reverse().map((r) => {
-                      const c = runCounts(r)
-                      const chk = runCheck(r)
-                      return (
-                        <div key={r.flowId + '-' + r.run} className={styles.controlHint}>
-                          {isZh
-                            ? L(T3.sumRun) + ' ' + String(r.run).padStart(2, '0') + ' 次'
-                            : L(T3.sumRun) + ' ' + String(r.run).padStart(2, '0')}
-                          {' · '}{r.injection === 'NONE' ? L(T3.injNone) : (lang !== 'en' ? LF(T3.injAt)(r.injection.replace('FAIL AT ', '')) : r.injection)}
-                          {' · '}{L(T3.sumExec)} {c.executed}
-                          {' · '}{L(T3.sumComp)} {c.compensated}
-                          {' · '}{c.tx} {L(T3.sumTx)}
-                          {' · '}<span style={{ color: chk === true ? '#3ddc84' : chk === false ? '#ff6b6b' : 'inherit' }}>
-                            {chk === true ? L(T3.sumPass) : chk === false ? L(T3.sumFail) : L(T3.sumNA)}
-                          </span>
-                        </div>
-                      )
-                    })}
-                    {runHistory.length > 5 ? (
-                      <div className={styles.controlHint}>{LF(T3.sumOlder)(runHistory.length - 5)}</div>
-                    ) : null}
-                    <div className={styles.controlHint}>{L(T3.logHint)}</div>
-                  </div>
-                </div>
-              </>
-            ) : null}
-
-            {message ? (
-              <div ref={msgRef} className={isError ? styles.msgError : styles.msgOk}>{message}</div>
-            ) : null}
-          </section>
-
-          {/* ---------- accounts and balances ---------- */}
-          {accounts ? (
-            <section className={styles.verify}>
-              <h2 className={styles.verifyTitle}>{L(T3.vTitle)}</h2>
-              <p className={styles.verifyIntro}>{LF(T3.vIntro)(FLOW_AMOUNT)}</p>
-
-              <div className={styles.verifyRow}>
-                <span className={styles.verifyKey}>{L(T3.vMint)}</span>
-                <span className={styles.verifyVal}>{accounts.mint}</span>
-                <a className={styles.verifyBtn}
-                   href={EXPLORER + '/token/' + accounts.mint + '?cluster=' + CLUSTER}
-                   target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
-              </div>
-
-              <div className={styles.verifyRow}>
-                <span className={styles.verifyKey}>
-                  {L(T3.vOwner)}{balances ? ' — ' + balances.owner : ''}
-                </span>
-                <span className={styles.verifyVal}>{accounts.ownerAta}</span>
-                <a className={styles.verifyBtn}
-                   href={EXPLORER + '/account/' + accounts.ownerAta + '?cluster=' + CLUSTER}
-                   target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
-              </div>
-
-              <div className={styles.verifyRow}>
-                <span className={styles.verifyKey}>
-                  {L(T3.vEscrow)}{balances ? ' — ' + balances.escrow : ''}
-                </span>
-                <span className={styles.verifyVal}>{accounts.escrowAta}</span>
-                <a className={styles.verifyBtn}
-                   href={EXPLORER + '/account/' + accounts.escrowAta + '?cluster=' + CLUSTER}
-                   target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
-              </div>
-
-              <div className={styles.verifyRow}>
-                <span className={styles.verifyKey}>
-                  {L(T3.vRecipient)}{balances ? ' — ' + balances.recipient : ''}
-                </span>
-                <span className={styles.verifyVal}>{accounts.recipientAta}</span>
-                <a className={styles.verifyBtn}
-                   href={EXPLORER + '/account/' + accounts.recipientAta + '?cluster=' + CLUSTER}
-                   target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
-              </div>
-
-              {setupSigs.map((s2) => (
-                <div key={s2.signature} className={styles.verifyRow}>
-                  <span className={styles.verifyKey}>{s2.label}</span>
-                  <span className={styles.verifyVal}>{s2.signature}</span>
-                  <a className={styles.verifyBtn} href={txUrl(s2.signature)}
-                     target="_blank" rel="noopener noreferrer">{L(T3.vView)}</a>
-                </div>
-              ))}
-            </section>
-          ) : null}
-
-          {/* ---------- steps ---------- */}
-          <section className={styles.steps}>
-            {steps.map((s, i) => (
-              <div key={s.id} className={`${styles.step} ${styles[STATUS_CLASS[s.status]]}`}>
-                <div className={styles.stepHead}>
-                  <span className={styles.stepIndex}>{'0' + (i + 1)}</span>
-                  <span className={styles.stepName}>{zhStepLabel(s.label)}</span>
-                  <span className={styles.stepStatus}>{L(STATUS_LABEL[s.status])}</span>
-                </div>
-
-                <div className={styles.stepDesc}>{zhStepDesc(s.description)}</div>
-
-                {s.signature ? (
-                  <div className={styles.txRow}>
-                    <span className={styles.txLabel}>{L(T3.txExecuted)}</span>
-                    <span className={styles.txHash}>{s.signature}</span>
-                    <a className={styles.txLink} href={txUrl(s.signature)} target="_blank" rel="noopener noreferrer">{L(T3.txVerify)}</a>
-                  </div>
-                ) : null}
-
-                {s.compensationSignature ? (
-                  <div className={styles.txRow}>
-                    <span className={styles.txLabelComp}>{L(T3.txCompensated)}</span>
-                    <span className={styles.txHash}>{s.compensationSignature}</span>
-                    <a className={styles.txLink} href={txUrl(s.compensationSignature)} target="_blank" rel="noopener noreferrer">{L(T3.txVerify)}</a>
-                  </div>
-                ) : null}
-
-                {s.error ? (
-                  <div className={styles.stepError}>{s.error}</div>
-                ) : null}
-              </div>
-            ))}
-          </section>
-
-          {/* ---------- outcome ---------- */}
-          {flowState === FLOW_STATE.COMPLETED ? (
-            <div className={styles.outcomeOk}>
-              <strong>{L(T3.outOkStrong)}</strong>{L(T3.outOk)}
-            </div>
-          ) : null}
-
-          {flowState === FLOW_STATE.FAILED_COMPENSATED ? (
-            <div className={styles.outcomeComp}>
-              <strong>{L(T3.outCompStrong)}</strong>{L(T3.outComp)}
-            </div>
-          ) : null}
-
-          {flowState === FLOW_STATE.FAILED_INCOMPLETE ? (
-            <div className={styles.outcomeBad}>
-              <strong>{L(T3.outBadStrong)}</strong>{L(T3.outBad)}
-            </div>
-          ) : null}
-
-          <p className={styles.disclaimer}>{L(T3.disclaimer)}</p>
-
-          </div>
-          </div>
-          {/* ---------- end full-screen area ---------- */}
-
-        </div>
-      </main>
-
-      {/* Larger and bolder display, /flow page only, always on (2026-09-24).
-          Larger screens are scaled up more; phones get bolder text only. */}
-      <style jsx global>{`
-        main[data-full] p,
-        main[data-full] li,
-        main[data-full] span,
-        main[data-full] div,
-        main[data-full] a {
-          font-weight: 700;
-        }
-        main[data-full] h1,
-        main[data-full] h2,
-        main[data-full] h3,
-        main[data-full] button {
-          font-weight: 800;
-        }
-        @media (min-width: 768px) {
-          main[data-full] { zoom: 1.15; }
-        }
-        @media (min-width: 1280px) {
-          main[data-full] { zoom: 1.3; }
-        }
-        @media (min-width: 1920px) {
-          main[data-full] { zoom: 1.45; }
-        }
-      `}</style>
-
-      <Footer />
-    </>
-  )
 }
