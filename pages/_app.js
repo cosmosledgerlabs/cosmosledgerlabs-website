@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 import ErrorBoundary from '../components/ErrorBoundary'
 import { onUserLangChange } from '../lib/i18n'
-import ReferralBanner, { PROMO_HEIGHT } from '../components/ReferralBanner'
+import ReferralBanner, { promoWrapClass } from '../components/ReferralBanner'
 
 // Referral bar pinned to the top of public pages (2026-11-13).
 // Set PROMO_ON to false to remove it everywhere. Internal pages, the
@@ -147,7 +147,12 @@ export default function App({ Component, pageProps }) {
     const html = document.documentElement
     if (!showPromo) { html.style.scrollPaddingTop = ''; return undefined }
     const mq = window.matchMedia('(max-width: 767px)')
-    const apply = () => { html.style.scrollPaddingTop = ((mq.matches ? 96 : 64) + PROMO_HEIGHT) + 'px' }
+    const apply = () => {
+      // 2026-11-24: the bar's own height (the notice is taller on phones)
+      const bar = document.querySelector('[data-promo-bar]')
+      const h = bar ? bar.offsetHeight : 0
+      html.style.scrollPaddingTop = ((mq.matches ? 96 : 64) + h) + 'px'
+    }
     apply()
     window.addEventListener('resize', apply)
     return () => { window.removeEventListener('resize', apply); html.style.scrollPaddingTop = '' }
@@ -240,7 +245,7 @@ export default function App({ Component, pageProps }) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
-      <div style={{ '--promo-h': showPromo ? PROMO_HEIGHT + 'px' : '0px' }}>
+      <div className={showPromo ? promoWrapClass : undefined}>
         {showPromo && <ReferralBanner />}
         <Component {...pageProps} />
       </div>
